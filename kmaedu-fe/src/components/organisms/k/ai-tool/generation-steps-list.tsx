@@ -35,14 +35,15 @@ function StatusDot({ state }: { state: GenerationStepState }) {
       </span>
     );
   }
-  return (
-    <span
-      className={cn(
-        "h-7 w-7 shrink-0 rounded-full border-2 bg-white",
-        state === "active" ? "border-brand" : "border-hairline",
-      )}
-    />
-  );
+  if (state === "active") {
+    // the spinner lives in the status slot: it turns into the check once the step is done
+    return (
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white">
+        <LoaderCircle className="h-7 w-7 animate-spin text-brand motion-reduce:animate-none" strokeWidth={2.25} />
+      </span>
+    );
+  }
+  return <span className="h-7 w-7 shrink-0 rounded-full border-2 border-hairline bg-white" />;
 }
 
 /** The real stages of the running job (from `GET /ai/job/:id`): done ones checked, the current one highlighted. */
@@ -58,7 +59,7 @@ export function GenerationStepsList({ itemWord }: { itemWord: string }) {
       </p>
       <ol className="flex flex-col gap-1.5">
         {steps.map((step) => {
-          const Icon = step.state === "active" ? LoaderCircle : (STEP_ICONS[step.key] ?? Sparkle);
+          const Icon = STEP_ICONS[step.key] ?? Sparkle;
           return (
             <li
               key={step.key}
@@ -73,7 +74,7 @@ export function GenerationStepsList({ itemWord }: { itemWord: string }) {
                 <Icon
                   className={cn(
                     "h-[22px] w-[22px] shrink-0",
-                    step.state === "active" && "animate-spin text-brand motion-reduce:animate-none",
+                    step.state === "active" && "text-brand",
                     step.state === "done" && "text-ink",
                     step.state === "pending" && "text-body",
                   )}
