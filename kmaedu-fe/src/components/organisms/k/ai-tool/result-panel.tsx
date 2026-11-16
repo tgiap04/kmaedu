@@ -1,9 +1,9 @@
 import { forwardRef } from "react";
 import type { ReactNode } from "react";
 import { SaveAll } from "lucide-react";
-import ModernLoader from "@/components/antd/modern-loader";
 import { cn } from "@/lib/utils";
 import { aiPanelClass } from "./ai-tool-ui";
+import { GenerationStepsList } from "./generation-steps-list";
 
 interface ResultPanelProps {
   icon: ReactNode;
@@ -53,26 +53,11 @@ export const ResultPanel = forwardRef<HTMLElement, ResultPanelProps>(({ icon, ti
 });
 ResultPanel.displayName = "ResultPanel";
 
-/** Animated "AI is working" state shared by both generators. */
+/** "AI is working" state shared by both generators: the job's real stages, as ai-service reports them. */
 export function ResultLoading({ itemWord }: { itemWord: string }) {
   return (
-    <div className="flex min-h-[360px] flex-1 flex-col items-center justify-center gap-4 rounded-2xl bg-surface-soft px-6">
-      <ModernLoader
-        words={[
-          "Đang phân tích tài liệu…",
-          "Trích xuất thông tin…",
-          "Hiểu nội dung…",
-          "Xác minh dữ liệu…",
-          "Suy nghĩ về chủ đề…",
-          `Lập kế hoạch ${itemWord}…`,
-          `Tạo ${itemWord}…`,
-          "Đánh giá đáp án…",
-          "Kiểm tra độ chính xác…",
-          "Đảm bảo tính đa dạng…",
-          "Tối ưu hóa định dạng…",
-          "Chuẩn bị để hiển thị…",
-        ]}
-      />
+    <div className="flex min-h-[360px] flex-1 flex-col items-center justify-center gap-6 rounded-2xl bg-surface-soft px-6 py-8">
+      <GenerationStepsList itemWord={itemWord} />
       <p className="max-w-md text-center text-[13px] leading-relaxed text-body">
         {`Lần đầu dùng một tài liệu mới, hệ thống cần phân tích toàn bộ nội dung để ${itemWord} không trùng ý và phủ đủ các chủ đề, có thể mất vài phút. Bạn có thể chuyển sang trang khác, việc tạo vẫn tiếp tục.`}
       </p>

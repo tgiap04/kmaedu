@@ -8,6 +8,7 @@ import { aiApi, RecentUpload } from "@/apis/aiApi";
 import { storeCache } from "@/lib/storeCache";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { MODEL_UNAVAILABLE_MESSAGE } from "@/types/ai";
+import type { GenerationProgress } from "@/lib/generation-progress/generation-steps";
 
 interface FileInfo {
   name: string;
@@ -82,6 +83,8 @@ interface PendingJobInfo {
 // Shared job state for both stores
 interface JobState {
   currentJobId: string | null;
+  /** Newest stage ai-service reported for the current job (null until the first report). */
+  jobProgress: GenerationProgress | null;
   pendingJobInfo: PendingJobInfo | null;
   showPendingJobDialog: boolean;
   setCurrentJobId: (
@@ -97,10 +100,11 @@ interface JobState {
 
 export const useJobStore = create<JobState>((set, get) => ({
   currentJobId: null,
+  jobProgress: null,
   pendingJobInfo: null,
   showPendingJobDialog: false,
   setCurrentJobId: (jobId, expectedResultType) => {
-    set({ currentJobId: jobId });
+    set({ currentJobId: jobId, jobProgress: null });
     persistPendingJob(jobId, expectedResultType);
   },
   cancelCurrentJob: async () => {
@@ -115,7 +119,7 @@ export const useJobStore = create<JobState>((set, get) => ({
       } catch (error) {
         console.error("Error canceling job:", error);
       }
-      set({ currentJobId: null });
+      set({ currentJobId: null, jobProgress: null });
       persistPendingJob(null);
     }
   },
@@ -189,7 +193,7 @@ export const useJobStore = create<JobState>((set, get) => ({
       jobId,
       // onProgress
       (progress) => {
-        console.log(`📊 Resumed job ${jobId} progress: ${progress}%`);
+        console.log(`📊 Resumed job ${jobId} stage: ${progress.stage}`);
       },
       // onSuccess
       (result) => {
@@ -286,14 +290,17 @@ const getGenerationResultType = (result: any): GenerationResultType | null => {
   return null;
 };
 
-const JOB_POLL_INTERVAL_MS = 10_000;
-const JOB_POLL_MAX_ATTEMPTS = 360;
+// Every 3 s so the stage list follows ai-service closely (20 req/min, under the gateway's 100/min);
+// 1200 attempts * 3 s = 60 minutes, the same ceiling as content's job watchdog.
+const JOB_POLL_INTERVAL_MS = 3_000;
+const JOB_POLL_MAX_ATTEMPTS = 1_200;
+// A 429/5xx/network blip must not drop a live job: give up only after this many in a row.
+const JOB_POLL_MAX_CONSECUTIVE_ERRORS = 3;
 
 // Helper function for polling job status
-// Extended timeout: 360 attempts * 10s = 60 minutes (AI provider can be slow for large jobs)
 const pollJobStatus = async (
   jobId: string,
-  onProgress: (progress: number) => void,
+  onProgress: (progress: GenerationProgress) => void,
   onSuccess: (result: any) => void,
   onError: (error: string) => void,
   pollInterval: number = JOB_POLL_INTERVAL_MS,
@@ -301,6 +308,7 @@ const pollJobStatus = async (
   expectedResultType?: GenerationResultType,
 ) => {
   let attempts = 0;
+  let consecutiveErrors = 0;
 
   const poll = async () => {
     // Check if job was canceled
@@ -311,8 +319,13 @@ const pollJobStatus = async (
 
     try {
       const jobStatus = await aiApi.getJobStatus(jobId);
+      consecutiveErrors = 0;
+      // The job may have been cancelled or replaced while the request was in flight.
+      if (useJobStore.getState().currentJobId !== jobId) return;
 
       if (jobStatus.progress) {
+        // shared with the loading panel, whichever generator started the job
+        useJobStore.setState({ jobProgress: jobStatus.progress });
         onProgress(jobStatus.progress);
       }
 
@@ -343,6 +356,12 @@ const pollJobStatus = async (
         onError("Timeout: Job took too long to complete");
       }
     } catch (error) {
+      consecutiveErrors++;
+      attempts++;
+      if (consecutiveErrors < JOB_POLL_MAX_CONSECUTIVE_ERRORS && attempts < maxAttempts) {
+        setTimeout(poll, pollInterval * 2);
+        return;
+      }
       useJobStore.getState().setCurrentJobId(null);
       onError(error instanceof Error ? error.message : "Unknown error");
     }
@@ -634,7 +653,7 @@ export const useFlashcardGeneratorStore = create<FlashcardGeneratorState>(
           jobId,
           // onProgress
           (progress) => {
-            console.log(`📊 Job ${jobId} progress: ${progress}%`);
+            console.log(`📊 Job ${jobId} stage: ${progress.stage}`);
           },
           // onSuccess
           (result) => {

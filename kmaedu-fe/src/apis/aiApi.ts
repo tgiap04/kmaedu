@@ -1,5 +1,6 @@
 import { api } from "./api";
 import { Quizz, Flashcard } from "@/types/exam";
+import type { GenerationProgress } from "@/lib/generation-progress/generation-steps";
 
 interface RecentUploadQuizSummary {
   id: string;
@@ -105,7 +106,7 @@ export const aiApi = {
   ): Promise<{
     jobId: string;
     status: string;
-    progress?: number;
+    progress?: GenerationProgress;
     message?: string;
     error?: string;
     result?: {
