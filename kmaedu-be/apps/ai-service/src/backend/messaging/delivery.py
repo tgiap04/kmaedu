@@ -37,6 +37,8 @@ class HandlerContext:
     envelope: env.Envelope
     conn: asyncpg.Connection
     retry_count: int
+    defer_count: int = 0  # how many times this delivery was deferred (``DeferEventError``)
+    pool: asyncpg.Pool | None = None  # for writes that must commit even if the handler rolls back
 
     @property
     def is_last_attempt(self) -> bool:
@@ -45,3 +47,12 @@ class HandlerContext:
 
 
 Handler = Callable[[HandlerContext], Awaitable[None]]
+
+
+def header_int(message: Delivery, name: str) -> int:
+    """Read a non-negative integer header (``x-retry-count``, ``x-defer-count``); anything else counts as 0."""
+    raw = (message.headers or {}).get(name, 0)
+    try:
+        return max(0, int(raw))
+    except (TypeError, ValueError):
+        return 0

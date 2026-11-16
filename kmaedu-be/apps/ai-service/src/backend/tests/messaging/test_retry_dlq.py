@@ -76,3 +76,43 @@ async def test_garbage_body_is_dead_lettered(pool):
     message = FakeMessage("document.uploaded", b"{not json", {}, None)
     await consumer.handle_message(message)
     assert message.nacked and message.requeued is False
+
+
+async def test_a_deferred_event_goes_back_through_the_retry_tier_without_spending_a_retry(pool):
+    from src.backend.messaging.errors import DeferEventError
+
+    seen = []
+
+    async def handler(ctx: HandlerContext) -> None:
+        seen.append(ctx.defer_count)
+        raise DeferEventError("GRAPH_BUILDING")
+
+    publisher = FakePublisher()
+    consumer = EventConsumer(pool, {"document.uploaded": handler}, publisher)
+    message = message_for("document.uploaded", {}, headers={"x-retry-count": 2, "x-defer-count": 3})
+    await consumer.handle_message(message)
+
+    assert message.acked and not message.nacked and seen == [3]
+    (again,) = publisher.published
+    assert again["exchange"] == "ai.retry" and again["routing_key"] == "document.uploaded"
+    assert again["headers"] == {"x-retry-count": 2, "x-defer-count": 4}
+    assert await pool.fetchval("SELECT count(*) FROM processed_events") == 0  # the redelivery runs again
+
+
+async def test_a_deferral_that_cannot_be_republished_is_requeued(pool):
+    from src.backend.messaging.errors import DeferEventError
+
+    async def handler(ctx: HandlerContext) -> None:
+        raise DeferEventError("GRAPH_BUILDING")
+
+    message = message_for("document.uploaded", {})
+    await EventConsumer(pool, {"document.uploaded": handler}, FakePublisher(fail=True)).handle_message(message)
+    assert message.nacked and message.requeued is True and not message.acked
+
+
+async def test_a_transient_retry_keeps_the_defer_count_so_the_wait_budget_is_not_reset(pool):
+    publisher = FakePublisher()
+    consumer = EventConsumer(pool, {"document.uploaded": failing(ConnectionError("db"))}, publisher)
+    message = message_for("document.uploaded", {}, headers={"x-retry-count": 1, "x-defer-count": 39})
+    await consumer.handle_message(message)
+    assert publisher.published[0]["headers"] == {"x-retry-count": 2, "x-defer-count": 39}

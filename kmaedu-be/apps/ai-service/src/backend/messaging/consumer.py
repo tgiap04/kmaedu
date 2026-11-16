@@ -4,7 +4,7 @@ One queue ``ai.events``, ONE retry tier (``ai.retry.30s``, TTL 30 s, DLX back to
 ``ai.events``) and ``ai.dlq``. A delivery is settled exactly once: acked on
 success, re-published to the retry exchange (then acked) on a transient failure,
 or nacked without requeue (-> DLQ) when the failure is permanent or the retry
-budget (``MAX_RETRIES``) is spent.
+budget (``MAX_RETRIES``) is spent; ``DeferEventError`` re-queues with ``x-defer-count`` + 1.
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ import aio_pika
 import asyncpg
 
 from . import envelope as env
-from .delivery import Delivery, Handler, HandlerContext
-from .errors import PermanentEventError
+from .delivery import Delivery, Handler, HandlerContext, header_int
+from .errors import DeferEventError, PermanentEventError
 from .publisher import AmqpPublisher, Publisher
 from .topology import (
     ALLOWED_SOURCES,
@@ -117,7 +117,8 @@ class EventConsumer:
         """Process one delivery; always settles it (ack, retry-then-ack, or nack to DLQ)."""
         routing_key = message.routing_key or ""
         envelope: env.Envelope | None = None
-        retries = _retry_count(message)
+        retries = header_int(message, "x-retry-count")
+        defers = header_int(message, "x-defer-count")
         self._inflight += 1
         self._idle.clear()
         try:
@@ -125,10 +126,12 @@ class EventConsumer:
             handler = self._handlers.get(routing_key)
             if handler is None:
                 raise PermanentEventError("NO_HANDLER", f"No handler for {routing_key}")
-            await self._run(handler, envelope, retries)
+            await self._run(handler, envelope, retries, defers)
             await self._settle(message.ack())
+        except DeferEventError as exc:
+            await self._defer(message, envelope, retries, defers, exc)
         except Exception as exc:
-            await self._fail(message, envelope, retries, exc)
+            await self._fail(message, envelope, retries, exc, defers)
         finally:
             self._inflight -= 1
             if self._inflight == 0:
@@ -146,41 +149,47 @@ class EventConsumer:
             raise PermanentEventError("SOURCE_MISMATCH", "Envelope disagrees with routing key")
         return envelope
 
-    async def _run(self, handler: Handler, envelope: env.Envelope, retries: int) -> None:
+    async def _run(self, handler: Handler, envelope: env.Envelope, retries: int, defers: int = 0) -> None:
         async with self._pool.acquire() as conn, conn.transaction():
             status = await conn.execute(INSERT_PROCESSED_SQL, self._service, envelope.id)
             if status.endswith(" 0"):
                 logger.debug("Duplicate delivery skipped id=%s", envelope.id)
                 return
-            await handler(HandlerContext(envelope, conn, retries))
+            await handler(HandlerContext(envelope, conn, retries, defers, self._pool))
+
+    async def _defer(
+        self, message: Delivery, envelope: env.Envelope | None, retries: int, defers: int, exc: DeferEventError
+    ) -> None:
+        """Send the delivery back through the 30 s retry tier without spending a retry."""
+        logger.info("Deferring %s reason=%s defer=%d", _ref(message, envelope), exc.code, defers + 1)
+        await self._requeue(message, envelope, {"x-retry-count": retries, "x-defer-count": defers + 1})
 
     async def _fail(
-        self,
-        message: Delivery,
-        envelope: env.Envelope | None,
-        retries: int,
-        exc: Exception,
+        self, message: Delivery, envelope: env.Envelope | None, retries: int, exc: Exception, defers: int = 0
     ) -> None:
-        key = message.routing_key or ""
-        ref = f"id={envelope.id if envelope else message.message_id} type={envelope.type if envelope else key}"
+        ref = _ref(message, envelope)
         if isinstance(exc, PermanentEventError) or retries >= MAX_RETRIES:
             reason = exc.code if isinstance(exc, PermanentEventError) else "RETRIES_EXHAUSTED"
             logger.error("Dead-lettering %s reason=%s", ref, reason, exc_info=reason == "RETRIES_EXHAUSTED")
             await self._settle(message.nack(requeue=False))
             return
         logger.warning("Retry %d/%d %s: %s", retries + 1, MAX_RETRIES, ref, exc)
+        # keep the defer count: a transient error must not restart a bounded wait
+        await self._requeue(message, envelope, {"x-retry-count": retries + 1, **({"x-defer-count": defers} if defers else {})})
+
+    async def _requeue(self, message: Delivery, envelope: env.Envelope | None, headers: dict[str, int]) -> None:
+        """Publish a copy to the 30 s retry tier, then ack; if unconfirmed, give the original back."""
         try:
             await self.publisher.publish(
                 self._names.retry_exchange,
-                key,
+                message.routing_key or "",
                 message.body,
                 message_id=message.message_id,
-                headers={"x-retry-count": retries + 1},
+                headers=headers,
                 content_type=message.content_type or "application/json",
             )
         except Exception as publish_exc:
-            # The retry copy was not confirmed: give the original back to the queue.
-            logger.error("Retry publish failed %s: %s", ref, publish_exc)
+            logger.error("Retry publish failed %s: %s", _ref(message, envelope), publish_exc)
             await self._settle(message.nack(requeue=True))
             return
         await self._settle(message.ack())
@@ -194,9 +203,5 @@ class EventConsumer:
             logger.warning("Could not settle delivery: %s", exc)
 
 
-def _retry_count(message: Delivery) -> int:
-    raw = (message.headers or {}).get("x-retry-count", 0)
-    try:
-        return int(raw)
-    except (TypeError, ValueError):
-        return 0
+def _ref(message: Delivery, envelope: env.Envelope | None) -> str:
+    return f"id={envelope.id if envelope else message.message_id} type={envelope.type if envelope else message.routing_key}"

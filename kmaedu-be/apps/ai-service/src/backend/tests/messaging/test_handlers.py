@@ -191,7 +191,7 @@ QUIZ = {"question": "q", "options": ["a", "b", "c", "d"], "answer": "a", "source
 
 
 def generation(monkeypatch, result=None, error=None):
-    async def fake(kind, storage_id, count, narrow, keyword, model):
+    async def fake(kind, storage_id, count, narrow, keyword, model, **_hooks):
         if error:
             raise error
         assert (kind, storage_id, count, narrow, keyword, model) == (REQUEST["type"], "st1", 2, False, None, None)
@@ -264,7 +264,7 @@ async def test_generation_result_over_512kb_fails_the_job(pool, monkeypatch):
 async def test_flashcard_generation_populates_flashcards(pool, monkeypatch):
     card = {"question": "q", "answer": "a", "sourcePageRange": "2"}
 
-    async def fake(kind, *args):
+    async def fake(kind, *args, **_hooks):
         return {"success": True, "flashcards": [card], "count": 1}
 
     monkeypatch.setattr(gh, "_generate", fake)

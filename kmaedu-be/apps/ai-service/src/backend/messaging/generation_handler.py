@@ -12,6 +12,8 @@ also reported (``ai.document.processed`` / ``ai.document.failed``) so
 document-service learns it. A failure retrying cannot fix fails the job at once
 with the processing reason; a transient one is retried like any other.
 
+While the document's graph is still being built the job is deferred (``graph_wait``).
+
 Without a ``downloadUrl`` the caller ensures processing first (document-service
 ``EnsureProcessed`` re-emits ``document.uploaded``); until chunks appear the
 event is retried by the consumer, and on the last attempt the job fails with
@@ -27,7 +29,11 @@ from typing import Any
 
 from . import document_handlers, outbox
 from .delivery import HandlerContext
-from .errors import PermanentEventError
+from .errors import DeferEventError, PermanentEventError
+from .graph_wait import (  # noqa: F401  (max_graph_defers: tests and callers read it here)
+    max_graph_defers,
+    wait_for_graph,
+)
 from .payload import optional_text, required_text
 
 logger = logging.getLogger(__name__)
@@ -37,8 +43,6 @@ MAX_ITEMS = 50
 TRANSIENT_MODEL_CODES = frozenset({"MODEL_UNAVAILABLE", "MODEL_INSUFFICIENT_VRAM", "MODEL_RUNTIME_ERROR"})
 # Model codes reported as the job's failure reason; any other failure is GENERATION_FAILED.
 MODEL_FAILURE_CODES = TRANSIENT_MODEL_CODES | {"MODEL_CONFIGURATION_ERROR"}
-
-
 class DocumentNotReadyError(Exception):
     """The document has no chunks yet (processing pending or failed)."""
 
@@ -86,7 +90,19 @@ def _inline_processor(ctx: HandlerContext, storage_id: str, url: str, mimetype: 
             logger.error("Inline processing of %s failed (%s): %s", storage_id, reason, exc)
             await outbox.add(ctx.conn, "ai.document.failed", {"storageId": storage_id, "reason": reason}, corr)
             raise InlineProcessingFailedError(reason) from exc
-        await outbox.add(ctx.conn, "ai.document.processed", {"storageId": storage_id, "pageCount": pages}, corr)
+        # Own transaction: the chunks are already stored, so a later deferral or transient
+        # failure of the job (which rolls ctx.conn back) must not lose this report. A rerun
+        # finds the chunks and never processes (or reports) the document again.
+        payload = {"storageId": storage_id, "pageCount": pages}
+        if ctx.pool is None:
+            await outbox.add(ctx.conn, "ai.document.processed", payload, corr)
+            return
+        try:
+            async with ctx.pool.acquire() as conn, conn.transaction():
+                await outbox.add(conn, "ai.document.processed", payload, corr)
+        except Exception as exc:  # better tied to the job than lost: a rerun never reports again
+            logger.warning("Own-transaction report for %s failed (%s); writing it with the job", storage_id, exc)
+            await outbox.add(ctx.conn, "ai.document.processed", payload, corr)
 
     return run
 
@@ -99,6 +115,7 @@ async def _generate(
     keyword: str | None,
     model: str | None,
     inline: InlineProcessor | None = None,
+    wait_for_graph: Callable[[], Awaitable[None]] | None = None,
 ):
     from src.backend.services.generation_service import (
         GenerateFlashcardRequest,
@@ -111,6 +128,8 @@ async def _generate(
         if inline is None:
             raise DocumentNotReadyError(storage_id)
         await inline()
+    if wait_for_graph is not None:
+        await wait_for_graph()
     common = {"user_storage_id": storage_id, "is_narrow_search": narrow, "keyword": keyword, "model_type": model}
     if kind == "quiz":
         return await generation_service.generate_quiz(GenerateQuizRequest(num_questions=count, **common))
@@ -141,7 +160,9 @@ async def on_generation_requested(ctx: HandlerContext) -> None:
     extra = {"inline": _inline_processor(ctx, storage_id, *download)} if download else {}
 
     try:
-        result = await _generate(kind, storage_id, count, narrow, keyword, model, **extra)
+        result = await _generate(
+            kind, storage_id, count, narrow, keyword, model, wait_for_graph=lambda: wait_for_graph(ctx, storage_id), **extra
+        )
     except InlineProcessingFailedError as exc:
         await _fail(ctx, job_id, exc.reason)
         return
@@ -150,6 +171,8 @@ async def on_generation_requested(ctx: HandlerContext) -> None:
             raise
         await _fail(ctx, job_id, "DOCUMENT_NOT_PROCESSED")
         return
+    except DeferEventError:
+        raise  # waiting for the graph is never a failure, even on the last retry
     except Exception as exc:  # unexpected: transient until the retry budget is spent
         if not ctx.is_last_attempt:
             raise

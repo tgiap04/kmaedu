@@ -11,9 +11,10 @@ import asyncpg
 from .store import vector_literal
 from .types import EntityHit, TextUnitHit
 
-__all__ = ["EntityHit", "TextUnitHit", "index_status", "text_units_for_entities", "top_entities_by_vector"]
+__all__ = ["EntityHit", "TextUnitHit", "index_building", "index_status", "text_units_for_entities", "top_entities_by_vector"]
 
 INDEX_STATUS_SQL = 'SELECT "status" FROM "GraphIndex" WHERE "userStorageId" = $1'
+INDEX_STATE_SQL = 'SELECT "status", "attempts" FROM "GraphIndex" WHERE "userStorageId" = $1'
 
 TOP_ENTITIES_SQL = """
 SELECT id, name, type, description, rank, embedding <=> $2::extensions.vector AS distance
@@ -37,6 +38,19 @@ LIMIT $3
 async def index_status(pool: asyncpg.Pool, storage_id: str) -> str | None:
     """Return the ``GraphIndex`` status (PENDING/BUILDING/READY/FAILED), or ``None`` without a row."""
     return await pool.fetchval(INDEX_STATUS_SQL, storage_id)
+
+
+async def index_building(conn: asyncpg.Pool | asyncpg.Connection, storage_id: str) -> str | None:
+    """Return the status while a graph is still on its way (PENDING, BUILDING, or FAILED with retries left), else ``None``."""
+    from .store import MAX_ATTEMPTS
+
+    row = await conn.fetchrow(INDEX_STATE_SQL, storage_id)
+    if row is None:
+        return None
+    status, attempts = row["status"], row["attempts"]
+    if status in ("PENDING", "BUILDING") or (status == "FAILED" and attempts < MAX_ATTEMPTS):
+        return status
+    return None
 
 
 async def top_entities_by_vector(pool: asyncpg.Pool, storage_id: str, vector: list[float], k: int) -> list[EntityHit]:

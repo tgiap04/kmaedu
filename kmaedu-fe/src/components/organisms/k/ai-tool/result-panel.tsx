@@ -56,7 +56,7 @@ ResultPanel.displayName = "ResultPanel";
 /** Animated "AI is working" state shared by both generators. */
 export function ResultLoading({ itemWord }: { itemWord: string }) {
   return (
-    <div className="flex min-h-[360px] flex-1 items-center justify-center rounded-2xl bg-surface-soft px-6">
+    <div className="flex min-h-[360px] flex-1 flex-col items-center justify-center gap-4 rounded-2xl bg-surface-soft px-6">
       <ModernLoader
         words={[
           "Đang phân tích tài liệu…",
@@ -73,6 +73,9 @@ export function ResultLoading({ itemWord }: { itemWord: string }) {
           "Chuẩn bị để hiển thị…",
         ]}
       />
+      <p className="max-w-md text-center text-[13px] leading-relaxed text-body">
+        {`Lần đầu dùng một tài liệu mới, hệ thống cần phân tích toàn bộ nội dung để ${itemWord} không trùng ý và phủ đủ các chủ đề, có thể mất vài phút. Bạn có thể chuyển sang trang khác, việc tạo vẫn tiếp tục.`}
+      </p>
     </div>
   );
 }
