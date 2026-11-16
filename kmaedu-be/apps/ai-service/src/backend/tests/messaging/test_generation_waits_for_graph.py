@@ -16,6 +16,7 @@ from test_generation_inline_processing import (
 )
 
 from src.backend.messaging import generation_handler as gh
+from src.backend.messaging.graph_wait import max_graph_defers
 
 
 async def set_index(pool, status: str, sid: str = "st1", attempts: int = 0) -> None:
@@ -26,7 +27,8 @@ async def set_index(pool, status: str, sid: str = "st1", attempts: int = 0) -> N
 
 
 async def outbox_types(pool) -> list[str]:
-    return [json.loads(r["envelope"])["type"] for r in await pool.fetch("SELECT envelope FROM outbox_events ORDER BY seq")]
+    types = [json.loads(r["envelope"])["type"] for r in await pool.fetch("SELECT envelope FROM outbox_events ORDER BY seq")]
+    return [t for t in types if t != "ai.generation.progress"]  # progress has its own tests
 
 
 async def test_a_building_index_defers_the_job_through_the_retry_tier(pool, monkeypatch):
@@ -67,18 +69,18 @@ async def test_once_the_wait_budget_is_spent_the_job_generates_anyway(pool, monk
     fakes = Fakes(monkeypatch, chunks=True)
     await set_index(pool, "BUILDING")
     publisher = FakePublisher()
-    message = message_for(KEY, REQUEST, headers={"x-defer-count": gh.max_graph_defers()})
+    message = message_for(KEY, REQUEST, headers={"x-defer-count": max_graph_defers()})
     await consumer_for(pool, publisher).handle_message(message)
     assert fakes.generated == ["st1"] and publisher.published == []
 
 
 def test_the_wait_budget_follows_the_env(monkeypatch):
     monkeypatch.delenv("GRAPHRAG_GENERATION_WAIT_MINUTES", raising=False)
-    assert gh.max_graph_defers() == 40  # 20 minutes in 30 s hops
+    assert max_graph_defers() == 40  # 20 minutes in 30 s hops
     monkeypatch.setenv("GRAPHRAG_GENERATION_WAIT_MINUTES", "5")
-    assert gh.max_graph_defers() == 10
+    assert max_graph_defers() == 10
     monkeypatch.setenv("GRAPHRAG_GENERATION_WAIT_MINUTES", "0")
-    assert gh.max_graph_defers() == 0  # 0 = never wait
+    assert max_graph_defers() == 0  # 0 = never wait
 
 
 async def test_inline_processing_reports_the_document_even_when_the_job_is_deferred(pool, monkeypatch):

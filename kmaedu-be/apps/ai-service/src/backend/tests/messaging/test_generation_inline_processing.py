@@ -31,8 +31,9 @@ KEY = "content.generation.requested"
 
 
 async def outbox_events(pool) -> list[dict]:
+    """Outbox rows in order, without ``ai.generation.progress`` (covered by test_generation_progress)."""
     rows = await pool.fetch("SELECT envelope FROM outbox_events ORDER BY seq")
-    return [json.loads(r["envelope"]) for r in rows]
+    return [e for e in (json.loads(r["envelope"]) for r in rows) if e["type"] != "ai.generation.progress"]
 
 
 class Fakes:

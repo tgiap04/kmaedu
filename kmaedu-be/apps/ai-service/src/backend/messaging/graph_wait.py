@@ -11,6 +11,7 @@ import logging
 import math
 import os
 
+from . import progress
 from .delivery import HandlerContext
 from .errors import DeferEventError
 from .topology import RETRY_DELAY_MS
@@ -42,4 +43,5 @@ async def wait_for_graph(ctx: HandlerContext, storage_id: str) -> None:
         logger.info("[GRAPHRAG_GEN] wait for %s spent (%d deferrals, status=%s); generating now", storage_id, limit, status)
         return
     logger.info("[GRAPHRAG_GEN] waiting for the graph of %s status=%s defer=%d/%d", storage_id, status, ctx.defer_count + 1, limit)
+    await progress.report(progress.WAITING_GRAPH, waited=ctx.defer_count + 1, maxWaits=limit)
     raise DeferEventError("GRAPH_BUILDING")

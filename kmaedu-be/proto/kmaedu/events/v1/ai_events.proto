@@ -59,3 +59,21 @@ message AiGenerationFailed {
   string job_id = 1;
   string reason = 2;
 }
+
+// Payload (`data`) of `ai.generation.progress`: the stage a generation job is in.
+// Published by ai-service (best-effort, several per job); consumed by
+// content-service, which keeps the newest on `GenerationJob.progress` for
+// `GET /ai/job/:id`. Never terminal: completed/failed still settle the job.
+message AiGenerationProgress {
+  string job_id = 1;
+  // processing_document | waiting_graph | planning | generating | reviewing
+  string stage = 2;
+  // Epoch milliseconds at ai-service; an older report never replaces a newer one.
+  int64 at = 3;
+  // generating: model calls finished / planned.
+  optional int32 done = 4;
+  optional int32 total = 5;
+  // waiting_graph: deferrals so far / allowed.
+  optional int32 waited = 6;
+  optional int32 max_waits = 7;
+}

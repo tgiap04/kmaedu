@@ -10,9 +10,9 @@ presigned ``downloadUrl`` (+ ``mimetype``): the same download (SSRF guard) -> OC
 never depends on the OCR queue finishing first. The outcome of that processing is
 also reported (``ai.document.processed`` / ``ai.document.failed``) so
 document-service learns it. A failure retrying cannot fix fails the job at once
-with the processing reason; a transient one is retried like any other.
-
-While the document's graph is still being built the job is deferred (``graph_wait``).
+with the processing reason; a transient one is retried like any other. While the
+graph is still being built the job is deferred (``graph_wait``); stages go out as
+``ai.generation.progress`` (``progress``).
 
 Without a ``downloadUrl`` the caller ensures processing first (document-service
 ``EnsureProcessed`` re-emits ``document.uploaded``); until chunks appear the
@@ -27,13 +27,10 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from . import document_handlers, outbox
+from . import document_handlers, outbox, progress
 from .delivery import HandlerContext
 from .errors import DeferEventError, PermanentEventError
-from .graph_wait import (  # noqa: F401  (max_graph_defers: tests and callers read it here)
-    max_graph_defers,
-    wait_for_graph,
-)
+from .graph_wait import wait_for_graph
 from .payload import optional_text, required_text
 
 logger = logging.getLogger(__name__)
@@ -41,8 +38,9 @@ logger = logging.getLogger(__name__)
 MAX_INLINE_BYTES = 512 * 1024
 MAX_ITEMS = 50
 TRANSIENT_MODEL_CODES = frozenset({"MODEL_UNAVAILABLE", "MODEL_INSUFFICIENT_VRAM", "MODEL_RUNTIME_ERROR"})
-# Model codes reported as the job's failure reason; any other failure is GENERATION_FAILED.
-MODEL_FAILURE_CODES = TRANSIENT_MODEL_CODES | {"MODEL_CONFIGURATION_ERROR"}
+MODEL_FAILURE_CODES = TRANSIENT_MODEL_CODES | {"MODEL_CONFIGURATION_ERROR"}  # reported as the reason; else GENERATION_FAILED
+
+
 class DocumentNotReadyError(Exception):
     """The document has no chunks yet (processing pending or failed)."""
 
@@ -127,6 +125,7 @@ async def _generate(
     if not await ocr_service.get_document_chunks(storage_id):
         if inline is None:
             raise DocumentNotReadyError(storage_id)
+        await progress.report(progress.PROCESSING_DOCUMENT)
         await inline()
     if wait_for_graph is not None:
         await wait_for_graph()
@@ -159,6 +158,7 @@ async def on_generation_requested(ctx: HandlerContext) -> None:
     # Only passed when there is something to process from, so the plain path is unchanged.
     extra = {"inline": _inline_processor(ctx, storage_id, *download)} if download else {}
 
+    token = progress.current.set(progress.outbox_reporter(ctx.pool, job_id, ctx.envelope.correlationId) if ctx.pool else None)
     try:
         result = await _generate(
             kind, storage_id, count, narrow, keyword, model, wait_for_graph=lambda: wait_for_graph(ctx, storage_id), **extra
@@ -179,6 +179,8 @@ async def on_generation_requested(ctx: HandlerContext) -> None:
         logger.error("Generation job %s crashed: %s", job_id, exc, exc_info=True)
         await _fail(ctx, job_id, "GENERATION_ERROR")
         return
+    finally:
+        progress.current.reset(token)
 
     if not result.get("success"):
         code = result.get("error_code")

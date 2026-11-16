@@ -326,3 +326,32 @@ async def test_the_fallback_top_up_happens_once_even_if_it_repeats_again(env, po
     env.llm.hook = lambda call, items: [{**i, "question": "same"} for i in items]
     result = await quiz(3)
     assert result["count"] == 1 and len(env.llm.prompts) == 2  # the first "same", then no endless top-ups
+
+
+@pytest.fixture(name="stages")
+def stages_fixture():
+    from src.backend.messaging import progress
+
+    seen: list[tuple] = []
+
+    async def record(stage, extra):
+        seen.append((stage, extra.get("done"), extra.get("total")))
+
+    token = progress.current.set(record)
+    yield seen
+    progress.current.reset(token)
+
+
+async def test_graph_generation_reports_planning_each_finished_call_then_reviewing(env, pool, stages):
+    await seed_graph(pool, SID, COMMUNITIES)
+    await quiz(20)  # two calls
+    assert stages[0] == ("planning", None, None)
+    assert [s for s in stages if s[0] == "generating"] == [("generating", 0, 2), ("generating", 1, 2), ("generating", 2, 2)]
+    assert stages[-1][0] == "reviewing"
+
+
+async def test_fallback_generation_reports_the_same_stages(env, pool, stages):
+    await add_chunk(pool, SID, "c1", "1", "plain page 1")
+    await quiz(3)
+    assert [s[0] for s in stages] == ["planning", "generating", "generating", "reviewing"]
+    assert stages[2] == ("generating", 1, 1)

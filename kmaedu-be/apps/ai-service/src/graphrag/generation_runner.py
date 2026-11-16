@@ -19,6 +19,7 @@ from typing import Any
 import asyncpg
 
 from src import db
+from src.backend.messaging import progress
 from src.backend.services.ocr_service import DocumentChunk, ocr_service
 
 from . import reads
@@ -77,7 +78,8 @@ async def _slot_round(
         }
         for n, batch in enumerate(batches)
     ]
-    results = await _run(tasks, run_tasks)
+    # only the first round counts as "generating"; a top-up runs under "reviewing"
+    results = await _run(tasks if first_index else await progress.track_calls(tasks), run_tasks)
     items: list[dict[str, Any]] = []
     for result in results:
         batch = batches[result["chunk_index"] - first_index]
@@ -92,6 +94,7 @@ async def _graph_generation(
 ) -> Outcome:
     deduper = Deduper(embedder)
     raw, results = await _slot_round(batches, 0, kind, storage_id, run_batch, run_tasks, embedder)
+    await progress.report(progress.REVIEWING)
     kept, dropped = await deduper.add(raw)
     kept = kept[:total]
     topup = 0
@@ -128,7 +131,8 @@ async def _plain_round(
         {"chunk_index": first_index + n, "batch_index": 0, "runner": lambda c=chunk, s=size, i=first_index + n: run_batch(c, s, i, count)}
         for n, (chunk, size) in enumerate(calls)
     ]
-    results = await _run(tasks, run_tasks)
+    # only the first round counts as "generating"; a top-up runs under "reviewing"
+    results = await _run(tasks if first_index else await progress.track_calls(tasks), run_tasks)
     # Without slots a model-made ``concept`` means nothing: drop it so only question similarity dedupes.
     return strip_internal([item for result in results for item in result["items"]]), results
 
@@ -148,6 +152,7 @@ async def _fallback_generation(
             logger.info("[GRAPHRAG_GEN] keyword %r matched no chunk of %s; using the whole document", keyword, storage_id)
     deduper = Deduper(embedder)
     raw, results = await _plain_round(chunks, total, 0, max_items, run_batch, run_tasks)
+    await progress.report(progress.REVIEWING)
     kept, dropped = await deduper.add(raw)
     kept = kept[:total]
     topup = 0
@@ -173,6 +178,7 @@ async def run_generation(
 ) -> Outcome:
     """Generate ``total`` items of ``kind`` ("quiz" or "flashcard") for one document."""
     pool = pool or await db.get_pool()
+    await progress.report(progress.PLANNING)
     query_embedder, doc_embedder = _embedders()
     batches: list[SlotBatch] = []
     if await reads.index_status(pool, storage_id) == "READY":
