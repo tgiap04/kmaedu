@@ -38,8 +38,11 @@ x-ai-models: &ai-models
     GEMINI_EMBEDDING_MODEL: '${GEMINI_EMBEDDING_MODEL:-models/gemini-embedding-001}'
     # GraphRAG indexing/query (an empty GRAPHRAG_LLM_MODEL falls back to the AI2 default model).
     GRAPHRAG_LLM_MODEL: '${GRAPHRAG_LLM_MODEL:-Faye-AI}'
-    GRAPHRAG_CONCURRENCY: '${GRAPHRAG_CONCURRENCY:-16}'
-    GRAPHRAG_MAX_TOKENS: '${GRAPHRAG_MAX_TOKENS:-8192}'
+    GRAPHRAG_CONCURRENCY: '${GRAPHRAG_CONCURRENCY:-24}'
+    GRAPHRAG_MAX_TOKENS: '${GRAPHRAG_MAX_TOKENS:-16384}'
+    GRAPHRAG_REASONING_EFFORT: '${GRAPHRAG_REASONING_EFFORT:-low}'  # sent to AI2 on graph calls ("none" = omit)
+    GRAPHRAG_CALL_TIMEOUT_SECONDS: '${GRAPHRAG_CALL_TIMEOUT_SECONDS:-240}'  # total deadline per graph model call
+    GRAPHRAG_HEDGE_AFTER_SECONDS: '${GRAPHRAG_HEDGE_AFTER_SECONDS:-90}'  # a graph call still running after this gets one duplicate
     GRAPHRAG_MERGE_THRESHOLD: '${GRAPHRAG_MERGE_THRESHOLD:-0.92}'
     GRAPHRAG_BUILD_TIMEOUT_MINUTES: '${GRAPHRAG_BUILD_TIMEOUT_MINUTES:-40}'  # lease = this + 5 min
     GRAPHRAG_GENERATION_WAIT_MINUTES: '${GRAPHRAG_GENERATION_WAIT_MINUTES:-20}'  # quiz/flashcard jobs wait this long for a graph being built (0 = never)

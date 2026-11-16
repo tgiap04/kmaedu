@@ -13,6 +13,7 @@ import httpx
 
 from dotenv import load_dotenv
 
+from src.llm.ai2_sse import is_event_stream, parse_event_stream
 from src.llm.model_registry import (
     get_default_generation_model,
     get_embedding_model,
@@ -26,6 +27,9 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 DEFAULT_AI2_MAX_TOKENS = 8192
+# Retried statuses: rate limit, upstream errors and Cloudflare's origin errors (524 = no byte for ~100 s).
+AI2_MAX_CONNECTIONS = 64
+AI2_TRANSIENT_STATUSES = frozenset({429, 500, 502, 503, 504, 520, 521, 522, 523, 524})
 
 # TTL cache for AI2 model names — avoids hitting the provider on every request
 _AI2_MODELS_CACHE_TTL_SECONDS = 300  # 5 minutes
@@ -96,8 +100,10 @@ class ModelManager:
         if self._ai2_client is None or self._ai2_client.is_closed:
             self._ai2_client = httpx.AsyncClient(
                 trust_env=False,
+                # GraphRAG runs GRAPHRAG_CONCURRENCY (24) streams per build next to quiz/chat calls;
+                # a pool of 20 made the extra calls wait out the 5 s pool timeout (PoolTimeout).
                 limits=httpx.Limits(
-                    max_connections=20, max_keepalive_connections=20
+                    max_connections=AI2_MAX_CONNECTIONS, max_keepalive_connections=AI2_MAX_CONNECTIONS
                 ),
             )
         return self._ai2_client
@@ -461,6 +467,27 @@ class ModelManager:
 
         raise last_error or ValueError('All API keys and models exhausted')
 
+    @staticmethod
+    def _read_ai2_completion(response: httpx.Response) -> tuple[str, str | None, dict]:
+        """Return ``(content, finish_reason, usage)`` from a streamed (SSE) or plain JSON completion."""
+        if is_event_stream(response.headers.get('content-type'), response.text):
+            streamed = parse_event_stream(response.text)
+            if not streamed.saw_choice:
+                raise ModelUnavailableError('AI2 response missing choices.', code='MODEL_RUNTIME_ERROR')
+            return streamed.content, streamed.finish_reason, streamed.usage
+        data = response.json()
+        choices = data.get('choices') if isinstance(data, dict) else None
+        if not choices or not isinstance(choices, list):
+            raise ModelUnavailableError('AI2 response missing choices.', code='MODEL_RUNTIME_ERROR')
+        message = choices[0].get('message') if isinstance(choices[0], dict) else None
+        content = message.get('content') if isinstance(message, dict) else None
+        if isinstance(content, list):
+            content = ''.join(item.get('text', '') if isinstance(item, dict) else str(item) for item in content)
+        if not isinstance(content, str):
+            raise ModelUnavailableError('AI2 response missing message content.', code='MODEL_RUNTIME_ERROR')
+        finish_reason = choices[0].get('finish_reason') if isinstance(choices[0], dict) else None
+        return content, finish_reason, data.get('usage') or {}
+
     async def _generate_with_ai2(
         self,
         prompt: str,
@@ -468,6 +495,7 @@ class ModelManager:
         system_prompt: str | None = None,
         max_tokens: int | None = None,
         raise_on_truncation: bool = False,
+        reasoning_effort: str | None = None,
     ) -> str:
         api_key = os.getenv('AI2_API_KEY')
         if not api_key:
@@ -487,8 +515,13 @@ class ModelManager:
             'messages': messages,
             'temperature': self.get_temperature(),
             'max_tokens': max(1, min(max_tokens, 32768)) if max_tokens else self.get_ai2_max_tokens(),
-            'stream': False,
+            # Streamed so bytes flow before the (slow) first token: the router's Cloudflare front answers
+            # 524 after ~100 s of silence. The body is still read whole (src/llm/ai2_sse.py).
+            'stream': True,
         }
+        if reasoning_effort:
+            # OpenAI-style knob; Faye-AI at its default effort can spend the whole budget reasoning.
+            payload['reasoning_effort'] = reasoning_effort
         headers = {
             'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json',
@@ -505,7 +538,7 @@ class ModelManager:
                     json=payload,
                     timeout=ai2_info['timeout'],
                 )
-                if response.status_code in (429, 500, 502, 503, 504) and attempt < max_retries - 1:
+                if response.status_code in AI2_TRANSIENT_STATUSES and attempt < max_retries - 1:
                     last_error = ModelUnavailableError(
                         f'AI2 transient error status={response.status_code}',
                         code='MODEL_RUNTIME_ERROR',
@@ -513,24 +546,10 @@ class ModelManager:
                     await asyncio.sleep((attempt + 1) * 2)
                     continue
                 self._raise_ai2_status_error(response)
-                data = response.json()
-                choices = data.get('choices') if isinstance(data, dict) else None
-                if not choices or not isinstance(choices, list):
-                    raise ModelUnavailableError('AI2 response missing choices.', code='MODEL_RUNTIME_ERROR')
-                message = choices[0].get('message') if isinstance(choices[0], dict) else None
-                content = message.get('content') if isinstance(message, dict) else None
-                if isinstance(content, list):
-                    content = ''.join(
-                        item.get('text', '') if isinstance(item, dict) else str(item)
-                        for item in content
-                    )
-                if not isinstance(content, str):
-                    raise ModelUnavailableError('AI2 response missing message content.', code='MODEL_RUNTIME_ERROR')
-                finish_reason = choices[0].get('finish_reason') if isinstance(choices[0], dict) else None
+                content, finish_reason, usage = self._read_ai2_completion(response)
                 if finish_reason == 'length' or not content.strip():
                     # Reasoning models spend max_tokens on hidden reasoning, so the answer comes back cut or empty
                     # and the JSON parser fails later with a misleading error; say why here.
-                    usage = data.get('usage') or {}
                     logger.warning(
                         '[AI2_OUTPUT] model=%s finish_reason=%s content_chars=%s completion_tokens=%s '
                         'reasoning_tokens=%s max_tokens=%s',
@@ -546,7 +565,9 @@ class ModelManager:
                             f"AI2 completion cut at max_tokens={payload['max_tokens']} (finish_reason=length)"
                         )
                 return content
-            except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout) as error:
+            # Every transport failure is retried: with many concurrent streams the router drops kept-alive
+            # connections (RemoteProtocolError / ReadError), which used to fail the call at once.
+            except httpx.TransportError as error:
                 last_error = error
                 if attempt < max_retries - 1:
                     await asyncio.sleep((attempt + 1) * 2)
@@ -567,9 +588,11 @@ class ModelManager:
         system_prompt: str | None = None,
         max_tokens: int | None = None,
         raise_on_truncation: bool = False,
+        reasoning_effort: str | None = None,
     ) -> str:
         """Generate text; ``max_tokens`` overrides the env default for this call, and
-        ``raise_on_truncation`` raises OutputTruncatedError on finish_reason=length (AI2 only)."""
+        ``raise_on_truncation`` raises OutputTruncatedError on finish_reason=length and
+        ``reasoning_effort`` is sent as-is (both AI2 only)."""
         model_id = str(ai_model_type) if ai_model_type else None
         model = self.resolve_model(model_id)
 
@@ -582,6 +605,7 @@ class ModelManager:
                 system_prompt=system_prompt,
                 max_tokens=max_tokens,
                 raise_on_truncation=raise_on_truncation,
+                reasoning_effort=reasoning_effort,
             )
         return await self._generate_with_gemini(prompt, system_prompt=system_prompt, max_tokens=max_tokens)
 

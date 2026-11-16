@@ -19,11 +19,12 @@ async def test_entities_with_three_descriptions_are_summarised_and_lose_their_ve
         prompts.append(prompt)
         return "```\n" + " ".join(["word"] * 90) + "\n```"
 
-    rows, done, failed = await summarize_descriptions([row("x", "one | two | three", 3, [1.0])], llm, 2, 128)
+    long = " | ".join(f"{word} {'a' * 210}" for word in ("one", "two", "three"))  # > SUMMARY_MIN_CHARS joined
+    rows, done, failed = await summarize_descriptions([row("x", long, 3, [1.0])], llm, 2, 128)
     assert (done, failed) == (1, 0)
     assert len(rows[0].description.split()) == MAX_WORDS and "`" not in rows[0].description
     assert rows[0].embedding is None and rows[0].description_count == 3
-    assert "Name x" in prompts[0] and "- one\n- two\n- three" in prompts[0]
+    assert "Name x" in prompts[0] and all(f"- {w} " in prompts[0] for w in ("one", "two", "three"))
 
 
 async def test_one_or_two_descriptions_are_left_alone_without_a_model_call():
@@ -42,12 +43,12 @@ async def test_a_failing_or_empty_summary_keeps_the_joined_description_and_the_v
             raise answer
         return answer
 
-    original = row("x", "one | two | three", 3, [1.0])
+    original = row("x", " | ".join(f"{w} {'a' * 210}" for w in ("one", "two", "three")), 3, [1.0])
     rows, done, failed = await summarize_descriptions([original, row("y", "solo")], llm, 2, 128)
     assert rows[0] == original and (done, failed) == (0, 1)
 
 
-async def test_texts_are_embedded_in_order_in_batches_of_fifty():
+async def test_texts_are_embedded_in_order_in_batches_of_the_api_limit():
     calls = []
 
     async def embed(texts):
@@ -56,7 +57,8 @@ async def test_texts_are_embedded_in_order_in_batches_of_fifty():
 
     texts = [f"text {i}" for i in range(BATCH_SIZE * 2 + 20)]
     vectors = await embed_texts(embed, texts, concurrency=3)
-    assert sorted(calls) == [20, 50, 50] and vectors == [vector_for(t) for t in texts]
+    assert BATCH_SIZE == 100  # Gemini batchEmbedContents accepts at most 100 texts
+    assert sorted(calls) == [20, BATCH_SIZE, BATCH_SIZE] and vectors == [vector_for(t) for t in texts]
     assert await embed_texts(embed, []) == []
 
 
@@ -84,25 +86,3 @@ async def test_an_embedder_that_returns_the_wrong_count_size_or_values_is_reject
     with pytest.raises(ValueError):
         await embed_texts(embed, ["a", "b"])
 
-
-async def test_default_embedder_embeds_a_batch_concurrently_in_order(monkeypatch):
-    import asyncio
-
-    import src.llm.gemini_embeddings as gemini
-    from src.graphrag import embeddings
-
-    state = {"now": 0, "peak": 0}
-
-    class FakeClient:
-        async def create_embedding(self, text, task_type="retrieval_document"):
-            state["now"] += 1
-            state["peak"] = max(state["peak"], state["now"])
-            await asyncio.sleep(0.01)
-            state["now"] -= 1
-            return [float(len(text))]
-
-    monkeypatch.setattr(gemini, "GeminiEmbeddings", FakeClient)
-    texts = [f"t{'x' * i}" for i in range(12)]
-    vectors = await embeddings.default_embedder()(texts)
-    assert vectors == [[float(len(t))] for t in texts]  # order kept
-    assert 1 < state["peak"] <= embeddings.EMBED_CONCURRENCY

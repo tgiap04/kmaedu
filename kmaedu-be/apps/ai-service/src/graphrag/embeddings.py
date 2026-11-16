@@ -12,28 +12,21 @@ from .types import GraphEntityRow
 # texts -> one vector per text (same order). Injected so tests never reach a model.
 Embedder = Callable[[list[str]], Awaitable[list[list[float]]]]
 
-BATCH_SIZE = 50
-EMBED_CONCURRENCY = 10  # parallel embedding calls inside one batch
+BATCH_SIZE = 100  # = the Gemini batchEmbedContents limit
 
 
 def default_embedder(task_type: str = "retrieval_document") -> Embedder:
     """Return the configured Gemini embedding model for ``task_type`` ("retrieval_document" / "retrieval_query").
 
-    ``create_embedding`` retries rate limits and transient errors with backoff, so one
-    429 does not fail a whole index build.
+    A batch goes out as one ``batchEmbedContents`` request (up to 100 texts) instead of one request
+    per text, with the client's retry and backoff on rate limits and transient errors.
     """
     from src.llm.gemini_embeddings import GeminiEmbeddings
 
     client = GeminiEmbeddings()
 
-    semaphore = asyncio.Semaphore(EMBED_CONCURRENCY)
-
-    async def one(text: str) -> list[float]:
-        async with semaphore:
-            return await client.create_embedding(text, task_type)
-
     async def embed(texts: list[str]) -> list[list[float]]:
-        return list(await asyncio.gather(*(one(text) for text in texts)))
+        return await client.create_embeddings_many(list(texts), task_type)
 
     return embed
 

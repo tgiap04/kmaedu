@@ -165,7 +165,7 @@ async def extract_chunk(chunk_id: str, content: str, page_range: str, llm: LLMCo
         except Exception as exc:
             if attempt == EXTRACTION_ATTEMPTS:
                 raise
-            logger.info("[GRAPHRAG] retrying extraction chunk=%s after: %s", chunk_id, exc)
+            logger.info("[GRAPHRAG] retrying extraction chunk=%s after %s: %s", chunk_id, type(exc).__name__, exc)
     raise AssertionError("unreachable")  # the loop returns or raises
 
 
@@ -186,7 +186,7 @@ async def extract_all(
             try:
                 return await extract_chunk(chunk.id, chunk.content, chunk.page_range, llm, max_tokens)
             except Exception as exc:
-                logger.warning("[GRAPHRAG] extraction failed chunk=%s: %s", chunk.id, exc)
+                logger.warning("[GRAPHRAG] extraction failed chunk=%s: %s: %s", chunk.id, type(exc).__name__, exc)
                 return None
 
     results = await asyncio.gather(*(one(c) for c in chunks))

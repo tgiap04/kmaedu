@@ -132,6 +132,46 @@ class GeminiEmbeddings:
                 continue
         raise last_error or ValueError("Gemini embedding failed")
 
+    def _embed_many_sync(self, texts: List[str], task_type: str) -> List[List[float]]:
+        """One ``batchEmbedContents`` round trip per 100 texts (the SDK splits a list input itself)."""
+        import google.generativeai as genai  # type: ignore[import-untyped]
+
+        api_keys = _get_gemini_api_keys()
+        if not api_keys:
+            raise ValueError("No Gemini API key configured for embeddings")
+        last_error: Exception | None = None
+        for api_key in api_keys:
+            try:
+                genai.configure(api_key=api_key)
+                result = genai.embed_content(model=self.model, content=texts, task_type=task_type.upper())
+                vectors = result.get("embedding") if isinstance(result, dict) else None
+                if not isinstance(vectors, list) or len(vectors) != len(texts):
+                    raise ValueError("Gemini batch embedding returned a wrong number of vectors")
+                return [[float(value) for value in vector] for vector in vectors]
+            except Exception as error:
+                last_error = error
+                continue
+        raise last_error or ValueError("Gemini embedding failed")
+
+    async def create_embeddings_many(self, texts: List[str], task_type: str = "retrieval_document") -> List[List[float]]:
+        """Embed ``texts`` in as few requests as the API allows, with the usual retry and backoff."""
+        if not texts:
+            return []
+        clipped = [text[: self.embed_max_length] for text in texts]
+        last_error: Exception | None = None
+        for attempt in range(1, self.retry_count + 1):
+            try:
+                loop = asyncio.get_running_loop()
+                return await loop.run_in_executor(None, lambda: self._embed_many_sync(clipped, task_type))
+            except Exception as error:
+                last_error = error
+                logger.error("Gemini batch embedding error (attempt %s/%s): %s", attempt, self.retry_count, error)
+                if attempt < self.retry_count and self._is_retryable_error(error):
+                    await self._sleep_before_retry(attempt)
+                    continue
+                break
+        raise Exception(f"Gemini batch embedding failed: {last_error}")
+
     def embed_query(self, text: str) -> List[float]:
         return self._embed_sync(text[: self.embed_max_length], "retrieval_query")
 

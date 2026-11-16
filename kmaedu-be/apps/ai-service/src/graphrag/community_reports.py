@@ -30,6 +30,8 @@ MAX_SUMMARY_WORDS = 120
 MAX_FINDINGS = 5
 MAX_FINDING_SUMMARY_CHARS = 300
 MAX_FINDING_EXPLANATION_CHARS = 600
+REPORTED_LEVEL = 0  # the coarse communities; global search and generation read these
+
 ATTEMPTS = 2  # first try + one retry
 
 PROMPT = """You write a community report for a knowledge graph built from a study document. / Viết báo cáo cho một nhóm thực thể liên quan trong tài liệu học tập.
@@ -143,15 +145,19 @@ async def write_reports(
     concurrency: int,
     max_tokens: int,
 ) -> tuple[list[GraphCommunityRow], int, int]:
-    """Report every community; returns ``(rows, reported, unreported)``.
+    """Report the level-0 communities; returns ``(rows, reported, unreported)``.
 
     Reported rows carry title, summary, findings, rating and an embedding of ``title: summary``.
+    Level-1 communities keep a fallback title only: chat reads their parent's report, which saves
+    about half the report calls of a build.
     """
     semaphore = asyncio.Semaphore(max(1, concurrency))
     order = {e.id: i for i, e in enumerate(graph.entities)}
 
     async def one(community: GraphCommunityRow) -> GraphCommunityRow:
         prompt, fallback = build_prompt(community, graph, order, chunk_texts)
+        if community.level != REPORTED_LEVEL:
+            return replace(community, title=fallback)
         for attempt in range(1, ATTEMPTS + 1):
             async with semaphore:
                 try:
@@ -164,8 +170,9 @@ async def write_reports(
 
     rows: list[GraphCommunityRow] = list(await asyncio.gather(*(one(c) for c in graph.communities)))
     reported = [i for i, row in enumerate(rows) if row.summary]
+    unreported = sum(1 for row in rows if row.level == REPORTED_LEVEL and not row.summary)
     vectors = await embed_texts(embedder, [f"{rows[i].title}: {rows[i].summary}" for i in reported], concurrency)
     for index, vector in zip(reported, vectors, strict=True):
         rows[index] = replace(rows[index], embedding=vector)
-    return rows, len(reported), len(rows) - len(reported)
+    return rows, len(reported), unreported
 

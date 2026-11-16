@@ -40,10 +40,12 @@ CHUNKS = [
     Chunk("c2", "text two"),
     Chunk("c3", "text three"),
 ]
+# Three long mentions of "Khóa": joined they pass descriptions.SUMMARY_MIN_CHARS, so only it gets an LLM summary.
+LONG = "x" * 210
 ANSWERS = {
-    "text zero": extraction(("Mã hóa AES", "block cipher"), ("Khóa", "secret one"), rels=(("Mã hóa AES", "Khóa"),)),
-    "text one": extraction(("Ma hoa AES", "AES again"), ("Khóa", "secret two"), ("DES", "old cipher"), rels=(("Ma hoa AES", "DES"),)),
-    "text two": extraction(("Khóa", "secret three"), ("DES", "legacy")),
+    "text zero": extraction(("Mã hóa AES", "block cipher"), ("Khóa", f"secret one {LONG}"), rels=(("Mã hóa AES", "Khóa"),)),
+    "text one": extraction(("Ma hoa AES", "AES again"), ("Khóa", f"secret two {LONG}"), ("DES", "old cipher"), rels=(("Ma hoa AES", "DES"),)),
+    "text two": extraction(("Khóa", f"secret three {LONG}"), ("DES", "legacy")),
     "text three": extraction(("Alpha", "a"), ("Beta", "b"), ("Gamma", "g"), rels=(("Alpha", "Beta"), ("Beta", "Gamma"), ("Alpha", "Gamma"))),
 }
 
@@ -103,7 +105,7 @@ async def test_full_pipeline_merges_summarises_embeds_clusters_and_reports(pool)
     rows = {r["name"]: r for r in await pool.fetch('SELECT * FROM "GraphEntity"')}
     assert set(rows) == {"Mã hóa AES", "Khóa", "DES", "Alpha", "Beta", "Gamma"}  # "Ma hoa AES" folded into the first
     assert rows["Mã hóa AES"]["descriptionCount"] == 2 and rows["Mã hóa AES"]["description"] == "block cipher | AES again"
-    assert rows["Khóa"]["description"] == "Một khóa bí mật dùng chung." and rows["Khóa"]["descriptionCount"] == 3  # >= 3 mentions
+    assert rows["Khóa"]["description"] == "Một khóa bí mật dùng chung." and rows["Khóa"]["descriptionCount"] == 3  # 3 long mentions
     assert rows["DES"]["description"] == "old cipher | legacy"  # only 2: joined, no LLM
     assert await pool.fetchval('SELECT count(*) FROM "GraphEntity" WHERE "embedding" IS NULL') == 0
     assert {await pool.fetchval('SELECT extensions.vector_dims("embedding") FROM "GraphEntity" LIMIT 1')} == {DIM}
@@ -124,7 +126,8 @@ async def test_stats_record_counts_merged_pairs_and_per_step_timings(pool):
     stats = json.loads(await pool.fetchval('SELECT "stats" FROM "GraphIndex"'))
     assert (stats["entities_raw"], stats["entities"], stats["merged_count"]) == (7, 6, 1)
     assert stats["merged_pairs"] == [["Ma hoa AES", "Mã hóa AES"]]
-    assert stats["descriptions_summarised"] == 1 and stats["reports"] == stats["communities"] and stats["reports_failed"] == 0
+    level0 = await pool.fetchval('SELECT count(*) FROM "GraphCommunity" WHERE "level" = 0')
+    assert stats["descriptions_summarised"] == 1 and stats["reports"] == level0 and stats["reports_failed"] == 0
     assert {"extract", "embed_for_resolution", "resolve", "describe", "embed", "communities", "reports"} <= set(stats["timings_ms"])
 
 
@@ -144,7 +147,8 @@ async def test_a_report_that_never_parses_leaves_the_community_without_text_but_
     assert out.status == "READY" and out.reports == 0 and out.communities >= 2
     community = await pool.fetchrow('SELECT * FROM "GraphCommunity" WHERE "level" = 0 ORDER BY "communityKey" LIMIT 1')
     assert community["summary"] == "" and community["embedding"] is None and community["title"]
-    assert sum("community report" in p for p in log) == 2 * out.communities  # one try + one retry each
+    level0 = await pool.fetchval('SELECT count(*) FROM "GraphCommunity" WHERE "level" = 0')
+    assert sum("community report" in p for p in log) == 2 * level0  # one try + one retry, level-0 only
     assert await pool.fetchval('SELECT count(*) FROM "GraphEntity"') == 6
 
 
@@ -160,7 +164,8 @@ async def test_a_report_llm_that_fails_once_is_retried(pool):
         return await inner(prompt, max_tokens)
 
     out = await run(pool, flaky, twin_embedder())
-    assert out.reports == out.communities > 0
+    level0 = await pool.fetchval('SELECT count(*) FROM "GraphCommunity" WHERE "level" = 0')
+    assert out.reports == level0 > 0
 
 
 async def test_all_model_calls_stay_under_the_shared_concurrency_limit(pool):

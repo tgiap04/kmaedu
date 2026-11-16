@@ -62,7 +62,7 @@ async def test_a_normal_stop_never_raises_in_strict_mode():
 async def test_generate_content_with_model_forwards_the_new_options():
     forwarded = {}
 
-    async def fake_ai2(prompt, model_id, system_prompt=None, max_tokens=None, raise_on_truncation=False):
+    async def fake_ai2(prompt, model_id, system_prompt=None, max_tokens=None, raise_on_truncation=False, reasoning_effort=None):
         forwarded.update(max_tokens=max_tokens, raise_on_truncation=raise_on_truncation)
         return 'x'
 
@@ -77,3 +77,79 @@ def test_ai2_max_tokens_default_leaves_room_for_reasoning_models() -> None:
     env = {k: v for k, v in os.environ.items() if k not in ('AI2_MAX_TOKENS', 'DEFAULT_MAX_TOKENS_CAP')}
     with mock.patch.dict(os.environ, env, clear=True):
         assert model_manager.get_ai2_max_tokens() == 8192
+
+
+def _sse(chunks: list[str], finish_reason: str = 'stop', status: int = 200) -> httpx.Response:
+    import json as _json
+
+    lines = [f"data: {_json.dumps({'choices': [{'delta': {'content': c}, 'finish_reason': None}]})}" for c in chunks]
+    lines.append(f"data: {_json.dumps({'choices': [{'delta': {}, 'finish_reason': finish_reason}], 'usage': {'completion_tokens': 9}})}")
+    lines.append('data: [DONE]')
+    return httpx.Response(
+        status, text='\n\n'.join(lines) + '\n\n', headers={'content-type': 'text/event-stream'},
+        request=httpx.Request('POST', 'https://ai2.test/v1/chat/completions'),
+    )
+
+
+async def test_ai2_is_called_streaming_so_a_slow_first_token_does_not_hit_the_proxy_timeout():
+    client = _client(_sse(['{"a": ', '1}']))
+    assert await _run(client) == '{"a": 1}'
+    assert client.post.await_args.kwargs['json']['stream'] is True
+
+
+async def test_a_streamed_completion_cut_at_max_tokens_still_raises_when_asked():
+    client = _client(_sse(['{"a": '], finish_reason='length'))
+    with pytest.raises(OutputTruncatedError):
+        await _run(client, raise_on_truncation=True)
+
+
+async def test_a_cloudflare_524_is_retried():
+    timeout = httpx.Response(524, text='<html>timeout</html>', request=httpx.Request('POST', 'https://ai2.test/v1/chat/completions'))
+    client = mock.Mock()
+    client.post = mock.AsyncMock(side_effect=[timeout, _sse(['ok'])])
+    with mock.patch('src.llm.model_manager.asyncio.sleep', mock.AsyncMock()):
+        assert await _run(client) == 'ok'
+    assert client.post.await_count == 2
+
+
+async def test_a_dropped_keepalive_connection_is_retried():
+    client = mock.Mock()
+    client.post = mock.AsyncMock(side_effect=[httpx.RemoteProtocolError('peer closed connection'), _sse(['ok'])])
+    with mock.patch('src.llm.model_manager.asyncio.sleep', mock.AsyncMock()):
+        assert await _run(client) == 'ok'
+    assert client.post.await_count == 2
+
+
+async def test_reasoning_effort_is_sent_only_when_asked():
+    client = _client(_sse(['ok']))
+    await _run(client, reasoning_effort='low')
+    assert client.post.await_args.kwargs['json']['reasoning_effort'] == 'low'
+    await _run(client)
+    assert 'reasoning_effort' not in client.post.await_args.kwargs['json']
+
+
+async def test_generate_content_with_model_forwards_reasoning_effort_to_ai2():
+    seen = {}
+
+    async def fake_ai2(prompt, model_id, **kwargs):
+        seen.update(kwargs)
+        return 'x'
+
+    with mock.patch.object(model_manager, 'ensure_generation_model_ready', mock.AsyncMock()), \
+            mock.patch.object(model_manager, '_generate_with_ai2', fake_ai2), \
+            mock.patch.object(model_manager, 'resolve_model', return_value=mock.Mock(provider='ai2', id='m')):
+        await model_manager.generate_content_with_model('p', None, reasoning_effort='low')
+    assert seen['reasoning_effort'] == 'low'
+
+
+async def test_the_shared_ai2_pool_holds_every_concurrent_graph_call():
+    # 24 GraphRAG extraction streams plus generation calls share this client; a pool of 20 raised PoolTimeout.
+    old = model_manager._ai2_client
+    model_manager._ai2_client = None
+    try:
+        client = model_manager._get_ai2_client()
+        pool = client._transport._pool
+        assert pool._max_connections >= 64
+        await client.aclose()
+    finally:
+        model_manager._ai2_client = old

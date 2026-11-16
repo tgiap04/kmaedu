@@ -24,6 +24,7 @@ from .community_reports import write_reports
 from .descriptions import summarize_descriptions
 from .embeddings import Embedder, default_embedder, embed_entities
 from .extraction import ChunkLike, extract_all
+from .hedged_call import hedged_call
 from .resolution import merge_entities
 from .types import GraphData, GraphragSettings, LLMComplete
 
@@ -65,12 +66,21 @@ def chunk_signature(chunks: Iterable[tuple[str, str]]) -> str:
 
 
 def default_llm(settings: GraphragSettings) -> LLMComplete:
-    """LLM callable over ``model_manager`` (no-reasoning model, bounded tokens, strict on truncation)."""
+    """LLM callable over ``model_manager`` (low reasoning effort, bounded tokens and time, strict on truncation)."""
     from src.llm.model_manager import model_manager
 
     async def complete(prompt: str, max_tokens: int) -> str:
-        return await model_manager.generate_content_with_model(
-            prompt, settings.llm_model, max_tokens=max_tokens, raise_on_truncation=True
+        # Expiry cancels the request (TimeoutError), which callers treat as a failed call.
+        return await hedged_call(
+            lambda: model_manager.generate_content_with_model(
+                prompt,
+                settings.llm_model,
+                max_tokens=max_tokens,
+                raise_on_truncation=True,
+                reasoning_effort=settings.reasoning_effort,
+            ),
+            hedge_after=settings.hedge_after_seconds,
+            deadline=settings.call_timeout_seconds,
         )
 
     return complete

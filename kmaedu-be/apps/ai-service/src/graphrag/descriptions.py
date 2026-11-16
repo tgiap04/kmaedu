@@ -13,6 +13,8 @@ from .types import GraphEntityRow, LLMComplete
 logger = logging.getLogger(__name__)
 
 MIN_DESCRIPTIONS = 3  # fewer than this are simply joined (done in assembly / resolution)
+# A joined description up to this long is kept as is: an LLM call per entity cost minutes per build.
+SUMMARY_MIN_CHARS = 600
 MAX_WORDS = 60
 SEPARATOR = " | "
 
@@ -36,8 +38,11 @@ def _clean(raw: str) -> str:
 
 
 def needs_summary(entity: GraphEntityRow) -> bool:
-    """Tell whether the entity carries at least :data:`MIN_DESCRIPTIONS` distinct descriptions."""
-    return len(entity.description.split(SEPARATOR)) >= MIN_DESCRIPTIONS
+    """Tell whether the entity's joined descriptions are many and too long to keep as they are."""
+    return (
+        len(entity.description.split(SEPARATOR)) >= MIN_DESCRIPTIONS
+        and len(entity.description) > SUMMARY_MIN_CHARS
+    )
 
 
 def build_prompt(entity: GraphEntityRow) -> str:

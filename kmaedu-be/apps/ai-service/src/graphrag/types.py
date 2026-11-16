@@ -111,21 +111,36 @@ class GraphData:
 class GraphragSettings:
     """Runtime knobs, read from the environment."""
 
-    concurrency: int = 16  # parallel LLM calls per index build (the AI2 router takes the load)
-    max_tokens: int = 8192  # reasoning models (Faye-AI) spend most of it before the JSON
+    concurrency: int = 24  # parallel LLM calls per build; the AI2 router serves ~20 at once, more only queue
+    max_tokens: int = 16384  # Faye-AI sometimes ignores low effort and reasons ~8k tokens before the JSON
     llm_model: str | None = None
     merge_threshold: float = 0.92  # cosine at which two same-type entities become one
     build_timeout_minutes: float = 40.0  # one index build; a reasoning model needs ~10 s-60 s per call
+    # Faye-AI at its default effort spent 7-8k tokens reasoning and returned no JSON on most chunks;
+    # "low" kept every probed call under ~1.1k tokens. "none" sends no effort at all.
+    reasoning_effort: str | None = "low"
+    # Total deadline per model call. Streamed answers keep bytes flowing, so httpx's per-read timeout
+    # (AI2_TIMEOUT_SECONDS) never fires and one stuck stream held a whole build; the slowest probe took 140 s.
+    call_timeout_seconds: float = 240.0
+    hedge_after_seconds: float = 90.0  # a call still running after this gets one duplicate (src/graphrag/hedged_call.py)
 
     @classmethod
     def from_env(cls) -> GraphragSettings:
-        """Read ``GRAPHRAG_CONCURRENCY`` / ``_MAX_TOKENS`` / ``_LLM_MODEL`` / ``_MERGE_THRESHOLD`` / ``_BUILD_TIMEOUT_MINUTES``."""
+        """Read the ``GRAPHRAG_*`` knobs.
+
+        ``CONCURRENCY``, ``MAX_TOKENS``, ``LLM_MODEL``, ``MERGE_THRESHOLD``, ``BUILD_TIMEOUT_MINUTES``,
+        ``REASONING_EFFORT``, ``CALL_TIMEOUT_SECONDS``, ``HEDGE_AFTER_SECONDS``.
+        """
+        effort = os.environ.get("GRAPHRAG_REASONING_EFFORT", "").strip().lower() or cls.reasoning_effort
         return cls(
             concurrency=_positive_int("GRAPHRAG_CONCURRENCY", cls.concurrency),
             max_tokens=_positive_int("GRAPHRAG_MAX_TOKENS", cls.max_tokens),
             llm_model=os.environ.get("GRAPHRAG_LLM_MODEL", "").strip() or None,
             merge_threshold=_threshold("GRAPHRAG_MERGE_THRESHOLD", cls.merge_threshold),
             build_timeout_minutes=_positive_int("GRAPHRAG_BUILD_TIMEOUT_MINUTES", int(cls.build_timeout_minutes)),
+            reasoning_effort=None if effort == "none" else effort,
+            call_timeout_seconds=_positive_int("GRAPHRAG_CALL_TIMEOUT_SECONDS", int(cls.call_timeout_seconds)),
+            hedge_after_seconds=_positive_int("GRAPHRAG_HEDGE_AFTER_SECONDS", int(cls.hedge_after_seconds)),
         )
 
 

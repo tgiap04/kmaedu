@@ -150,7 +150,7 @@ def test_graphrag_settings_default_leaves_room_for_reasoning_tokens(monkeypatch)
     from src.graphrag.types import GraphragSettings
 
     monkeypatch.delenv("GRAPHRAG_MAX_TOKENS", raising=False)
-    assert GraphragSettings.from_env().max_tokens == 8192
+    assert GraphragSettings.from_env().max_tokens == 16384
 
 
 def test_graphrag_build_timeout_defaults_to_40_minutes_and_reads_the_env(monkeypatch):
@@ -168,7 +168,7 @@ def test_graphrag_concurrency_default_matches_a_router_that_takes_load(monkeypat
     from src.graphrag.types import GraphragSettings
 
     monkeypatch.delenv("GRAPHRAG_CONCURRENCY", raising=False)
-    assert GraphragSettings.from_env().concurrency == 16
+    assert GraphragSettings.from_env().concurrency == 24
 
 
 async def test_a_chunk_whose_first_answer_is_unusable_is_asked_once_more():

@@ -1,7 +1,7 @@
 """Local search: find the entities a question is about and gather what surrounds them.
 
 Question -> nearest entities -> their relationships (among them, then one step out),
-the level-1 reports of their communities and the chunks that mention them. The pieces
+the level-0 reports of their communities and the chunks that mention them. The pieces
 are laid out as labelled sections: reports 20%, entities and relationships 20%, excerpts 60%.
 """
 
@@ -29,7 +29,7 @@ QueryEmbedder = Callable[[str], Awaitable[list[float]]]
 TOP_ENTITIES = 10
 MAX_RELATIONSHIPS = 30
 MAX_REPORTS = 3
-REPORT_LEVEL = 1
+REPORT_LEVEL = 0  # only level-0 communities carry a report (graphrag.community_reports)
 SOURCE_LIMIT = 3  # citations shown to the user, as the previous retriever did
 
 

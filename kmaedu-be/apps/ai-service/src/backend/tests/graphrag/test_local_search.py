@@ -23,7 +23,7 @@ async def test_context_has_reports_graph_and_excerpts_with_pages(pool):
     outcome = await search(pool, "s1", "AES")
     context = outcome.context
     assert context.index("## Báo cáo chủ đề") < context.index("## Thực thể và quan hệ") < context.index("## Trích đoạn tài liệu")
-    assert "Block ciphers: AES and DES" in context
+    assert "Ciphers:" in context and "Block ciphers" not in context  # level-0 reports only (level 1 carries none)
     assert "- AES (concept): about AES" in context and "- AES -> RSA: AES relates RSA" in context
     assert "[Trang 1]: c1 talks about AES, DES" in context
     assert outcome.entities == 4 and outcome.reports >= 1 and outcome.units == 3

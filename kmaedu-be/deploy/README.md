@@ -173,8 +173,11 @@ GEMINI_EMBEDDING_MODEL=models/gemini-embedding-001
 # GraphRAG: entity/relationship extraction and community reports per document (ai and ai-worker).
 # An empty GRAPHRAG_LLM_MODEL falls back to the AI2 default model.
 GRAPHRAG_LLM_MODEL=Faye-AI
-GRAPHRAG_CONCURRENCY=16
-GRAPHRAG_MAX_TOKENS=8192
+GRAPHRAG_CONCURRENCY=24
+GRAPHRAG_MAX_TOKENS=16384
+GRAPHRAG_REASONING_EFFORT=low       # sent to AI2 on graph calls; "none" omits it
+GRAPHRAG_CALL_TIMEOUT_SECONDS=240   # total deadline per graph model call (a streamed answer never hits the per-read timeout)
+GRAPHRAG_HEDGE_AFTER_SECONDS=90     # a graph call still running after this gets one duplicate; the first good answer wins
 GRAPHRAG_MERGE_THRESHOLD=0.92
 GRAPHRAG_BUILD_TIMEOUT_MINUTES=40   # one index build; the claim lease is this + 5 minutes
 GRAPHRAG_GENERATION_WAIT_MINUTES=20 # a quiz/flashcard job re-queues every 30 s while its graph is being built, up to this long (0 = never wait)
