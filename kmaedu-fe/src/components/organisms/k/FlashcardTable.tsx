@@ -24,6 +24,8 @@ interface FlashcardTableProps {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onShare: (id: string) => void;
+  totalResults?: number;
+  onCreate?: () => void;
 }
 
 const FlashcardTableComponent = ({
@@ -32,6 +34,8 @@ const FlashcardTableComponent = ({
   onEdit,
   onDelete,
   onShare,
+  totalResults,
+  onCreate,
 }: FlashcardTableProps) => {
   const tableData: ManagementTableData[] = flashcards.map((flashcard) => ({
     id: flashcard.id,
@@ -61,6 +65,9 @@ const FlashcardTableComponent = ({
       onEdit={onEdit}
       onDelete={onDelete}
       emptyMessage="Không có bộ thẻ nào"
+      totalResults={totalResults}
+      onCreate={onCreate}
+      createLabel="Tạo flashcard"
     />
   );
 };

@@ -25,19 +25,19 @@ export function ListView({
   allSelected,
 }: ListViewProps) {
   return (
-    <div className="overflow-hidden rounded-lg border border-hairline bg-surface-card">
+    <div>
       {/* Select all header */}
-      <div className="flex items-center gap-3 border-b border-hairline bg-surface-soft/60 px-4 py-2.5">
+      <div className="flex items-center gap-3 border-b border-hairline-soft bg-surface-soft px-4 py-2.5 md:px-5">
         <Checkbox checked={allSelected} onChange={onSelectAll} />
-        <span className="text-xs font-medium text-ink/60">
+        <span className="text-xs font-medium text-muted-foreground">
           {selectedIndices.size}/{words.length} đã chọn
         </span>
       </div>
 
       {/* Word rows */}
-      <div className="divide-y divide-hairline">
+      <div className="divide-y divide-hairline-soft">
         {words.map((word, idx) => (
-          <div key={idx} className="px-4 py-2.5">
+          <div key={idx} className="px-4 py-2.5 transition-colors hover:bg-surface-soft/50 md:px-5">
             <div className="flex items-center gap-3">
               <Checkbox
                 checked={selectedIndices.has(idx)}
@@ -46,16 +46,16 @@ export function ListView({
               <button
                 type="button"
                 onClick={() => onToggleExpand(idx)}
-                className="flex flex-1 items-center gap-2.5 text-left text-[15px]"
+                className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md text-left text-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
               >
                 {expandedWords.has(idx) ? (
-                  <CaretDownOutlined className="text-ink/30" />
+                  <CaretDownOutlined className="text-muted-foreground" />
                 ) : (
-                  <CaretRightOutlined className="text-ink/30" />
+                  <CaretRightOutlined className="text-muted-foreground" />
                 )}
-                <span className="font-medium text-ink">{word.word}</span>
+                <span className="font-semibold text-ink">{word.word}</span>
                 {word.pos && (
-                  <span className="rounded-pill bg-surface-cream-strong px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink/50">
+                  <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
                     {word.pos}
                   </span>
                 )}
@@ -63,23 +63,23 @@ export function ListView({
             </div>
 
             {expandedWords.has(idx) && (
-              <div className="ml-9 mt-1.5 space-y-2 rounded-md border border-hairline bg-canvas px-3.5 py-3 text-[13px] leading-relaxed">
+              <div className="ml-9 mt-1.5 space-y-2 rounded-xl border border-hairline-soft bg-surface-soft px-3.5 py-3 text-[13px] leading-relaxed">
                 <p className="flex gap-2">
-                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-ink/40">
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Nghĩa
                   </span>
-                  <span className="text-ink/80">{word.meaningVi}</span>
+                  <span className="text-body">{word.meaningVi}</span>
                 </p>
                 {word.meaningEn && (
                   <p className="flex gap-2">
-                    <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-ink/40">
+                    <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                       EN
                     </span>
-                    <span className="text-ink/70">{word.meaningEn}</span>
+                    <span className="text-body">{word.meaningEn}</span>
                   </p>
                 )}
                 {word.example && (
-                  <p className="border-l-2 border-coral/30 pl-2.5 italic text-ink/55">
+                  <p className="border-l-2 border-brand-border pl-2.5 italic text-muted-foreground">
                     "{word.example}"
                   </p>
                 )}

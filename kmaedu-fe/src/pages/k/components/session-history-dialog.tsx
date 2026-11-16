@@ -113,7 +113,7 @@ export function SessionHistoryDialog({ session }: { session: SessionSummary | nu
         return (
           <div
             key={attempt.id}
-            className="flex items-start justify-between gap-3 rounded-lg border border-hairline p-4"
+            className="flex items-start justify-between gap-3 rounded-xl border border-hairline bg-canvas p-4"
           >
             <div className="flex-1 min-w-0 space-y-1.5">
               <div className="flex items-center gap-2 flex-wrap">

@@ -20,6 +20,8 @@ interface ExamTableProps {
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  totalResults?: number;
+  onCreate?: () => void;
 }
 
 const ExamTableComponent = ({
@@ -27,6 +29,8 @@ const ExamTableComponent = ({
   onView,
   onEdit,
   onDelete,
+  totalResults,
+  onCreate,
 }: ExamTableProps) => {
   const tableData: ManagementTableData[] = exams.map((exam) => ({
     id: exam.id,
@@ -53,6 +57,9 @@ const ExamTableComponent = ({
       onDelete={onDelete}
       emptyMessage="Không có đề thi nào"
       showViewCount={false}
+      totalResults={totalResults}
+      onCreate={onCreate}
+      createLabel="Tạo đề thi"
     />
   );
 };

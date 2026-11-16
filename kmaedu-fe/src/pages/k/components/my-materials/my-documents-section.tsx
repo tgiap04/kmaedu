@@ -6,8 +6,8 @@ import { useToast } from "@/components/antd/toast";
 import { downloadFile } from "@/lib/download-file";
 import { formatFileSize, formatTimeAgo } from "@/lib/history/history-format";
 import { useRecentUploadsStore } from "@/stores/useAIGeneratorStore";
-import { MaterialRow, PdfBadgeIcon } from "./material-row";
-import { MaterialMessage, MaterialRowsSkeleton, MaterialSectionCard, ViewAllLink } from "./material-section-card";
+import { ItemRow, PdfBadgeIcon } from "@/components/k-page/item-row";
+import { SectionMessage, RowsSkeleton, SectionCard, ViewAllLink } from "@/components/k-page/section-card";
 
 const PREVIEW = 2;
 
@@ -45,7 +45,7 @@ export function MyDocumentsSection() {
   };
 
   return (
-    <MaterialSectionCard
+    <SectionCard
       icon={<Copy />}
       title="Tài liệu của tôi"
       countLabel={recentUploads.length ? `${recentUploads.length} tài liệu` : undefined}
@@ -53,14 +53,14 @@ export function MyDocumentsSection() {
       illustration="/illustrations/materials-pdf.svg"
     >
       {isLoading && recentUploads.length === 0 ? (
-        <MaterialRowsSkeleton />
+        <RowsSkeleton />
       ) : recentUploads.length === 0 ? (
-        <MaterialMessage title="Chưa có tài liệu nào" hint="Tải PDF lên ở Công cụ AI để tài liệu xuất hiện ở đây" />
+        <SectionMessage title="Chưa có tài liệu nào" hint="Tải PDF lên ở Công cụ AI để tài liệu xuất hiện ở đây" />
       ) : (
         recentUploads.slice(0, PREVIEW).map((upload) => {
           const summary = generatedSummary(upload);
           return (
-            <MaterialRow
+            <ItemRow
               key={upload.id}
               icon={<PdfBadgeIcon />}
               tone="red"
@@ -85,6 +85,6 @@ export function MyDocumentsSection() {
           );
         })
       )}
-    </MaterialSectionCard>
+    </SectionCard>
   );
 }

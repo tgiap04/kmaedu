@@ -1,5 +1,7 @@
 import { memo } from "react";
-import { ParticipantListItem } from "@/components/molecules/ParticipantListItem";
+import { Users } from "lucide-react";
+import { SectionCard, SectionMessage } from "@/components/k-page/section-card";
+import { cn } from "@/lib/utils";
 
 export interface Participant {
   id: string;
@@ -13,33 +15,35 @@ interface RecentParticipantsListProps {
   onViewAll?: () => void;
 }
 
+const statusColors = {
+  online: "bg-emerald-500",
+  offline: "bg-muted-foreground/40",
+  away: "bg-amber-500",
+};
+
 const RecentParticipantsListComponent = ({
   participants,
   onViewAll: _onViewAll,
 }: RecentParticipantsListProps) => {
   return (
-    <div className="rounded-lg border border-hairline bg-canvas p-4">
-      <div className="mb-4 border-b border-hairline pb-4">
-        <h2 className="text-lg font-medium text-ink">Thí sinh gần đây</h2>
-      </div>
-
-      <div className="divide-y divide-hairline">
-        {participants.map((participant) => (
-          <ParticipantListItem
-            key={participant.id}
-            name={participant.name}
-            subtitle={participant.examName}
-            status={participant.status}
-          />
-        ))}
-      </div>
-
-      {participants.length === 0 && (
-        <div className="py-10 text-center">
-          <p className="text-sm text-muted-foreground">Chưa có thí sinh gần đây</p>
-        </div>
+    <SectionCard icon={<Users />} title="Thí sinh gần đây">
+      {participants.length === 0 ? (
+        <SectionMessage title="Chưa có thí sinh gần đây" />
+      ) : (
+        participants.map((participant) => (
+          <div key={participant.id} className="flex items-center gap-3 px-4 py-2.5 md:px-5">
+            <span className="relative grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-sm font-bold text-brand">
+              {participant.name.charAt(0).toUpperCase()}
+              <span className={cn("absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-canvas", statusColors[participant.status])} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[14px] font-semibold text-ink">{participant.name}</p>
+              <p className="truncate text-[12px] text-muted-foreground">{participant.examName}</p>
+            </div>
+          </div>
+        ))
       )}
-    </div>
+    </SectionCard>
   );
 };
 

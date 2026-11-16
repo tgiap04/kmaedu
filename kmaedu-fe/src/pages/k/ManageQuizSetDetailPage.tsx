@@ -1,20 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Search, X,
-  Plus,
-  Share2,
-  Trash2,
-  FileText,
-  Edit,
-  ChevronLeft,
-  ChevronRight } from "lucide-react";
+import { CalendarDays, FileText, Plus, Search, Share2, X } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useQuizSetStore } from "@/stores/useQuizSetStore";
 import { Button } from "@/components/antd/button";
-import { Card } from "@/components/antd/card";
+import { PageHeader } from "@/components/k-page/page-header";
+import { RowsSkeleton, SectionCard, SectionMessage } from "@/components/k-page/section-card";
+import { HistoryStatCard } from "@/components/molecules/HistoryStatCard";
 import { Badge } from "@/components/antd/badge";
 import { Skeleton } from "@/components/antd/skeleton";
-import { isCorrectAnswer, quizOptionToText } from "@/lib/quizAnswerUtils";
-import { cn } from "@/lib/utils";
 import type { Quizz } from "@/types/quizset";
 import { DeleteConfirmDialog } from "@/components/organisms/DeleteConfirmDialog";
 import { ShareQuizSetModal } from "@/components/organisms/ShareQuizSetModal";
@@ -33,6 +26,8 @@ import { getQuizSetQuestionsApi, updateQuestionInQuizSet, type PaginationInfo } 
 import { useDebounce } from "@/hooks/useDebounce";
 import { storeCache } from "@/lib/storeCache";
 import { Input } from "@/components/antd/input";
+import { NumberedPagination } from "./components/numbered-pagination";
+import { QuizQuestionRow } from "./components/quiz-question-row";
 
 export default function ManageQuizSetDetailPage() {
   const { id = "" } = useParams();
@@ -174,127 +169,104 @@ export default function ManageQuizSetDetailPage() {
 
   if (loading || !currentQuizSet) {
     return (
-      <div>
-        <div>
-          <Skeleton className="mb-6 h-10 w-full" />
-          <div className="mb-8 grid gap-6 md:grid-cols-3">
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-          </div>
-          <Skeleton className="h-96" />
+      <div className="space-y-6">
+        <Skeleton className="h-16 w-72 rounded-2xl" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-28 rounded-2xl" />
         </div>
+        <Skeleton className="h-96 rounded-[20px]" />
       </div>
     );
   }
 
+  const searchAndAdd = (
+    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+      <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-initial">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Tìm kiếm câu hỏi..."
+          value={questionSearch}
+          onChange={(e) => {
+            setQuestionSearch(e.target.value);
+            if (e.target.value) setCurrentPage(1);
+          }}
+          className="rounded-full pl-9 pr-9"
+        />
+        {questionSearch && (
+          <button
+            onClick={() => { setQuestionSearch(""); }}
+            aria-label="Xóa tìm kiếm"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+      <Button onClick={handleAddQuestion} disabled={showQuestionForm}>
+        <Plus className="mr-2 h-4 w-4" />
+        Thêm câu hỏi
+      </Button>
+    </div>
+  );
+
   return (
     <div>
       <div>
-        <div className="mb-8">
-          <div className="mb-4 flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <Breadcrumb className="mt-4">
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink asChild>
-                      <Link to="/k/manage-exam">Quản lý bộ đề</Link>
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{currentQuizSet.title}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setIsShareOpen(true)}>
-                <Share2 className="mr-2 h-4 w-4" />
-                Chia sẻ
-              </Button>
-            </div>
-          </div>
+        <PageHeader
+          icon={<FileText />}
+          title={currentQuizSet.title}
+          subtitle={
+            currentQuizSet.tags && currentQuizSet.tags.length > 0 ? (
+              <span className="flex flex-wrap gap-2">
+                {currentQuizSet.tags.map((tag) => (
+                  <Badge key={tag} variant="outline">
+                    {tag}
+                  </Badge>
+                ))}
+              </span>
+            ) : (
+              "Quản lý câu hỏi và nhãn của bộ đề"
+            )
+          }
+          eyebrow={
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to="/k/manage-exam">Quản lý bộ đề</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{currentQuizSet.title}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          }
+          actions={
+            <Button variant="outline" onClick={() => setIsShareOpen(true)}>
+              <Share2 className="mr-2 h-4 w-4" />
+              Chia sẻ
+            </Button>
+          }
+        />
 
-          {currentQuizSet.tags && currentQuizSet.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {currentQuizSet.tags.map((tag) => (
-                <Badge key={tag} variant="outline">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="mb-8 grid gap-4 md:grid-cols-2">
-          <Card className="p-3 sm:p-6">
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-primary/10 p-3">
-                <FileText className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Tổng số câu hỏi</p>
-                <p className="text-2xl font-bold">{totalQuestions}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-3 sm:p-6">
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-primary/10 p-3">
-                <FileText className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Ngày tạo</p>
-                <p className="text-sm font-medium">
-                  {new Date(currentQuizSet.createdAt).toLocaleDateString("vi-VN")}
-                </p>
-              </div>
-            </div>
-          </Card>
+        <div className="mb-6 grid gap-4 md:grid-cols-2">
+          <HistoryStatCard icon={FileText} title="Tổng số câu hỏi" value={totalQuestions} tone="red" />
+          <HistoryStatCard icon={CalendarDays} title="Ngày tạo" value={new Date(currentQuizSet.createdAt).toLocaleDateString("vi-VN")} tone="blue" />
         </div>
 
         <LabelManager quizSetId={id} onLabelChange={handleLabelChange} />
 
-        <Card className="p-3 sm:p-6">
-          <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold">
-              Danh sách câu hỏi
-              {totalQuestions > 0 && (
-                <span className="ml-2 text-sm font-normal text-muted-foreground">({totalQuestions} câu)</span>
-              )}
-            </h2>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:flex-initial sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Tìm kiếm câu hỏi..."
-                  value={questionSearch}
-                  onChange={(e) => {
-                    setQuestionSearch(e.target.value);
-                    if (e.target.value) setCurrentPage(1);
-                  }}
-                  className="pl-9 pr-9"
-                />
-                {questionSearch && (
-                  <button
-                    onClick={() => { setQuestionSearch(""); }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              <Button onClick={handleAddQuestion} disabled={showQuestionForm}>
-                <Plus className="mr-2 h-4 w-4" />
-                Thêm câu hỏi
-              </Button>
-            </div>
-          </div>
-
+        <SectionCard
+          icon={<FileText />}
+          title="Danh sách câu hỏi"
+          countLabel={totalQuestions > 0 ? `${totalQuestions} câu` : undefined}
+          action={searchAndAdd}
+        >
           {showQuestionForm && !selectedQuestion && (
-            <div className="mb-6">
+            <div className="p-4 md:p-5">
               <InlineQuestionEditor
                 question={null}
                 quizSetId={id}
@@ -307,13 +279,9 @@ export default function ManageQuizSetDetailPage() {
           )}
 
           {questionsLoading ? (
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-32 w-full" />
-              ))}
-            </div>
+            <RowsSkeleton rows={4} />
           ) : paginatedQuestions.length > 0 ? (
-            <div className="space-y-4">
+            <>
               {/* Filter + highlight search matches */}
               {(() => {
                 const displayed = debouncedSearch
@@ -325,10 +293,7 @@ export default function ManageQuizSetDetailPage() {
 
                 if (debouncedSearch && displayed.length === 0) {
                   return (
-                    <div className="py-8 text-center text-muted-foreground">
-                      <Search className="mx-auto mb-3 h-10 w-10 opacity-40" />
-                      <p>Không tìm thấy câu hỏi phù hợp</p>
-                    </div>
+                    <SectionMessage title="Không tìm thấy câu hỏi phù hợp" hint="Thử từ khóa khác hoặc xóa bộ lọc tìm kiếm." />
                   );
                 }
 
@@ -358,134 +323,49 @@ export default function ManageQuizSetDetailPage() {
 
                   if (isEditing) {
                     return (
-                      <InlineQuestionEditor
-                        key={question.id}
-                        question={question}
-                        quizSetId={id}
-                        labels={currentQuizSet.labels}
-                        onSave={handleSaveQuestion}
-                        onCancel={() => { setShowQuestionForm(false); setSelectedQuestion(null); }}
-                        editorRef={editEditorRef}
-                      />
+                      <div key={question.id} className="p-4 md:p-5">
+                        <InlineQuestionEditor
+                          question={question}
+                          quizSetId={id}
+                          labels={currentQuizSet.labels}
+                          onSave={handleSaveQuestion}
+                          onCancel={() => { setShowQuestionForm(false); setSelectedQuestion(null); }}
+                          editorRef={editEditorRef}
+                        />
+                      </div>
                     );
                   }
 
                   return (
-                    <div key={question.id} className="rounded-[12px] border border-hairline p-4 transition-shadow hover:shadow-[0_1px_3px_rgba(20,20,19,0.08)]">
-                      <div className="flex items-start gap-3">
-                        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-coral/15 font-mono text-xs font-semibold text-brand-strong">
-                          {actualIndex + 1}
-                        </span>
-                        <div className="min-w-0 flex-1 space-y-3">
-                          {question.label && (
-                            <div
-                              className="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium"
-                              style={{
-                                backgroundColor: question.label.color ? `${question.label.color}15` : undefined,
-                                borderColor: question.label.color || undefined,
-                                color: question.label.color || undefined,
-                              }}
-                            >
-                              {question.label.color && (
-                                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: question.label.color }} />
-                              )}
-                              {question.label.name}
-                            </div>
-                          )}
-                          <div className="text-[14px] font-medium leading-[1.55]">
-                            {debouncedSearch ? highlightText(question.question) : <RichTextViewer content={question.question} />}
-                          </div>
-
-                          <div className="grid gap-2 sm:grid-cols-2">
-                            {question.options.map((option, optIndex) => {
-                              const isCorrect = isCorrectAnswer(question.answer, optIndex, question.options);
-                              const optionText = quizOptionToText(option);
-                              const hasPrefix = /^[A-D]\s*[.):]\s+/.test(optionText);
-                              const displayText = hasPrefix ? optionText.replace(/^[A-D]\s*[.):]\s+/, "") : optionText;
-
-                              return (
-                                <div
-                                  key={optIndex}
-                                  className={cn(
-                                    "flex items-center gap-2 rounded-[8px] border px-3 py-2 text-[13px] transition-colors",
-                                    isCorrect
-                                      ? "border-coral/40 bg-coral/10 text-ink"
-                                      : "border-hairline text-muted-foreground",
-                                  )}
-                                >
-                                  <span className="font-mono text-[11px]">
-                                    {String.fromCharCode(65 + optIndex)}.
-                                  </span>
-                                  <span className="flex-1 mt-3">
-                                    <RichTextViewer content={displayText} />
-                                  </span>
-                                  {isCorrect && <span className="text-[11px] text-coral font-medium">✓</span>}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => handleEditQuestion(question)} disabled={showQuestionForm} className="h-8 w-8 p-0">
-                            <Edit className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDeleteQuestion(question.id)} disabled={showQuestionForm} className="h-8 w-8 p-0 text-muted-foreground hover:text-error">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                    <QuizQuestionRow
+                      key={question.id}
+                      question={question}
+                      number={actualIndex + 1}
+                      body={debouncedSearch ? highlightText(question.question) : <RichTextViewer content={question.question} />}
+                      disabled={showQuestionForm}
+                      onEdit={() => handleEditQuestion(question)}
+                      onDelete={() => handleDeleteQuestion(question.id)}
+                    />
                   );
                 });
               })()}
 
-              {/* Pagination — hidden when searching */}
               {!debouncedSearch && totalPages > 1 && (
-                <div className="flex items-center justify-between border-t pt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Hiển thị {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalQuestions)} / {totalQuestions} câu hỏi
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>
-                      <ChevronLeft className="h-4 w-4" />
-                      Trước
-                    </Button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum: number;
-                        if (totalPages <= 5) pageNum = i + 1;
-                        else if (currentPage <= 3) pageNum = i + 1;
-                        else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
-                        else pageNum = currentPage - 2 + i;
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "outline"}
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => setCurrentPage(pageNum)}
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-                      Sau
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                <NumberedPagination
+                  page={currentPage}
+                  totalPages={totalPages}
+                  perPage={itemsPerPage}
+                  total={totalQuestions}
+                  unit="câu hỏi"
+                  onChange={setCurrentPage}
+                  onSelect={setCurrentPage}
+                />
               )}
-            </div>
+            </>
           ) : (
-            <div className="py-12 text-center text-muted-foreground">
-              <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
-              <p>Chưa có câu hỏi nào</p>
-              <p className="mt-2 text-sm">Nhấn "Thêm câu hỏi" để bắt đầu tạo bộ đề</p>
-            </div>
+            <SectionMessage title="Chưa có câu hỏi nào" hint={'Nhấn "Thêm câu hỏi" để bắt đầu tạo bộ đề'} />
           )}
-        </Card>
+        </SectionCard>
       </div>
 
       <ShareQuizSetModal open={isShareOpen} onOpenChange={setIsShareOpen} quizSetId={id} />

@@ -2,17 +2,12 @@ import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useWordFamilyStore } from "@/stores/useWordFamilyStore";
 import { Button, Spin } from "antd";
+import { PageHeader } from "@/components/k-page/page-header";
+import { RowsSkeleton, SectionCard, SectionMessage } from "@/components/k-page/section-card";
+import { WordFamilyBreadcrumb } from "@/components/k/word-family/word-family-breadcrumb";
 import { useCan } from "@/hooks/useCan";
 import { WORD_FAMILY_ACTION_PERMISSIONS } from "@/lib/rbac/nav-items";
-import { ArrowUpRight } from "lucide-react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/antd/breadcrumb";
+import { ArrowUpRight, Languages, ListTree } from "lucide-react";
 
 export default function WordFamilyCategoryPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -82,115 +77,87 @@ export default function WordFamilyCategoryPage() {
   const rootWords = currentCategory?.rootWords ?? [];
   const showEmpty =
     !loadingRootWords && !generating && rootWords.length === 0;
+  const categoryName = currentCategory?.category?.name ?? slug ?? "";
 
   return (
     <div className="relative text-ink">
-      <section className="relative space-y-8">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/k">Trang chủ</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/k/word-family">Từ vựng</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>
-                {currentCategory?.category?.name ?? slug}
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+      <section className="relative">
+        <PageHeader
+          eyebrow={
+            <WordFamilyBreadcrumb
+              crumbs={[
+                { label: "Trang chủ", to: "/k" },
+                { label: "Từ vựng", to: "/k/word-family" },
+                { label: categoryName },
+              ]}
+            />
+          }
+          icon={<Languages />}
+          title={categoryName}
+          subtitle={currentCategory?.category?.description}
+          actions={
+            canGenerate && (
+              <Button type="primary" size="large" loading={generating} onClick={handleGenerate}>
+                Tạo thêm từ gốc
+              </Button>
+            )
+          }
+        />
 
-        {/* Header */}
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="space-y-3">
-            <h1 className="font-display text-3xl font-medium tracking-tight text-ink md:text-4xl">
-              {currentCategory?.category?.name ?? slug}
-            </h1>
-            {currentCategory?.category?.description && (
-              <p className="max-w-2xl text-[15px] leading-relaxed text-ink/60">
-                {currentCategory.category.description}
-              </p>
-            )}
-            <span className="inline-flex items-center rounded-pill bg-surface-card px-3 py-1 text-[13px] font-medium text-ink/70">
-              {currentCategory?.total ?? 0} từ gốc
-            </span>
-          </div>
-          {canGenerate && (
-            <Button
-              type="primary"
-              size="large"
-              loading={generating}
-              onClick={handleGenerate}
-            >
-              Tạo thêm từ gốc
-            </Button>
+        <div className="space-y-4">
+          {error && (
+            <div className="overflow-hidden rounded-[20px] border border-hairline bg-canvas">
+              <SectionMessage title={error} />
+            </div>
           )}
-        </div>
 
-        {error && (
-          <div className="rounded-lg border border-hairline bg-surface-soft px-4 py-3 text-sm text-[#c64545]">
-            {error}
-          </div>
-        )}
+          {generating && (
+            <div className="flex items-center gap-3 rounded-[20px] border border-brand-border bg-brand-soft px-5 py-3.5 text-sm text-ink">
+              <Spin size="small" />
+              <span>Đang sinh word family, vui lòng đợi trong giây lát...</span>
+            </div>
+          )}
 
-        {generating && (
-          <div className="flex items-center gap-3 rounded-lg border border-coral/30 bg-coral/5 px-4 py-3.5 text-sm text-ink">
-            <Spin size="small" />
-            <span>Đang sinh word family, vui lòng đợi trong giây lát...</span>
-          </div>
-        )}
+          <SectionCard
+            icon={<ListTree />}
+            title="Từ gốc"
+            countLabel={`${currentCategory?.total ?? 0} từ gốc`}
+            plain
+          >
+            {loadingRootWords && <RowsSkeleton rows={6} />}
 
-        {loadingRootWords && (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-[68px] animate-pulse rounded-lg border border-hairline bg-surface-card"
+            {showEmpty && (
+              <SectionMessage
+                title="Chưa có từ gốc nào"
+                hint={
+                  canGenerate
+                    ? "Nhấn \"Tạo thêm từ gốc\" để AI sinh nhóm từ vựng đầu tiên cho danh mục này."
+                    : "Giáo viên sẽ bổ sung từ vựng cho danh mục này."
+                }
               />
-            ))}
-          </div>
-        )}
+            )}
 
-        {showEmpty && (
-          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-hairline bg-surface-soft/60 px-6 py-16 text-center">
-            <p className="font-display text-lg font-medium text-ink">
-              Chưa có từ gốc nào
-            </p>
-            <p className="max-w-sm text-sm text-ink/55">
-              {canGenerate
-                ? "Nhấn \"Tạo thêm từ gốc\" để AI sinh nhóm từ vựng đầu tiên cho danh mục này."
-                : "Giáo viên sẽ bổ sung từ vựng cho danh mục này."}
-            </p>
-          </div>
-        )}
-
-        {!loadingRootWords && rootWords.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {rootWords.map((rw) => (
-              <Link
-                key={rw.id}
-                to={`/k/word-family/${slug}/${rw.rootWord}`}
-                className="group flex items-center gap-3 rounded-lg border border-hairline bg-surface-card px-4 py-3.5 transition-colors duration-150 hover:border-coral/40"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-coral/10 font-display text-sm font-semibold text-brand-strong">
-                  {rw.rootWord.charAt(0).toUpperCase()}
-                </span>
-                <span className="min-w-0 flex-1 truncate font-display text-[15px] font-medium text-ink">
-                  {rw.rootWord}
-                </span>
-                <ArrowUpRight className="h-4 w-4 shrink-0 text-ink/25 transition-colors duration-150 group-hover:text-coral" />
-              </Link>
-            ))}
-          </div>
-        )}
+            {!loadingRootWords && rootWords.length > 0 && (
+              <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 md:p-5 lg:grid-cols-3 xl:grid-cols-4">
+                {rootWords.map((rw) => (
+                  <Link
+                    key={rw.id}
+                    to={`/k/word-family/${slug}/${rw.rootWord}`}
+                    className="group flex items-center gap-3 rounded-2xl border border-hairline bg-canvas px-3.5 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-border hover:shadow-[0_6px_18px_rgba(15,23,42,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                  >
+                    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-sm font-bold text-brand">
+                      {rw.rootWord.charAt(0).toUpperCase()}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink">
+                      {rw.rootWord}
+                    </span>
+                    <ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-brand" aria-hidden />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        </div>
       </section>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { Skeleton } from "@/components/antd/skeleton";
-import { Card } from "@/components/antd/card";
+import { RowsSkeleton } from "@/components/k-page/section-card";
 
 interface TableSkeletonLoaderProps {
   /**
@@ -21,100 +21,53 @@ interface TableSkeletonLoaderProps {
   showSearchBar?: boolean;
 }
 
+const cardClass = "rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]";
+
+/** Loading state shaped like the /k management pages: header, stat tiles, filter bar, list card. */
 export function TableSkeletonLoader({
   rows = 5,
   showStats = true,
   showSearchBar = true,
 }: TableSkeletonLoaderProps) {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header Skeleton */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-96" />
-          </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-10 w-32" />
-            <Skeleton className="h-10 w-32" />
-          </div>
+    <div className="flex flex-col gap-5" aria-busy="true">
+      <div className="mb-1 flex flex-wrap items-center gap-4">
+        <Skeleton className="size-16 rounded-2xl" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-8 w-56" />
+          <Skeleton className="h-4 w-full max-w-sm" />
         </div>
+        <Skeleton className="h-10 w-32 rounded-full" />
+      </div>
 
-        {/* Stats Section Skeleton */}
-        {showStats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <Card key={index} className="p-6">
-                <div className="space-y-3">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-8 w-16" />
-                  <Skeleton className="h-3 w-32" />
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Search Bar Skeleton */}
-        {showSearchBar && (
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <Skeleton className="h-10 flex-1" />
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-10 w-48" />
-          </div>
-        )}
-
-        {/* Table Skeleton */}
-        <Card className="overflow-hidden">
-          {/* Table Header */}
-          <div className="border-b p-4">
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-5 w-5" />
-              <Skeleton className="h-5 w-12" />
-              <Skeleton className="h-5 flex-1" />
-              <Skeleton className="h-5 w-24" />
-              <Skeleton className="h-5 w-24" />
-              <Skeleton className="h-5 w-24" />
-              <Skeleton className="h-5 w-20" />
-            </div>
-          </div>
-
-          {/* Table Rows */}
-          <div className="divide-y">
-            {Array.from({ length: rows }).map((_, index) => (
-              <div key={index} className="p-4">
-                <div className="flex items-center gap-4">
-                  <Skeleton className="h-5 w-5" />
-                  <Skeleton className="h-10 w-10 rounded" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-5 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                  <Skeleton className="h-6 w-20 rounded-full" />
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-24" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-8 w-8 rounded" />
-                    <Skeleton className="h-8 w-8 rounded" />
-                    <Skeleton className="h-8 w-8 rounded" />
-                  </div>
-                </div>
+      {showStats && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="rounded-2xl border border-hairline bg-canvas p-5 shadow-soft">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-9 rounded-lg" />
+                <Skeleton className="h-4 w-24" />
               </div>
-            ))}
-          </div>
-        </Card>
+              <Skeleton className="mt-3 h-8 w-16" />
+            </div>
+          ))}
+        </div>
+      )}
 
-        {/* Pagination Skeleton */}
-        <div className="mt-6 flex items-center justify-between">
-          <Skeleton className="h-4 w-48" />
-          <div className="flex gap-2">
-            <Skeleton className="h-10 w-10" />
-            <Skeleton className="h-10 w-10" />
-            <Skeleton className="h-10 w-10" />
-            <Skeleton className="h-10 w-10" />
-            <Skeleton className="h-10 w-10" />
-          </div>
+      {showSearchBar && (
+        <div className={`${cardClass} flex flex-col gap-3 p-3 md:flex-row md:px-5`}>
+          <Skeleton className="h-10 w-full md:max-w-md" />
+          <Skeleton className="h-10 w-40" />
+        </div>
+      )}
+
+      <div className={`${cardClass} overflow-hidden`}>
+        <div className="flex items-center gap-2.5 px-4 py-3 md:px-5">
+          <Skeleton className="size-9 rounded-lg" />
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <div className="divide-y divide-hairline-soft border-t border-hairline-soft">
+          <RowsSkeleton rows={rows} />
         </div>
       </div>
     </div>

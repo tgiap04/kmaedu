@@ -2,24 +2,17 @@ import { useEffect, useState, useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useFlashcardSetStore } from "@/stores/useFlashcardSetStore";
 import { Button } from "@/components/antd/button";
-import { Card } from "@/components/antd/card";
 import { Badge } from "@/components/antd/badge";
 import { Skeleton } from "@/components/antd/skeleton";
-import {
-  Plus,
-  Trash2,
-  Eye,
-  CreditCard,
-  Edit,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { CalendarDays, CreditCard, Eye, Plus } from "lucide-react";
+import { PageHeader } from "@/components/k-page/page-header";
+import { SectionCard, SectionMessage } from "@/components/k-page/section-card";
+import { HistoryStatCard } from "@/components/molecules/HistoryStatCard";
 import type { Flashcard as FlashCard } from "@/types/flashcardSet";
 import { DeleteConfirmDialog } from "@/components/organisms/DeleteConfirmDialog";
 import { FlashcardEditorDialog } from "@/components/organisms/FlashcardEditorDialog";
 import type { FlashcardFormData } from "@/components/organisms/FlashcardEditorDialog";
 import { FlashcardLabelManager } from "@/components/organisms/FlashcardLabelManager";
-import { RichTextViewer } from "@/components/molecules/RichTextViewer";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -43,6 +36,8 @@ import {
   type FlashcardSetLabel,
 } from "@/apis/flashcardSetApi";
 import { storeCache } from "@/lib/storeCache";
+import { FlashcardGridCard } from "./components/flashcard-grid-card";
+import { NumberedPagination } from "./components/numbered-pagination";
 
 export default function ManageFlashcardSetDetailPage() {
   const { id = "" } = useParams();
@@ -201,93 +196,88 @@ export default function ManageFlashcardSetDetailPage() {
 
   if (loading || !currentFlashcardSet) {
     return (
-      <div>
-        <div>
-          <Skeleton className="mb-6 h-10 w-full" />
-          <div className="mb-8 grid gap-6 md:grid-cols-3">
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-          </div>
-          <Skeleton className="h-96" />
+      <div className="space-y-6">
+        <Skeleton className="h-16 w-72 rounded-2xl" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-28 rounded-2xl" />
         </div>
+        <Skeleton className="h-96 rounded-[20px]" />
       </div>
     );
   }
 
+  const labelFilter = (
+    <div className="flex items-center gap-2">
+      <span className="text-sm font-medium text-body">Lọc theo nhãn:</span>
+      <Select
+        value={selectedLabelId || "all"}
+        onValueChange={(value) => {
+          setSelectedLabelId(value === "all" ? null : value);
+          setCurrentPage(1);
+        }}
+      >
+        <SelectTrigger className="w-40 rounded-full sm:w-48">
+          <SelectValue placeholder="Chọn nhãn" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Tất cả thẻ</SelectItem>
+          <SelectItem value="unlabeled">Chưa gán nhãn</SelectItem>
+          {availableLabels.map((label) => (
+            <SelectItem key={label.id} value={label.id}>
+              <div className="flex items-center gap-2">
+                {label.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: label.color }} />}
+                {label.name}
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   return (
     <div>
-      <div className="space-y-8">
-        <div className="mb-8">
-          <div className="mb-4 flex items-center gap-4">
-            <div className="flex-1">
-              <Breadcrumb className="mb-3 mt-4">
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink asChild>
-                      <Link to="/k/flash-card">Quản lý Flashcard</Link>
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{currentFlashcardSet.title}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-              {currentFlashcardSet.description && (
-                <p className="mt-1 text-muted-foreground">{currentFlashcardSet.description}</p>
+      <div>
+        <PageHeader
+          icon={<CreditCard />}
+          title={currentFlashcardSet.title}
+          subtitle={
+            <>
+              {currentFlashcardSet.description || "Quản lý thẻ nhớ và nhãn của bộ flashcard"}
+              {currentFlashcardSet.tags && currentFlashcardSet.tags.length > 0 && (
+                <span className="mt-2 flex flex-wrap gap-2">
+                  {currentFlashcardSet.tags.map((tag: string) => (
+                    <Badge key={tag} variant="outline">
+                      {tag}
+                    </Badge>
+                  ))}
+                </span>
               )}
-            </div>
-            <div className="flex items-center gap-2" />
-          </div>
+            </>
+          }
+          eyebrow={
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to="/k/flash-card">Quản lý Flashcard</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{currentFlashcardSet.title}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          }
+        />
 
-          {currentFlashcardSet.tags && currentFlashcardSet.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {currentFlashcardSet.tags.map((tag: string) => (
-                <Badge key={tag} variant="outline">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="mb-4 grid gap-4 md:grid-cols-3">
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-primary/10 p-3">
-                <CreditCard className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Tổng số thẻ</p>
-                <p className="text-2xl font-bold">{totalFlashcards}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-primary/10 p-3">
-                <Eye className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Lượt xem</p>
-                <p className="text-2xl font-bold">{currentFlashcardSet.viewCount}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-primary/10 p-3">
-                <CreditCard className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Ngày tạo</p>
-                <p className="text-sm font-medium">{new Date(currentFlashcardSet.createdAt).toLocaleDateString("vi-VN")}</p>
-              </div>
-            </div>
-          </Card>
+        <div className="mb-6 grid gap-4 md:grid-cols-3">
+          <HistoryStatCard icon={CreditCard} title="Tổng số thẻ" value={totalFlashcards} tone="red" />
+          <HistoryStatCard icon={Eye} title="Lượt xem" value={currentFlashcardSet.viewCount} tone="green" />
+          <HistoryStatCard icon={CalendarDays} title="Ngày tạo" value={new Date(currentFlashcardSet.createdAt).toLocaleDateString("vi-VN")} tone="blue" />
         </div>
 
         <FlashcardLabelManager
@@ -302,157 +292,62 @@ export default function ManageFlashcardSetDetailPage() {
           onSave={handleSaveCard}
         />
 
-        <Card className="p-6" style={{ marginTop: "16px" }}>
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-semibold">
-              Danh sách flashcard
-              {totalFlashcards > 0 && (
-                <span className="ml-2 text-sm font-normal text-muted-foreground">({totalFlashcards} thẻ)</span>
-              )}
-            </h2>
-            <Button onClick={handleAddCard} disabled={showCardForm}>
-              <Plus className="mr-2 h-4 w-4" />
-              Thêm thẻ
-            </Button>
-          </div>
-
-          <div className="mb-4 flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Lọc theo nhãn:</span>
-              <Select
-                value={selectedLabelId || "all"}
-                onValueChange={(value) => {
-                  setSelectedLabelId(value === "all" ? null : value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Chọn nhãn" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả thẻ</SelectItem>
-                  <SelectItem value="unlabeled">Chưa gán nhãn</SelectItem>
-                  {availableLabels.map((label) => (
-                    <SelectItem key={label.id} value={label.id}>
-                      <div className="flex items-center gap-2">
-                        {label.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: label.color }} />}
-                        {label.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <SectionCard
+          icon={<CreditCard />}
+          title="Danh sách flashcard"
+          countLabel={totalFlashcards > 0 ? `${totalFlashcards} thẻ` : undefined}
+          action={
+            <div className="flex flex-wrap items-center gap-2">
+              {labelFilter}
+              <Button onClick={handleAddCard} disabled={showCardForm}>
+                <Plus className="mr-2 h-4 w-4" />
+                Thêm thẻ
+              </Button>
             </div>
-          </div>
-
+          }
+          plain
+        >
           {flashcardsLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 border-t border-hairline-soft p-4 md:grid-cols-2 md:p-5 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-40 w-full" />
+                <Skeleton key={i} className="h-40 w-full rounded-2xl" />
               ))}
             </div>
           ) : paginatedFlashcards.length > 0 ? (
-            <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {paginatedFlashcards.map((card, index) => {
-                  const actualIndex = (currentPage - 1) * itemsPerPage + index;
-                  return (
-                    <Card key={card.id} className="p-4 transition-shadow hover:shadow-md">
-                      <div className="flex h-full flex-col">
-                        <div className="mb-3 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">Thẻ {actualIndex + 1}</Badge>
-                            {card.label && (
-                              <Badge
-                                variant="secondary"
-                                className="text-xs"
-                                style={{
-                                  backgroundColor: card.label.color ? `${card.label.color}20` : undefined,
-                                  borderColor: card.label.color || undefined,
-                                }}
-                              >
-                                {card.label.color && (
-                                  <div className="mr-1 h-2 w-2 rounded-full" style={{ backgroundColor: card.label.color }} />
-                                )}
-                                {card.label.name}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => handleEditCard(card)} disabled={showCardForm}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteCard(card.id)} disabled={showCardForm}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex-1 space-y-3">
-                          <div>
-                            <p className="mb-1 text-xs text-muted-foreground">Câu hỏi:</p>
-                            <div className="text-sm font-medium">
-                              <RichTextViewer content={card.question} />
-                            </div>
-                          </div>
-                          <div>
-                            <p className="mb-1 text-xs text-muted-foreground">Trả lời:</p>
-                            <div className="text-sm text-muted-foreground">
-                              <RichTextViewer content={card.answer} />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })}
+            <>
+              <div className="grid gap-4 border-t border-hairline-soft p-4 md:grid-cols-2 md:p-5 lg:grid-cols-3">
+                {paginatedFlashcards.map((card, index) => (
+                  <FlashcardGridCard
+                    key={card.id}
+                    card={card}
+                    number={(currentPage - 1) * itemsPerPage + index + 1}
+                    disabled={showCardForm}
+                    onEdit={() => handleEditCard(card)}
+                    onDelete={() => handleDeleteCard(card.id)}
+                  />
+                ))}
               </div>
 
               {totalPages > 1 && (
-                <div className="flex items-center justify-between border-t pt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Hiển thị {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalFlashcards)} / {totalFlashcards} thẻ
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>
-                      <ChevronLeft className="h-4 w-4" />
-                      Trước
-                    </Button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum: number;
-                        if (totalPages <= 5) pageNum = i + 1;
-                        else if (currentPage <= 3) pageNum = i + 1;
-                        else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
-                        else pageNum = currentPage - 2 + i;
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "outline"}
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => setCurrentPage(pageNum)}
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-                      Sau
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+                <div className="border-t border-hairline-soft">
+                  <NumberedPagination
+                    page={currentPage}
+                    totalPages={totalPages}
+                    perPage={itemsPerPage}
+                    total={totalFlashcards}
+                    unit="thẻ"
+                    onChange={setCurrentPage}
+                    onSelect={setCurrentPage}
+                  />
                 </div>
               )}
-            </div>
+            </>
           ) : (
-            <div className="py-12 text-center text-muted-foreground">
-              <CreditCard className="mx-auto mb-4 h-12 w-12 opacity-50" />
-              <p>Chưa có thẻ nhớ nào</p>
-              <p className="mt-2 text-sm">Nhấn "Thêm thẻ" để bắt đầu tạo bộ flashcard</p>
+            <div className="border-t border-hairline-soft">
+              <SectionMessage title="Chưa có thẻ nhớ nào" hint={'Nhấn "Thêm thẻ" để bắt đầu tạo bộ flashcard'} />
             </div>
           )}
-        </Card>
+        </SectionCard>
       </div>
 
       <DeleteConfirmDialog

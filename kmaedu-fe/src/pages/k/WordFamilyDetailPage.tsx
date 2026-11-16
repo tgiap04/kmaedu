@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   TreeView,
   ListView,
@@ -9,21 +9,12 @@ import { useWordFamilyStore } from "@/stores/useWordFamilyStore";
 import { toast } from "@/components/antd/toast";
 import { useCan } from "@/hooks/useCan";
 import { WORD_FAMILY_ACTION_PERMISSIONS } from "@/lib/rbac/nav-items";
-import { Button, Skeleton, Spin } from "antd";
-import {
-  SaveOutlined,
-  ApartmentOutlined,
-  UnorderedListOutlined,
-  ThunderboltOutlined,
-} from "@ant-design/icons";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/antd/breadcrumb";
+import { Button, Spin } from "antd";
+import { BookText, ListTree, Zap } from "lucide-react";
+import { PageHeader } from "@/components/k-page/page-header";
+import { RowsSkeleton, SectionCard, SectionMessage } from "@/components/k-page/section-card";
+import { WordFamilyBreadcrumb } from "@/components/k/word-family/word-family-breadcrumb";
+import { WordFamilyToolbar } from "@/components/k/word-family/word-family-toolbar";
 
 export default function WordFamilyDetailPage() {
   const { slug, rootWord } = useParams<{
@@ -154,176 +145,113 @@ export default function WordFamilyDetailPage() {
 
   return (
     <div className="relative text-ink">
-      <section className="relative space-y-6">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/k">Trang chủ</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/k/word-family">Từ vựng</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to={`/k/word-family/${slug}`}>{slug}</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{rootWord}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+      <section className="relative">
+        <PageHeader
+          eyebrow={
+            <WordFamilyBreadcrumb
+              crumbs={[
+                { label: "Trang chủ", to: "/k" },
+                { label: "Từ vựng", to: "/k/word-family" },
+                { label: slug ?? "", to: `/k/word-family/${slug}` },
+                { label: rootWord ?? "" },
+              ]}
+            />
+          }
+          icon={<BookText />}
+          title={rootWord ?? ""}
+          subtitle={<>{words.length} từ vựng &middot; {slug}</>}
+          actions={
+            <WordFamilyToolbar
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              canGenerate={canGenerate}
+              canSave={canSave}
+              canToFlashcard={canToFlashcard}
+              generating={generating}
+              isSaved={isSaved}
+              selectedCount={selectedIndices.size}
+              onGenerate={handleGenerate}
+              onSave={handleSave}
+              onCreateFlashcard={() => setShowFlashcardModal(true)}
+            />
+          }
+        />
 
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-coral/10 font-display text-lg font-semibold text-brand-strong">
-              {rootWord?.charAt(0).toUpperCase()}
-            </span>
-            <div>
-              <h1 className="font-display text-2xl font-medium tracking-tight text-ink md:text-3xl">
-                {rootWord}
-              </h1>
-              <p className="text-sm text-ink/55">
-                {words.length} từ vựng &middot; {slug}
-              </p>
+        <div className="space-y-4">
+          {error && !generating && (
+            <div className="overflow-hidden rounded-[20px] border border-hairline bg-canvas">
+              <SectionMessage title={error} />
             </div>
-          </div>
+          )}
 
-          <div className="flex items-center gap-2">
-            {/* View toggle — cream segmented control */}
-            <div className="flex rounded-lg bg-surface-card p-0.5">
-              <button
-                type="button"
-                onClick={() => setViewMode("tree")}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
-                  viewMode === "tree"
-                    ? "bg-canvas text-ink shadow-sm"
-                    : "text-ink/50 hover:text-ink"
-                }`}
-              >
-                <ApartmentOutlined className="mr-1" />
-                Tree
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("list")}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
-                  viewMode === "list"
-                    ? "bg-canvas text-ink shadow-sm"
-                    : "text-ink/50 hover:text-ink"
-                }`}
-              >
-                <UnorderedListOutlined className="mr-1" />
-                List
-              </button>
+          {generating && (
+            <div className="flex items-center gap-3 rounded-[20px] border border-brand-border bg-brand-soft px-5 py-3.5 text-sm text-ink">
+              <Spin size="small" />
+              <span>
+                Đang sinh từ con cho &ldquo;{rootWord}&rdquo;, vui lòng đợi trong
+                giây lát...
+              </span>
             </div>
+          )}
 
-            {canGenerate && (
-              <Button
-                icon={<ThunderboltOutlined />}
-                onClick={handleGenerate}
-                loading={generating}
-              >
-                {generating ? "Đang sinh..." : "Sinh lại từ con"}
-              </Button>
-            )}
+          {loadingDetail && (
+            <SectionCard icon={<ListTree />} title="Từ vựng" plain>
+              <div className="divide-y divide-hairline-soft">
+                <RowsSkeleton rows={5} />
+              </div>
+            </SectionCard>
+          )}
 
-            {canSave && (
-              <Button
-                icon={<SaveOutlined />}
-                onClick={handleSave}
-                disabled={isSaved || generating}
-              >
-                {isSaved ? "Đã lưu" : "Lưu"}
-              </Button>
-            )}
+          {!loadingDetail && !generating && words.length === 0 && !error && (
+            <SectionCard icon={<ListTree />} title="Từ vựng" plain>
+              <SectionMessage title={`Chưa có từ con cho từ gốc "${rootWord}".`} />
+              {canGenerate && (
+                <div className="flex justify-center pb-6">
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<Zap className="size-4" />}
+                    onClick={handleGenerate}
+                    loading={generating}
+                  >
+                    {generating ? "Đang sinh..." : `Sinh từ con cho "${rootWord}"`}
+                  </Button>
+                </div>
+              )}
+            </SectionCard>
+          )}
 
-            {canToFlashcard && viewMode === "list" && selectedIndices.size > 0 && (
-              <Button
-                type="primary"
-                onClick={() => setShowFlashcardModal(true)}
-              >
-                Tạo Flashcard ({selectedIndices.size})
-              </Button>
-            )}
-          </div>
+          {!loadingDetail && words.length > 0 && viewMode === "tree" && (
+            <SectionCard icon={<ListTree />} title="Sơ đồ từ vựng" countLabel={`${words.length} từ`} plain>
+              <div className="overflow-x-auto p-3 md:p-4">
+                <TreeView rootWord={rootWord!} words={words} />
+              </div>
+            </SectionCard>
+          )}
+
+          {!loadingDetail && words.length > 0 && viewMode === "list" && (
+            <SectionCard icon={<ListTree />} title="Danh sách từ vựng" countLabel={`${words.length} từ`} plain>
+              <ListView
+                words={words}
+                selectedIndices={selectedIndices}
+                expandedWords={expandedWords}
+                onToggleSelect={toggleSelect}
+                onToggleExpand={toggleExpand}
+                onSelectAll={toggleSelectAll}
+                allSelected={selectedIndices.size === words.length}
+              />
+            </SectionCard>
+          )}
         </div>
 
-        {error && !generating && (
-          <div className="rounded-lg border border-hairline bg-surface-soft px-4 py-3 text-sm text-[#c64545]">
-            {error}
-          </div>
-        )}
-
-        {generating && (
-          <div className="flex items-center gap-3 rounded-lg border border-coral/30 bg-coral/5 px-4 py-3.5 text-sm text-ink">
-            <Spin size="small" />
-            <span>
-              Đang sinh từ con cho &ldquo;{rootWord}&rdquo;, vui lòng đợi trong
-              giây lát...
-            </span>
-          </div>
-        )}
-
-        {loadingDetail && (
-          <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} active paragraph={{ rows: 1 }} />
-            ))}
-          </div>
-        )}
-
-        {!loadingDetail && !generating && words.length === 0 && !error && (
-          <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-hairline bg-surface-soft/60 px-6 py-14 text-center">
-            <p className="text-sm text-ink/55">
-              Chưa có từ con cho từ gốc &ldquo;{rootWord}&rdquo;.
-            </p>
-            {canGenerate && (
-              <Button
-                type="primary"
-                size="large"
-                icon={<ThunderboltOutlined />}
-                onClick={handleGenerate}
-                loading={generating}
-              >
-                {generating ? "Đang sinh..." : `Sinh từ con cho "${rootWord}"`}
-              </Button>
-            )}
-          </div>
-        )}
-
-      {!loadingDetail && words.length > 0 && viewMode === "tree" && (
-        <TreeView rootWord={rootWord!} words={words} />
-      )}
-
-      {!loadingDetail && words.length > 0 && viewMode === "list" && (
-        <ListView
-          words={words}
-          selectedIndices={selectedIndices}
-          expandedWords={expandedWords}
-          onToggleSelect={toggleSelect}
-          onToggleExpand={toggleExpand}
-          onSelectAll={toggleSelectAll}
-          allSelected={selectedIndices.size === words.length}
+        <CreateFlashcardModal
+          open={showFlashcardModal}
+          wordFamilyId={currentWordFamily?.id ?? ""}
+          rootWord={rootWord ?? ""}
+          selectedCount={selectedIndices.size}
+          selectedIndices={[...selectedIndices]}
+          onClose={() => setShowFlashcardModal(false)}
         />
-      )}
-
-      <CreateFlashcardModal
-        open={showFlashcardModal}
-        wordFamilyId={currentWordFamily?.id ?? ""}
-        rootWord={rootWord ?? ""}
-        selectedCount={selectedIndices.size}
-        selectedIndices={[...selectedIndices]}
-        onClose={() => setShowFlashcardModal(false)}
-      />
       </section>
     </div>
   );

@@ -1,6 +1,5 @@
 import { Flag } from "lucide-react";
 import { Button } from "@/components/antd/button";
-import { Card, CardContent } from "@/components/antd/card";
 import { QuizOptionRow } from "@/components/molecules/QuizOptionRow";
 import { StandardMarkdownRenderer } from "@/components/molecules/StandardMarkdownRenderer";
 import type { PracticeQuestion } from "@/apis/quizPracticeApi";
@@ -18,10 +17,10 @@ interface QuestionPanelProps {
 
 export function QuestionPanel({ question, index, total, selected, marked, onSelect, onToggleMark }: QuestionPanelProps) {
   return (
-    <Card>
-      <CardContent className="pt-6">
+    <div className="rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+      <div className="p-5 md:p-6">
         <div className="mb-4 flex items-start justify-between">
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-lg font-bold text-ink">
             Câu {index + 1}/{total}
           </h2>
           <Button variant={marked ? "default" : "outline"} size="sm" onClick={onToggleMark}>
@@ -45,7 +44,7 @@ export function QuestionPanel({ question, index, total, selected, marked, onSele
             );
           })}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

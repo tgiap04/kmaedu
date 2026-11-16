@@ -50,8 +50,8 @@ export function ExamManagementTemplate({
   onPageChange,
 }: ExamManagementTemplateProps) {
   return (
-    <div>
-      <div>
+    <div className="min-w-0">
+      <div className="flex flex-col gap-5 [&>header]:-mb-5">
         <ExamManagementHeader onCreateExam={onCreateExam} />
 
         <ExamStatsSection stats={stats} />
@@ -69,6 +69,8 @@ export function ExamManagementTemplate({
           onView={onViewExam}
           onEdit={onEditExam}
           onDelete={onDeleteExam}
+          totalResults={totalResults}
+          onCreate={onCreateExam}
         />
 
         {totalResults > 0 && (

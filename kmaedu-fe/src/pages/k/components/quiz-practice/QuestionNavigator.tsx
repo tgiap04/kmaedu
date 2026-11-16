@@ -1,5 +1,4 @@
 import { Flag } from "lucide-react";
-import { Card, CardContent } from "@/components/antd/card";
 import { cn } from "@/lib/utils";
 import {
   answeredCount,
@@ -10,9 +9,9 @@ import {
 import type { PracticeQuestion } from "@/apis/quizPracticeApi";
 
 const STYLE: Record<NavigatorState, string> = {
-  current: "ring-2 ring-primary ring-offset-2 bg-muted",
+  current: "ring-2 ring-brand ring-offset-2 bg-brand-soft text-brand",
   marked: "bg-warning/20 text-ink",
-  answered: "bg-primary text-primary-foreground",
+  answered: "bg-brand text-white",
   empty: "bg-muted hover:bg-muted/80",
 };
 
@@ -25,8 +24,8 @@ interface QuestionNavigatorProps {
 
 export function QuestionNavigator({ questions, currentIndex, progress, onGo }: QuestionNavigatorProps) {
   return (
-    <Card className="sticky">
-      <CardContent className="pt-6">
+    <div className="sticky rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+      <div className="p-5 md:p-6">
         <h3 className="mb-4 font-semibold">Danh sách câu hỏi</h3>
         <div className="grid max-h-80 grid-cols-5 gap-2 overflow-y-auto p-1">
           {questions.map((q, i) => (
@@ -35,7 +34,7 @@ export function QuestionNavigator({ questions, currentIndex, progress, onGo }: Q
               onClick={() => onGo(i)}
               aria-label={`Câu ${i + 1}`}
               className={cn(
-                "relative aspect-square rounded-md text-sm font-medium transition-colors",
+                "relative aspect-square rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
                 STYLE[navigatorState(q, i, currentIndex, progress)],
               )}
             >
@@ -47,7 +46,7 @@ export function QuestionNavigator({ questions, currentIndex, progress, onGo }: Q
         <p className="mt-4 text-sm text-muted-foreground">
           Đã trả lời {answeredCount(questions, progress.answers)}/{questions.length}
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

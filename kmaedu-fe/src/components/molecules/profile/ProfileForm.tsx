@@ -47,14 +47,14 @@ export function ProfileForm({
   };
 
   return (
-    <Card className="glass-card">
+    <Card className="!rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader className="pb-0">
         <CardTitle className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-hairline bg-surface-soft">
-            <UserIcon className="h-5 w-5 text-coral" />
+          <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
+            <UserIcon className="size-[18px] text-brand" />
           </div>
           <div>
-            <div className="font-display text-xl font-medium text-ink">Thông tin cá nhân</div>
+            <div className="text-[16px] font-bold text-ink">Thông tin cá nhân</div>
             <p className="mt-0.5 text-sm font-normal text-muted-text">Cập nhật thông tin công khai của bạn</p>
           </div>
         </CardTitle>
@@ -118,7 +118,7 @@ export function ProfileForm({
                 placeholder="Chia sẻ một chút về bản thân bạn..."
                 maxLength={500}
                 rows={3}
-                className="w-full rounded-lg border border-hairline bg-canvas px-3 py-2 text-sm text-ink placeholder:text-muted-text transition-all focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/20 hover:border-coral/40"
+                className="w-full rounded-lg border border-hairline bg-canvas px-3 py-2 text-sm text-ink placeholder:text-muted-text transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/40"
               />
               <p className="text-right text-xs text-muted-soft">{bio.length}/500</p>
             </div>
@@ -155,7 +155,7 @@ export function ProfileForm({
             <Button
               type="submit"
               disabled={isSubmitting || !hasChanges}
-              className="gap-2 bg-brand-soft text-brand-strong hover:bg-brand-soft-hover disabled:opacity-50"
+              className="gap-2 rounded-full border border-brand-border bg-brand-soft font-semibold text-brand hover:bg-brand-soft-hover disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

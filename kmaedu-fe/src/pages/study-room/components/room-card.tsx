@@ -50,18 +50,18 @@ function RoomCardBase({ room, isHost, onEnter, onConfig }: Props) {
         }
       }}
       className={cn(
-        "group relative flex cursor-pointer flex-col rounded-xl border border-hairline bg-surface-card p-5 transition-all duration-200",
-        "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+        "group relative flex cursor-pointer flex-col rounded-2xl border border-hairline bg-canvas p-5 transition-all duration-200",
+        "hover:-translate-y-0.5 hover:border-brand-border hover:shadow-md",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
         closed && "opacity-60",
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 font-display text-lg text-primary">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-lg font-bold text-brand">
           {initials}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-display text-lg leading-tight text-ink">
+          <h3 className="truncate text-[16px] font-bold leading-tight text-ink">
             {room.name}
           </h3>
           <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
@@ -76,7 +76,7 @@ function RoomCardBase({ room, isHost, onEnter, onConfig }: Props) {
               e.stopPropagation();
               onConfig(room);
             }}
-            className="-mr-1 -mt-1 shrink-0 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-surface-cream-strong hover:text-ink"
+            className="-mr-1 -mt-1 shrink-0 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-surface-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             <Settings2 className="h-4 w-4" />
           </button>
@@ -92,7 +92,7 @@ function RoomCardBase({ room, isHost, onEnter, onConfig }: Props) {
         {closed && <Badge variant="secondary">Đã đóng</Badge>}
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-hairline pt-3">
+      <div className="mt-4 flex items-center justify-between border-t border-hairline-soft pt-3">
         <div className="flex min-w-0 items-center gap-2">
           <Avatar size="small">
             <AvatarFallback>
@@ -108,7 +108,7 @@ function RoomCardBase({ room, isHost, onEnter, onConfig }: Props) {
             <Users className="h-4 w-4" />
             {members}/{room.maxParticipants}
           </span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-brand" />
         </div>
       </div>
     </div>

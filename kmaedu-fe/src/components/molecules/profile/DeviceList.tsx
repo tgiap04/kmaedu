@@ -82,14 +82,14 @@ export function DeviceList() {
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="!rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
         <CardHeader className="pb-0">
           <CardTitle className="flex items-center gap-3 text-xl">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-hairline bg-surface-soft">
-              <Monitor className="h-5 w-5 text-coral" />
+            <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
+              <Monitor className="size-[18px] text-brand" />
             </div>
             <div>
-              <div className="font-display text-xl font-medium text-ink">Thiết bị</div>
+              <div className="text-[16px] font-bold text-ink">Thiết bị</div>
               <p className="mt-0.5 text-sm font-normal text-muted-text">Quản lý thiết bị đã đăng nhập</p>
             </div>
           </CardTitle>
@@ -102,15 +102,15 @@ export function DeviceList() {
   }
 
   return (
-    <Card className="glass-card">
+    <Card className="!rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader className="pb-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-3 text-xl">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-hairline bg-surface-soft">
-              <Monitor className="h-5 w-5 text-coral" />
+            <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
+              <Monitor className="size-[18px] text-brand" />
             </div>
             <div>
-              <div className="font-display text-xl font-medium text-ink">Thiết bị</div>
+              <div className="text-[16px] font-bold text-ink">Thiết bị</div>
               <p className="mt-0.5 text-sm font-normal text-muted-text">
                 {devices.length} thiết bị đã đăng nhập
               </p>

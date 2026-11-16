@@ -17,9 +17,11 @@ export interface RowAction {
   label: string;
   icon: LucideIcon;
   onClick: () => void;
+  /** Red text, for delete-like actions. */
+  destructive?: boolean;
 }
 
-interface MaterialRowProps {
+interface ItemRowProps {
   icon: ReactNode;
   tone: RowTone;
   title: string;
@@ -33,7 +35,7 @@ interface MaterialRowProps {
 }
 
 /** One item row: tinted icon, title and "a • b" meta, a metric, the main pill action and a ⋮ menu. */
-export function MaterialRow({ icon, tone, title, titleAddon, meta, metric, action, menu }: MaterialRowProps) {
+export function ItemRow({ icon, tone, title, titleAddon, meta, metric, action, menu }: ItemRowProps) {
   const ActionIcon = action.icon;
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 md:px-5">
@@ -76,8 +78,8 @@ export function MaterialRow({ icon, tone, title, titleAddon, meta, metric, actio
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {menu.map(({ label, icon: Icon, onClick }) => (
-              <DropdownMenuItem key={label} onClick={onClick} className="cursor-pointer">
+            {menu.map(({ label, icon: Icon, onClick, destructive }) => (
+              <DropdownMenuItem key={label} onClick={onClick} className={cn("cursor-pointer", destructive && "text-destructive focus:text-destructive")}>
                 <Icon className="mr-2 size-4" aria-hidden />
                 {label}
               </DropdownMenuItem>

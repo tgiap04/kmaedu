@@ -1,255 +1,149 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/antd/table";
-import { Button } from "@/components/antd/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/antd/tooltip";
-import {
-  ExamStatusBadge,
-  ExamStatus,
-} from "@/components/atoms/k/ExamStatusBadge";
-import { Edit, Trash2, LucideIcon, BookOpenCheck, Eye } from "lucide-react";
+import { BookOpenCheck, Eye, MoreVertical, Plus } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/antd/table";
 import { Badge } from "@/components/antd/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/antd/dropdown-menu";
+import { ExamStatusBadge } from "@/components/atoms/k/ExamStatusBadge";
+import { SectionCard, SectionMessage } from "@/components/k-page/section-card";
+import { buildRowMenu, ManagementMobileRows } from "./management-table-rows";
+import type { ManagementActions, ManagementTableData } from "./management-table-types";
 
-export interface ManagementTableData {
-  id: string;
-  icon: string;
-  name: string;
-  description: string;
-  questionCount: number;
-  viewCount?: number;
-  countLabel: string;
-  status: ExamStatus;
-  createdDate: string;
-  lastStudied: string | null;
-  tags: string[];
-}
+export type { ManagementTableData } from "./management-table-types";
 
-interface ManagementTableProps {
+interface ManagementTableProps extends ManagementActions {
   title: string;
   data: ManagementTableData[];
-  primaryActionIcon: LucideIcon;
-  primaryActionLabel: string;
-  secondaryActionIcon?: LucideIcon;
-  secondaryActionLabel?: string;
-  shareActionIcon?: LucideIcon;
-  shareActionLabel?: string;
   countColumnLabel: string;
-  onPrimaryAction: (id: string) => void;
-  onSecondaryAction?: (id: string) => void;
-  onShare?: (id: string) => void;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
   emptyMessage?: string;
   showViewCount?: boolean;
+  /** Total across all pages, shown in the count pill (defaults to the rows on this page). */
+  totalResults?: number;
+  /** Next step shown in the empty state. */
+  onCreate?: () => void;
+  createLabel?: string;
 }
+
+const thClass = "h-10 bg-surface-soft text-xs font-semibold uppercase tracking-wide text-muted-foreground";
 
 export function ManagementTable({
   title,
   data,
-  primaryActionIcon: PrimaryIcon,
-  primaryActionLabel,
-  secondaryActionIcon: SecondaryIcon,
-  secondaryActionLabel,
-  shareActionIcon: ShareIcon,
-  shareActionLabel,
   countColumnLabel,
-  onPrimaryAction,
-  onSecondaryAction,
-  onShare,
-  onEdit,
-  onDelete,
   emptyMessage = "Không có dữ liệu",
   showViewCount = true,
+  totalResults,
+  onCreate,
+  createLabel = "Tạo mới",
+  ...actions
 }: ManagementTableProps) {
+  const PrimaryIcon = actions.primaryActionIcon;
   return (
-    <div className="rounded-lg rounded-b-none border border-hairline border-b-0 overflow-hidden bg-canvas">
-      <div className="p-4 border-b border-hairline">
-        <h2 className="text-lg font-medium text-ink">{title}</h2>
-      </div>
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent border-hairline">
-              <TableHead className="text-muted-foreground font-medium">
-                Tên
-              </TableHead>
-              <TableHead className="text-muted-foreground font-medium">
-                {countColumnLabel}
-              </TableHead>
-              {showViewCount && (
-                <TableHead className="text-muted-foreground font-medium">
-                  Lượt xem
-                </TableHead>
-              )}
-              <TableHead className="text-muted-foreground font-medium">
-                Trạng thái
-              </TableHead>
-              <TableHead className="text-muted-foreground font-medium">
-                Ngày tạo
-              </TableHead>
-              <TableHead className="text-muted-foreground font-medium text-right">
-                Hành động
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((item) => (
-              <TableRow
-                key={item.id}
-                className="hover:bg-surface-soft border-hairline">
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-coral/10 shrink-0">
-                      <BookOpenCheck className="w-5 h-5 text-coral" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium text-ink truncate">
-                        {item.name}
-                      </div>
-                      <div className="text-sm text-muted-foreground truncate">
-                        {item.description}
-                      </div>
-                      {item.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {item.tags.slice(0, 2).map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="outline"
-                              className="text-xs border-hairline">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {item.tags.length > 2 && (
-                            <Badge variant="outline" className="text-xs border-hairline">
-                              +{item.tags.length - 2}
-                            </Badge>
+    <SectionCard icon={<BookOpenCheck />} title={title} countLabel={String(totalResults ?? data.length)} plain>
+      {data.length === 0 ? (
+        <div className="flex flex-col items-center border-t border-hairline-soft">
+          <SectionMessage title={emptyMessage} hint={onCreate ? "Bắt đầu bằng việc tạo mới." : undefined} />
+          {onCreate && (
+            <button
+              type="button"
+              onClick={onCreate}
+              className="mb-6 inline-flex h-8 items-center gap-1.5 rounded-full border border-brand-border bg-brand-soft px-3.5 text-[13px] font-semibold text-brand transition-colors hover:bg-[#fde4e2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+            >
+              <Plus className="size-3.5" aria-hidden />
+              {createLabel}
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          <ManagementMobileRows data={data} actions={actions} />
+          <div className="hidden overflow-x-auto border-t border-hairline-soft md:block">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-hairline-soft hover:bg-transparent">
+                  <TableHead className={`${thClass} pl-5`}>Tên</TableHead>
+                  <TableHead className={thClass}>{countColumnLabel}</TableHead>
+                  {showViewCount && <TableHead className={thClass}>Lượt xem</TableHead>}
+                  <TableHead className={thClass}>Trạng thái</TableHead>
+                  <TableHead className={thClass}>Ngày tạo</TableHead>
+                  <TableHead className={`${thClass} pr-5 text-right`}>Hành động</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((item) => (
+                  <TableRow key={item.id} className="border-hairline-soft transition-colors hover:bg-surface-soft">
+                    <TableCell className="pl-5">
+                      <div className="flex items-center gap-3">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
+                          <BookOpenCheck className="size-[18px]" aria-hidden />
+                        </span>
+                        <div className="min-w-0 max-w-[360px]">
+                          <p className="truncate text-[14px] font-semibold text-ink" title={item.name}>{item.name}</p>
+                          <p className="truncate text-[12px] text-muted-foreground">{item.description}</p>
+                          {item.tags.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {item.tags.slice(0, 2).map((tag) => (
+                                <Badge key={tag} variant="outline" className="border-hairline text-xs">{tag}</Badge>
+                              ))}
+                              {item.tags.length > 2 && (
+                                <Badge variant="outline" className="border-hairline text-xs">+{item.tags.length - 2}</Badge>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="text-ink font-medium">
-                    {item.questionCount} {item.countLabel}
-                  </span>
-                </TableCell>
-                {showViewCount && (
-                  <TableCell>
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      {item.viewCount ?? 0}
-                    </span>
-                  </TableCell>
-                )}
-                <TableCell>
-                  <ExamStatusBadge status={item.status} />
-                </TableCell>
-                <TableCell>
-                  <span className="text-body">{item.createdDate}</span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center justify-end gap-1">
-                    {item.questionCount > 0 && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-coral hover:text-coral hover:bg-coral/10"
-                            onClick={() => onPrimaryAction(item.id)}>
-                            <PrimaryIcon className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{primaryActionLabel}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      </div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-[13px] font-medium text-ink">
+                      {item.questionCount} {item.countLabel}
+                    </TableCell>
+                    {showViewCount && (
+                      <TableCell>
+                        <span className="flex items-center gap-1 text-[13px] text-body">
+                          <Eye className="size-3.5" aria-hidden />
+                          {item.viewCount ?? 0}
+                        </span>
+                      </TableCell>
                     )}
-
-                    {SecondaryIcon && onSecondaryAction && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-accent-teal hover:text-accent-teal hover:bg-accent-teal/10"
-                            onClick={() => onSecondaryAction(item.id)}>
-                            <SecondaryIcon className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{secondaryActionLabel}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-
-                    {ShareIcon && onShare && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-accent-amber hover:text-accent-amber hover:bg-accent-amber/10"
-                            onClick={() => onShare(item.id)}>
-                            <ShareIcon className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{shareActionLabel}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-ink hover:bg-surface-card"
-                          onClick={() => onEdit(item.id)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Chỉnh sửa</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-error hover:bg-error/10"
-                          onClick={() => onDelete(item.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Xóa</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-      {data.length === 0 && (
-        <div className="p-12 text-center">
-          <p className="text-muted-foreground">{emptyMessage}</p>
-        </div>
+                    <TableCell><ExamStatusBadge status={item.status} /></TableCell>
+                    <TableCell className="whitespace-nowrap text-[13px] text-body">{item.createdDate}</TableCell>
+                    <TableCell className="pr-5">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {item.questionCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => actions.onPrimaryAction(item.id)}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-brand-border bg-brand-soft px-3.5 text-[13px] font-semibold text-brand transition-colors hover:bg-[#fde4e2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                          >
+                            <PrimaryIcon className="size-3.5" aria-hidden />
+                            {actions.primaryActionLabel}
+                          </button>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              aria-label={`Tùy chọn cho ${item.name}`}
+                              className="grid size-8 place-items-center rounded-full text-body transition-colors hover:bg-surface-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                            >
+                              <MoreVertical className="size-4" aria-hidden />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {buildRowMenu(item, actions).map(({ label, icon: Icon, onClick, destructive }) => (
+                              <DropdownMenuItem key={label} onClick={onClick} className={destructive ? "cursor-pointer text-destructive focus:text-destructive" : "cursor-pointer"}>
+                                <Icon className="mr-2 size-4" aria-hidden />
+                                {label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
       )}
-    </div>
+    </SectionCard>
   );
 }

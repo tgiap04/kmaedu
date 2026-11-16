@@ -60,8 +60,8 @@ export function FlashcardManagementTemplate({
   onManageFlashcard: (id: string) => void;
 }) {
   return (
-    <div>
-      <div>
+    <div className="min-w-0">
+      <div className="flex flex-col gap-5 [&>header]:-mb-5">
         <FlashcardManagementHeader onCreateFlashcard={onCreateFlashcard} />
 
         <FlashcardStatsSection stats={stats} />
@@ -83,6 +83,8 @@ export function FlashcardManagementTemplate({
           onEdit={onEditFlashcard}
           onDelete={onDeleteFlashcard}
           onShare={onShareFlashcard}
+          totalResults={totalResults}
+          onCreate={onCreateFlashcard}
         />
 
         {totalResults > 0 && (

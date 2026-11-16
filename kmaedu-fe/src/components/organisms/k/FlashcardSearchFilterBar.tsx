@@ -27,13 +27,13 @@ const FlashcardSearchFilterBarComponent = ({
   onStatusChange,
 }: FlashcardSearchFilterBarProps) => {
   return (
-    <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between mb-6 p-4 rounded-lg border border-hairline bg-surface-soft">
+    <div className="flex flex-col items-stretch justify-between gap-3 rounded-[20px] border border-hairline bg-canvas p-3 shadow-[0_4px_20px_rgba(15,23,42,0.04)] md:flex-row md:items-center md:px-5 [&>div:first-child]:min-w-0 [&>div:first-child]:max-w-none [&>div:first-child]:md:max-w-md">
       <SearchBar
         value={searchQuery}
         onChange={onSearchChange}
         placeholder="Tìm kiếm flashcard..."
       />
-      <div className="flex items-center gap-2 w-full md:w-auto">
+      <div className="flex flex-wrap items-center gap-2">
         <FilterSelect
           value={sortBy}
           options={sortOptions}

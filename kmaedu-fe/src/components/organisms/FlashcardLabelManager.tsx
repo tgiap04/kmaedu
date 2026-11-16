@@ -256,10 +256,10 @@ export function FlashcardLabelManager({
 
   if (loading) {
     return (
-      <Card className="mb-6">
+      <Card className="!mb-6 overflow-hidden !rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5" />
+          <CardTitle className="!text-[16px] !font-bold text-ink flex items-center gap-2">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><Tag className="size-[18px] stroke-[1.9]" aria-hidden /></span>
             Quản lý nhãn
           </CardTitle>
         </CardHeader>
@@ -273,11 +273,11 @@ export function FlashcardLabelManager({
   }
 
   return (
-    <Card className="mb-6">
+    <Card className="!mb-6 overflow-hidden !rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="!text-[16px] !font-bold text-ink flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Tag className="h-5 w-5" />
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><Tag className="size-[18px] stroke-[1.9]" aria-hidden /></span>
             Quản lý nhãn
           </div>
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

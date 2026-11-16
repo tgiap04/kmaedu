@@ -4,19 +4,22 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/antd/button";
 import { Skeleton } from "@/components/antd/skeleton";
 
-interface MaterialSectionCardProps {
+interface SectionCardProps {
   icon: ReactNode;
   title: string;
   countLabel?: string;
   /** "Xem tất cả" pill, see ViewAllLink / ViewAllButton. */
   action?: ReactNode;
-  /** Path under /public of the art shown in the pink panel on the left. */
-  illustration: string;
+  /** Path under /public of the art shown in the pink panel on the left; without it the body spans the card. */
+  illustration?: string;
+  /** Body without the row dividers (a form, a grid, a table). */
+  plain?: boolean;
   children: ReactNode;
 }
 
-/** One block of /k/my-materials: header with count and "Xem tất cả", pink art panel, then the rows. */
-export function MaterialSectionCard({ icon, title, countLabel, action, illustration, children }: MaterialSectionCardProps) {
+/** The /k section block: header with count and an action pill, optional pink art panel, then the rows. */
+export function SectionCard({ icon, title, countLabel, action, illustration, plain, children }: SectionCardProps) {
+  const body = plain ? "min-w-0" : "min-w-0 divide-y divide-hairline-soft";
   return (
     <section className="overflow-hidden rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <div className="flex flex-wrap items-center gap-2.5 px-4 py-3 md:px-5">
@@ -25,19 +28,23 @@ export function MaterialSectionCard({ icon, title, countLabel, action, illustrat
         {countLabel && <span className="rounded-full border border-hairline bg-surface-soft px-2.5 py-0.5 text-xs text-body">{countLabel}</span>}
         {action && <div className="ml-auto">{action}</div>}
       </div>
-      <div className="grid border-t border-hairline-soft md:grid-cols-[176px_minmax(0,1fr)]">
-        <div className="hidden p-2.5 md:block">
-          <div className="grid h-full min-h-[104px] place-items-center rounded-xl bg-gradient-to-br from-[#fff1f0] via-[#fff6f5] to-[#fde4e2]">
-            <img src={illustration} alt="" aria-hidden="true" className="w-full max-w-[148px]" />
+      {illustration ? (
+        <div className="grid border-t border-hairline-soft md:grid-cols-[176px_minmax(0,1fr)]">
+          <div className="hidden p-2.5 md:block">
+            <div className="grid h-full min-h-[104px] place-items-center rounded-xl bg-gradient-to-br from-[#fff1f0] via-[#fff6f5] to-[#fde4e2]">
+              <img src={illustration} alt="" aria-hidden="true" className="w-full max-w-[148px]" />
+            </div>
           </div>
+          <div className={`${body} md:border-l md:border-hairline-soft`}>{children}</div>
         </div>
-        <div className="min-w-0 divide-y divide-hairline-soft md:border-l md:border-hairline-soft">{children}</div>
-      </div>
+      ) : (
+        <div className={`${body} border-t border-hairline-soft`}>{children}</div>
+      )}
     </section>
   );
 }
 
-const pillClass =
+export const pillClass =
   "inline-flex h-8 items-center gap-1.5 rounded-full border border-hairline bg-canvas px-3.5 text-[13px] font-semibold text-ink transition-colors hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40";
 
 export function ViewAllLink({ to }: { to: string }) {
@@ -59,7 +66,7 @@ export function ViewAllButton({ expanded, onToggle }: { expanded: boolean; onTog
   );
 }
 
-export function MaterialRowsSkeleton({ rows = 2 }: { rows?: number }) {
+export function RowsSkeleton({ rows = 2 }: { rows?: number }) {
   return (
     <>
       {Array.from({ length: rows }, (_, i) => (
@@ -76,7 +83,7 @@ export function MaterialRowsSkeleton({ rows = 2 }: { rows?: number }) {
   );
 }
 
-export function MaterialMessage({ title, hint, onRetry }: { title: string; hint?: string; onRetry?: () => void }) {
+export function SectionMessage({ title, hint, onRetry }: { title: string; hint?: string; onRetry?: () => void }) {
   return (
     <div className="flex min-h-[104px] flex-col items-center justify-center gap-1 px-6 py-6 text-center">
       <p className={onRetry ? "text-sm font-medium text-destructive" : "text-sm font-medium text-ink"}>{title}</p>

@@ -350,10 +350,10 @@ export function LabelManager({ quizSetId, onLabelChange }: LabelManagerProps) {
 
   if (loading) {
     return (
-      <Card className="mb-6">
+      <Card className="!mb-6 overflow-hidden !rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5" />
+          <CardTitle className="!text-[16px] !font-bold text-ink flex items-center gap-2">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><Tag className="size-[18px] stroke-[1.9]" aria-hidden /></span>
             Quản lý nhãn
           </CardTitle>
         </CardHeader>
@@ -367,11 +367,11 @@ export function LabelManager({ quizSetId, onLabelChange }: LabelManagerProps) {
   }
 
   return (
-    <Card className="!mb-6">
+    <Card className="!mb-6 overflow-hidden !rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="!text-[16px] !font-bold text-ink flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Tag className="h-5 w-5" />
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><Tag className="size-[18px] stroke-[1.9]" aria-hidden /></span>
             Quản lý nhãn
           </div>
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -465,7 +465,7 @@ export function LabelManager({ quizSetId, onLabelChange }: LabelManagerProps) {
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {labels.map((label) => (
-                  <Card key={label.id} className="hover:shadow-md transition-shadow [&_.ant-card-body]:!p-0" style={{ padding: "0" }}>
+                  <Card key={label.id} className="!rounded-xl !border-hairline transition-shadow duration-200 hover:shadow-md [&_.ant-card-body]:!p-0" style={{ padding: "0" }}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div

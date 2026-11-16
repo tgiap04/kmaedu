@@ -5,8 +5,8 @@ import { useToast } from "@/components/antd/toast";
 import { lastAttemptLabel } from "@/lib/quiz-practice/last-attempt-label";
 import { displayUserName } from "@/lib/user/display-user-name";
 import { useQuizPracticeStore } from "@/stores/useQuizPracticeStore";
-import { MaterialRow } from "../my-materials/material-row";
-import { MaterialMessage, MaterialRowsSkeleton, MaterialSectionCard, SectionPager, ViewAllButton } from "../my-materials/material-section-card";
+import { ItemRow } from "@/components/k-page/item-row";
+import { SectionMessage, RowsSkeleton, SectionCard, SectionPager, ViewAllButton } from "@/components/k-page/section-card";
 import { usePagedList } from "../my-materials/use-paged-list";
 
 const PAGE_SIZE = 6;
@@ -34,7 +34,7 @@ export function SharedQuizSection() {
   const canExpand = !!data && data.total > PREVIEW;
 
   return (
-    <MaterialSectionCard
+    <SectionCard
       icon={<FileText />}
       title="Bộ câu hỏi được chia sẻ"
       countLabel={data ? `${data.total} bộ câu hỏi` : undefined}
@@ -42,15 +42,15 @@ export function SharedQuizSection() {
       illustration="/illustrations/materials-quiz.svg"
     >
       {failed ? (
-        <MaterialMessage title="Không thể tải bộ câu hỏi được chia sẻ" onRetry={reload} />
+        <SectionMessage title="Không thể tải bộ câu hỏi được chia sẻ" onRetry={reload} />
       ) : data === null ? (
-        <MaterialRowsSkeleton />
+        <RowsSkeleton />
       ) : data.sets.length === 0 ? (
-        <MaterialMessage title="Chưa có bộ câu hỏi nào được chia sẻ" hint="Mở liên kết và nhập mã giáo viên gửi để thêm vào đây" />
+        <SectionMessage title="Chưa có bộ câu hỏi nào được chia sẻ" hint="Mở liên kết và nhập mã giáo viên gửi để thêm vào đây" />
       ) : (
         <>
           {sets.map((set, index) => (
-            <MaterialRow
+            <ItemRow
               key={set.id}
               icon={<FileText />}
               tone={index % 2 === 0 ? "cyan" : "amber"}
@@ -69,6 +69,6 @@ export function SharedQuizSection() {
           {expanded && <SectionPager page={page} totalPages={data.totalPages} onChange={setPage} />}
         </>
       )}
-    </MaterialSectionCard>
+    </SectionCard>
   );
 }

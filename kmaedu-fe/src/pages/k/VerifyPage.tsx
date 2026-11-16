@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShieldCheck, Loader2, ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
+import { PageHeader } from "@/components/k-page/page-header";
 import { useAuthStore } from "@/stores/useAuthStore";
 import {
   InputOTP,
@@ -53,17 +54,18 @@ export default function VerifyPage() {
 
   if (user?.isVerified) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-xl">
+      <div>
+        <PageHeader icon={<ShieldCheck />} title="Xác minh tài khoản" subtitle="Bảo vệ tài khoản và mở đầy đủ tính năng học tập" />
+        <div className="mx-auto w-full max-w-md">
+          <div className="rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)] p-8 text-center">
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
               <CheckCircle2 className="h-10 w-10 text-green-600" />
             </div>
-            <h1 className="mb-3 text-2xl font-bold text-zinc-900">Tài khoản đã được xác minh!</h1>
-            <p className="mb-6 text-zinc-500">
+            <h2 className="mb-3 text-xl font-bold text-ink">Tài khoản đã được xác minh!</h2>
+            <p className="mb-6 text-muted-foreground">
               Tài khoản của bạn đã được xác minh thành công. Bạn có thể sử dụng đầy đủ các tính năng của hệ thống.
             </p>
-            <Link to="/k" className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-6 py-3 font-medium text-white transition-colors hover:bg-green-700">
+            <Link to="/k" className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40">
               <ArrowLeft className="h-4 w-4" />
               Quay lại trang chủ
             </Link>
@@ -74,23 +76,24 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-xl">
+    <div>
+      <PageHeader icon={<ShieldCheck />} title="Xác minh tài khoản" subtitle="Bảo vệ tài khoản và mở đầy đủ tính năng học tập" />
+      <div className="mx-auto w-full max-w-md">
+        <div className="rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)] p-6 sm:p-8">
           <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <ShieldCheck className="h-8 w-8 text-primary" />
+            <div className="mx-auto mb-4 grid size-12 place-items-center rounded-xl bg-brand-soft">
+              <ShieldCheck className="size-6 text-brand" />
             </div>
-            <h1 className="text-2xl font-bold text-zinc-900">Xác minh tài khoản</h1>
-            <p className="mt-2 text-zinc-500">Nhập mã xác minh đã được gửi đến email của bạn</p>
-            {user?.email && <p className="mt-1 text-sm text-zinc-400">({user.email})</p>}
+            <h2 className="text-xl font-bold text-ink">Nhập mã xác minh</h2>
+            <p className="mt-2 text-body">Mã xác minh đã được gửi đến email của bạn</p>
+            {user?.email && <p className="mt-1 text-sm text-muted-foreground">({user.email})</p>}
           </div>
 
           {autoSentEmail && !success && (
-            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
+            <div className="mb-6 rounded-xl border border-brand-border bg-brand-soft p-4">
               <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 flex-shrink-0 text-primary" />
-                <p className="text-sm text-red-700">Email xác minh đã được gửi tự động. Vui lòng kiểm tra hộp thư của bạn.</p>
+                <Mail className="h-5 w-5 flex-shrink-0 text-brand" />
+                <p className="text-sm text-brand">Email xác minh đã được gửi tự động. Vui lòng kiểm tra hộp thư của bạn.</p>
               </div>
             </div>
           )}
@@ -103,13 +106,13 @@ export default function VerifyPage() {
                 </svg>
               </div>
               <p className="font-medium text-green-600">Xác minh thành công!</p>
-              <p className="mt-2 text-sm text-zinc-500">Đang chuyển hướng...</p>
+              <p className="mt-2 text-sm text-muted-foreground">Đang chuyển hướng...</p>
             </div>
           ) : (
             <>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="code" className="mb-2 block text-sm font-medium text-zinc-700">Mã xác minh</label>
+                  <label htmlFor="code" className="mb-2 block text-sm font-medium text-ink">Mã xác minh</label>
                   <div className="flex justify-center">
                     <InputOTP maxLength={6} value={code} onChange={(value) => setCode(value)}>
                       <InputOTPGroup>
@@ -130,7 +133,7 @@ export default function VerifyPage() {
                 <button
                   type="submit"
                   disabled={loading || code.length < 6}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-medium text-white transition-colors hover:bg-red-700 disabled:bg-red-400"
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-brand px-4 py-3 font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-60"
                 >
                   {loading ? (
                     <>
@@ -144,8 +147,8 @@ export default function VerifyPage() {
               </form>
 
               <div className="mt-6 text-center">
-                <p className="mb-2 text-sm text-zinc-500">Không nhận được mã?</p>
-                <button onClick={handleResendCode} disabled={loading} className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-red-700 disabled:opacity-50">
+                <p className="mb-2 text-sm text-muted-foreground">Không nhận được mã?</p>
+                <button onClick={handleResendCode} disabled={loading} className="inline-flex items-center gap-2 rounded-full text-sm font-semibold text-brand hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-50">
                   <Mail className="h-4 w-4" />
                   Gửi lại mã xác minh
                 </button>
@@ -153,8 +156,8 @@ export default function VerifyPage() {
             </>
           )}
 
-          <div className="mt-6 border-t border-zinc-200 pt-6 text-center">
-            <Link to="/k" className="inline-flex items-center gap-2 text-sm text-zinc-500 transition-colors hover:text-zinc-700">
+          <div className="mt-6 border-t border-hairline pt-6 text-center">
+            <Link to="/k" className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-ink">
               <ArrowLeft className="h-4 w-4" />
               Quay lại trang chủ
             </Link>

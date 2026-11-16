@@ -19,15 +19,15 @@ export function AccessCodeForm({ title, submitting, error, locked, onSubmit }: A
 
   return (
     <form
-      className="mx-auto w-full max-w-sm space-y-4 rounded-lg border border-hairline bg-canvas p-6"
+      className="mx-auto w-full max-w-sm space-y-4 p-6 rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]"
       onSubmit={(e) => {
         e.preventDefault();
         if (ready) onSubmit(code);
       }}
     >
       <div className="flex items-center gap-2 text-ink">
-        <Lock className="h-5 w-5 text-coral" />
-        <h2 className="text-lg font-medium">Nhập mã để luyện tập</h2>
+        <span className="grid size-9 place-items-center rounded-lg bg-brand-soft text-brand"><Lock className="size-[18px]" /></span>
+        <h2 className="text-[16px] font-bold">Nhập mã để luyện tập</h2>
       </div>
       <p className="text-sm text-muted-foreground">
         Bộ câu hỏi &quot;{title}&quot; được bảo vệ bằng mã 6 số. Hỏi giáo viên của bạn nếu chưa có mã.

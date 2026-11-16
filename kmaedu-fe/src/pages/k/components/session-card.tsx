@@ -34,17 +34,17 @@ export function SessionCard({
   onTogglePin: (s: SessionSummary) => void
 }) {
   return (
-    <article className="group relative flex h-[260px] flex-col rounded-lg border border-hairline bg-canvas p-5 transition-all duration-200 hover:border-coral/30 hover:shadow-[0_4px_16px_rgba(20,20,19,0.06)]">
+    <article className="group relative flex h-[260px] flex-col rounded-[20px] border border-hairline bg-canvas p-5 shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-brand-border hover:shadow-[0_6px_24px_rgba(15,23,42,0.08)]">
       {session.isPinned && (
-        <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-coral/10 text-brand-strong">
+        <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-brand-soft text-brand">
           <Pin className="h-3 w-3" />
         </span>
       )}
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-surface-card">
-            <Trophy className="h-5 w-5 text-accent-amber" />
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-50">
+            <Trophy className="h-[18px] w-[18px] text-amber-500" />
           </div>
           <div className="min-w-0">
             <h3 className="font-body text-[15px] font-medium leading-snug text-ink line-clamp-2">
@@ -78,17 +78,17 @@ export function SessionCard({
 
       {/* Stats */}
       <div className="mt-4 grid grid-cols-3 gap-3">
-        <div className="rounded-md bg-surface-soft px-3 py-2 text-center">
+        <div className="rounded-xl border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
           <p className={cn("text-lg font-semibold", session.bestScore !== null ? getScoreColor(session.bestScore) : "text-ink")}>
             {session.bestScore !== null ? session.bestScore.toFixed(1) : "—"}
           </p>
           <p className="text-[10px] text-muted-foreground">Điểm cao</p>
         </div>
-        <div className="rounded-md bg-surface-soft px-3 py-2 text-center">
+        <div className="rounded-xl border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
           <p className="text-lg font-semibold text-ink">{session.attemptCount}</p>
           <p className="text-[10px] text-muted-foreground">Số lần thi</p>
         </div>
-        <div className="rounded-md bg-surface-soft px-3 py-2 text-center">
+        <div className="rounded-xl border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
           <p className="text-lg font-semibold text-ink">{session.bestPercentage}%</p>
           <p className="text-[10px] text-muted-foreground">Tỷ lệ tốt</p>
         </div>
@@ -98,7 +98,7 @@ export function SessionCard({
       <div className="mt-3">
         <div className="h-1 overflow-hidden rounded-pill bg-hairline">
           <div
-            className="h-full rounded-pill bg-coral transition-all duration-300"
+            className="h-full rounded-pill bg-brand transition-all duration-300"
             style={{ width: `${session.bestPercentage}%` }}
           />
         </div>

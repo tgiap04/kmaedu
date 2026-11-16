@@ -1,6 +1,6 @@
 import { memo } from "react";
-import { RoomStatsCard } from "@/components/molecules/RoomStatsCard";
 import { DoorOpen, Users } from "lucide-react";
+import { HistoryStatCard } from "@/components/molecules/HistoryStatCard";
 
 interface RoomStats {
   activeRooms: number;
@@ -15,21 +15,9 @@ interface RoomStatsSectionProps {
 
 const RoomStatsSectionComponent = ({ stats }: RoomStatsSectionProps) => {
   return (
-    <div className="grid grid-cols-2 gap-2 mb-8">
-      <RoomStatsCard
-        icon={DoorOpen}
-        label="Phòng thi đang hoạt động"
-        value={stats.activeRooms}
-        iconColor="text-coral"
-        iconBgColor="bg-coral/10"
-      />
-      <RoomStatsCard
-        icon={Users}
-        label="Tổng số thí sinh"
-        value={stats.totalParticipants}
-        iconColor="text-success"
-        iconBgColor="bg-success/10"
-      />
+    <div className="mb-6 grid gap-4 sm:grid-cols-2">
+      <HistoryStatCard icon={DoorOpen} title="Phòng thi đang hoạt động" value={stats.activeRooms} tone="red" />
+      <HistoryStatCard icon={Users} title="Tổng số thí sinh" value={stats.totalParticipants} tone="green" />
     </div>
   );
 };

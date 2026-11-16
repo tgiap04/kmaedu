@@ -40,17 +40,17 @@ const ExamTablePaginationComponent = ({
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-4 border-t border-hairline bg-surface-soft rounded-b-lg">
+    <div className="flex flex-col items-center justify-between gap-3 rounded-[20px] border border-hairline bg-canvas px-4 py-3 shadow-[0_4px_20px_rgba(15,23,42,0.04)] sm:flex-row md:px-5">
       <div className="text-sm text-muted-foreground">
         Hiển thị {startResult} - {endResult} trong tổng số {totalResults} kết quả
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center justify-center gap-1">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-8 border-hairline">
+          className="h-8 rounded-full border-hairline focus-visible:ring-2 focus-visible:ring-brand/40">
           <ChevronLeft className="h-4 w-4 mr-1" />
           Trước
         </Button>
@@ -60,7 +60,7 @@ const ExamTablePaginationComponent = ({
             variant={currentPage === page ? "default" : "outline"}
             size="sm"
             onClick={() => onPageChange(page)}
-            className={`h-8 w-8 p-0 ${
+            className={`h-8 w-8 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-brand/40 ${
               currentPage === page
                 ? ""
                 : "border-hairline"
@@ -73,7 +73,7 @@ const ExamTablePaginationComponent = ({
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-8 border-hairline">
+          className="h-8 rounded-full border-hairline focus-visible:ring-2 focus-visible:ring-brand/40">
           Sau
           <ChevronRight className="h-4 w-4 ml-1" />
         </Button>

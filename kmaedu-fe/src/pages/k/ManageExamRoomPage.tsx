@@ -1,7 +1,8 @@
 import { displayUserName } from "@/lib/user/display-user-name";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { DoorOpen, Plus } from "lucide-react";
+import { PageHeader } from "@/components/k-page/page-header";
 import { getExamAttemptsByRoomApi, type ExamAttemptListItem } from "@/apis/examAttemptApi";
 import { ExamRoomModal } from "@/components/organisms/ExamRoomModal";
 import { DeleteConfirmDialog } from "@/components/organisms/DeleteConfirmDialog";
@@ -188,17 +189,14 @@ export default function ManageExamRoomPage() {
 
   if (loading && examRooms.length === 0) {
     return (
-      <div>
-        <div>
-          <div className="animate-pulse">
-            <div className="h-8 w-64 bg-muted rounded mb-8" />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-32 bg-muted rounded" />
-              ))}
-            </div>
-          </div>
+      <div className="animate-pulse">
+        <div className="mb-6 h-16 w-72 rounded-2xl bg-surface-soft" />
+        <div className="mb-6 grid gap-4 sm:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="h-28 rounded-2xl bg-surface-soft" />
+          ))}
         </div>
+        <div className="h-64 rounded-[20px] bg-surface-soft" />
       </div>
     );
   }
@@ -206,16 +204,17 @@ export default function ManageExamRoomPage() {
   return (
     <div>
       <div>
-        <div className="mb-8 mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="font-display text-2xl tracking-tight text-ink">Quản lý phòng thi</h1>
-            <p className="text-xs text-muted-foreground md:text-sm">Tạo và quản lý các phòng thi trực tuyến</p>
-          </div>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Tạo phòng thi mới
-          </Button>
-        </div>
+        <PageHeader
+          icon={<DoorOpen />}
+          title="Quản lý phòng thi"
+          subtitle="Tạo và quản lý các phòng thi trực tuyến"
+          actions={
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Tạo phòng thi mới
+            </Button>
+          }
+        />
 
         <RoomStatsSection stats={stats} />
 
@@ -234,9 +233,7 @@ export default function ManageExamRoomPage() {
 
           <div className="lg:col-span-1">
             {loadingParticipants ? (
-              <div className="animate-pulse">
-                <div className="h-64 bg-muted rounded" />
-              </div>
+              <div className="h-64 animate-pulse rounded-[20px] bg-surface-soft" />
             ) : (
               <RecentParticipantsList participants={recentParticipants} onViewAll={() => {}} />
             )}

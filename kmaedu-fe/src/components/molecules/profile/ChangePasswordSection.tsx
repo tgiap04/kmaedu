@@ -85,14 +85,14 @@ export function ChangePasswordSection() {
   };
 
   return (
-    <Card className="glass-card">
+    <Card className="!rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader className="pb-0">
         <CardTitle className="flex items-center gap-3 text-xl">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-hairline bg-surface-soft">
-            <Lock className="h-5 w-5 text-coral" />
+          <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
+            <Lock className="size-[18px] text-brand" />
           </div>
           <div>
-            <div className="font-display text-xl font-medium text-ink">Bảo mật</div>
+            <div className="text-[16px] font-bold text-ink">Bảo mật</div>
             <p className="mt-0.5 text-sm font-normal text-muted-text">Quản lý mật khẩu tài khoản</p>
           </div>
         </CardTitle>
@@ -107,7 +107,7 @@ export function ChangePasswordSection() {
             <Button
               onClick={handleSendCode}
               disabled={isSendingCode}
-              className="gap-2 bg-brand-soft text-brand-strong hover:bg-brand-soft-hover disabled:opacity-50 shrink-0"
+              className="gap-2 rounded-full border border-brand-border bg-brand-soft font-semibold text-brand hover:bg-brand-soft-hover disabled:opacity-50 shrink-0"
             >
               {isSendingCode ? (
                 <>
@@ -233,7 +233,7 @@ export function ChangePasswordSection() {
               <Button
                 type="submit"
                 disabled={isSubmitting || !passwordsMatch || !passwordMinLength}
-                className="gap-2 bg-brand-soft text-brand-strong hover:bg-brand-soft-hover disabled:opacity-50"
+                className="gap-2 rounded-full border border-brand-border bg-brand-soft font-semibold text-brand hover:bg-brand-soft-hover disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
@@ -274,7 +274,7 @@ export function ChangePasswordSection() {
               <Check className="h-7 w-7 text-success" />
             </div>
             <div>
-              <h3 className="font-display text-xl font-medium text-ink">Đổi mật khẩu thành công!</h3>
+              <h3 className="text-[16px] font-bold text-ink">Đổi mật khẩu thành công!</h3>
               <p className="mt-1 text-sm text-muted-text">Tài khoản của bạn đã được bảo mật hơn.</p>
             </div>
           </div>

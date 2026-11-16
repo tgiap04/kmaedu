@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Layers, Target, Eye } from "lucide-react";
-import { StatCard } from "@/components/molecules/StatCard";
+import { HistoryStatCard } from "@/components/molecules/HistoryStatCard";
 
 interface FlashcardStatsData {
   totalGroups: number;
@@ -17,33 +17,24 @@ interface FlashcardStatsSectionProps {
 
 const FlashcardStatsSectionComponent = ({ stats }: FlashcardStatsSectionProps) => {
   return (
-    <div className="grid grid-cols-3 gap-2 mb-8">
-      <StatCard
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <HistoryStatCard
         title="Tổng số nhóm"
         value={stats.totalGroups}
         icon={Layers}
-        iconColor="text-coral"
-        iconBgColor="bg-coral/10"
-        trend={stats.totalGroupsTrend}
-        className="flex-1"
+        tone="red"
       />
-      <StatCard
+      <HistoryStatCard
         title="Tổng số thẻ"
         value={stats.totalCards}
         icon={Target}
-        iconColor="text-accent-amber"
-        iconBgColor="bg-accent-amber/10"
-        trend={stats.totalCardsTrend}
-        className="flex-1"
+        tone="amber"
       />
-      <StatCard
+      <HistoryStatCard
         title="Tổng lượt xem"
         value={stats.totalViews}
         icon={Eye}
-        iconColor="text-success"
-        iconBgColor="bg-success/10"
-        trend={stats.totalViewsTrend}
-        className="flex-1"
+        tone="green"
       />
     </div>
   );

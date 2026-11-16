@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Dumbbell, Play } from "lucide-react";
 import { Button } from "@/components/antd/button";
-import { Skeleton } from "@/components/antd/skeleton";
+import { PageHeader } from "@/components/k-page/page-header";
+import { pillClass, RowsSkeleton, SectionCard, SectionMessage } from "@/components/k-page/section-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/antd/tabs";
 import { ConfirmDialog } from "@/components/organisms/ConfirmDialog";
 import { listAttemptsApi, type AttemptHistoryItem } from "@/apis/quizPracticeApi";
@@ -37,19 +38,27 @@ export default function QuizPracticePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl tracking-tight text-ink md:text-3xl">{title}</h1>
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/k/my-materials">Tài liệu của tôi</Link>
-        </Button>
-      </div>
+      <PageHeader
+        icon={<Dumbbell />}
+        title={title}
+        subtitle="Luyện tập trắc nghiệm, đáp án hiện sau khi bạn nộp bài"
+        actions={
+          <Link to="/k/my-materials" className={pillClass}>
+            Tài liệu của tôi
+          </Link>
+        }
+      />
 
-      {s.phase === "loading" && <Skeleton className="h-64 w-full rounded-lg" />}
+      {s.phase === "loading" && (
+        <SectionCard icon={<Dumbbell />} title="Đang tải bộ câu hỏi">
+          <RowsSkeleton rows={3} />
+        </SectionCard>
+      )}
 
       {s.phase === "unavailable" && (
-        <p className="py-16 text-center text-muted-foreground">
-          {s.problem ?? "Bộ câu hỏi không tồn tại hoặc bạn chưa được cấp quyền truy cập."}
-        </p>
+        <SectionCard icon={<Dumbbell />} title="Luyện tập">
+          <SectionMessage title={s.problem ?? "Bộ câu hỏi không tồn tại hoặc bạn chưa được cấp quyền truy cập."} />
+        </SectionCard>
       )}
 
       {s.phase === "code" && (
@@ -57,7 +66,8 @@ export default function QuizPracticePage() {
       )}
 
       {s.phase === "intro" && (
-        <Tabs defaultValue="practice">
+        <SectionCard icon={<Dumbbell />} title="Luyện tập" countLabel={`${s.access?.questionCount ?? 0} câu hỏi`} plain>
+        <Tabs defaultValue="practice" className="px-4 pb-4 md:px-5">
           <TabsList>
             <TabsTrigger value="practice">Luyện tập</TabsTrigger>
             <TabsTrigger value="history">Lịch sử</TabsTrigger>
@@ -68,6 +78,7 @@ export default function QuizPracticePage() {
               <p className="text-sm text-muted-foreground">Nếu bạn đang làm dở, bài sẽ được tiếp tục từ chỗ dừng.</p>
               {s.problem && <p className="text-sm text-destructive">{s.problem}</p>}
               <Button onClick={s.start} disabled={s.busy}>
+                <Play className="mr-1.5 h-4 w-4" />
                 {s.busy ? "Đang tải..." : "Bắt đầu / Tiếp tục"}
               </Button>
             </div>
@@ -76,6 +87,7 @@ export default function QuizPracticePage() {
             <PracticeHistory attempts={history} error={historyError} onOpen={s.openAttempt} onRetry={loadHistory} />
           </TabsContent>
         </Tabs>
+        </SectionCard>
       )}
 
       {s.phase === "practice" && current && (

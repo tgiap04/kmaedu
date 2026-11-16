@@ -17,7 +17,7 @@ export function SnapshotOutdatedBanner({ drift, canManage, pending, onRefresh }:
   return (
     <div
       role="status"
-      className="mt-1 flex flex-wrap items-center gap-2 rounded-md bg-accent-amber/10 px-2 py-1 text-xs text-accent-amber"
+      className="mt-1 flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-700"
     >
       <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
       <span>Đề đã thay đổi kể từ khi tạo phiên</span>

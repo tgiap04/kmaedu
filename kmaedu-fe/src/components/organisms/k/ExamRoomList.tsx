@@ -1,5 +1,7 @@
 import { memo } from "react";
-import { ExamRoomCardItem } from "@/components/molecules/ExamRoomCardItem";
+import { DoorOpen, Eye, Pencil, Trash2 } from "lucide-react";
+import { ItemRow, type RowAction } from "@/components/k-page/item-row";
+import { SectionCard, SectionMessage } from "@/components/k-page/section-card";
 
 export interface ExamRoom {
   id: string;
@@ -27,35 +29,28 @@ const ExamRoomListComponent = ({
   onDeleteRoom,
 }: ExamRoomListProps) => {
   return (
-    <div className="rounded-lg border border-hairline bg-canvas p-4">
-      <div className="mb-4 border-b border-hairline pb-4">
-        <h2 className="text-lg font-medium text-ink">Danh sách phòng thi</h2>
-        <p className="text-sm text-muted-foreground">
-          {rooms.length} phòng thi
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        {rooms.map((room) => (
-          <ExamRoomCardItem
-            key={room.id}
-            name={room.name}
-            roomType={room.roomType}
-            questionCount={room.questionCount}
-            isPrivate={room.isPrivate}
-            onViewDetails={() => onViewRoom(room.id)}
-            onEdit={onEditRoom ? () => onEditRoom(room.id) : undefined}
-            onDelete={onDeleteRoom ? () => onDeleteRoom(room.id) : undefined}
-          />
-        ))}
-      </div>
-
-      {rooms.length === 0 && (
-        <div className="py-12 text-center">
-          <p className="text-muted-foreground">Chưa có phòng thi nào</p>
-        </div>
+    <SectionCard icon={<DoorOpen />} title="Danh sách phòng thi" countLabel={`${rooms.length} phòng thi`}>
+      {rooms.length === 0 ? (
+        <SectionMessage title="Chưa có phòng thi nào" hint="Bấm “Tạo phòng thi mới” để bắt đầu." />
+      ) : (
+        rooms.map((room) => {
+          const menu: RowAction[] = [];
+          if (onEditRoom) menu.push({ label: "Chỉnh sửa", icon: Pencil, onClick: () => onEditRoom(room.id) });
+          if (onDeleteRoom) menu.push({ label: "Xóa", icon: Trash2, onClick: () => onDeleteRoom(room.id), destructive: true });
+          return (
+            <ItemRow
+              key={room.id}
+              icon={<DoorOpen />}
+              tone="red"
+              title={room.name}
+              meta={[`Bộ đề: ${room.roomType}`, `${room.questionCount} câu`, room.isPrivate ? "Riêng tư" : ""]}
+              action={{ label: "Xem chi tiết", icon: Eye, onClick: () => onViewRoom(room.id), variant: "neutral" }}
+              menu={menu}
+            />
+          );
+        })
       )}
-    </div>
+    </SectionCard>
   );
 };
 

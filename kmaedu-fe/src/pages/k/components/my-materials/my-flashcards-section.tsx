@@ -5,8 +5,8 @@ import { togglePinFlashcardApi, type RecentFlashcardSet } from "@/apis/studentMa
 import { useToast } from "@/components/antd/toast";
 import { formatCompactCount, formatTimeAgo } from "@/lib/history/history-format";
 import { useStudentMaterialsStore } from "@/stores/useStudentMaterialsStore";
-import { MaterialRow } from "./material-row";
-import { MaterialMessage, MaterialRowsSkeleton, MaterialSectionCard, SectionPager, ViewAllButton } from "./material-section-card";
+import { ItemRow } from "@/components/k-page/item-row";
+import { SectionMessage, RowsSkeleton, SectionCard, SectionPager, ViewAllButton } from "@/components/k-page/section-card";
 import { usePagedList } from "./use-paged-list";
 
 const PAGE_SIZE = 12;
@@ -54,7 +54,7 @@ export function MyFlashcardsSection() {
   const canExpand = !!data && data.total > PREVIEW;
 
   return (
-    <MaterialSectionCard
+    <SectionCard
       icon={<Copy />}
       title="Flashcard của tôi"
       countLabel={data ? `${data.total} bộ thẻ` : undefined}
@@ -62,15 +62,15 @@ export function MyFlashcardsSection() {
       illustration="/illustrations/materials-flashcards.svg"
     >
       {failed ? (
-        <MaterialMessage title="Không thể tải flashcard" onRetry={reload} />
+        <SectionMessage title="Không thể tải flashcard" onRetry={reload} />
       ) : data === null ? (
-        <MaterialRowsSkeleton />
+        <RowsSkeleton />
       ) : all.length === 0 ? (
-        <MaterialMessage title="Chưa có bộ flashcard nào" hint="Bắt đầu khám phá và học các bộ flashcard" />
+        <SectionMessage title="Chưa có bộ flashcard nào" hint="Bắt đầu khám phá và học các bộ flashcard" />
       ) : (
         <>
           {sets.map((set) => (
-            <MaterialRow
+            <ItemRow
               key={set.id}
               icon={<Copy />}
               tone="indigo"
@@ -93,6 +93,6 @@ export function MyFlashcardsSection() {
           {expanded && <SectionPager page={page} totalPages={data.totalPages} onChange={setPage} />}
         </>
       )}
-    </MaterialSectionCard>
+    </SectionCard>
   );
 }
