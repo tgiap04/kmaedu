@@ -125,7 +125,6 @@ export async function bootAssessmentApp<C extends ContentBackend = FakeContent>(
                 username: id,
                 email: `${id}@own.test`,
                 name: `Name ${id}`,
-                avatar: '',
             });
             return { id, roles, av: 0 };
         },

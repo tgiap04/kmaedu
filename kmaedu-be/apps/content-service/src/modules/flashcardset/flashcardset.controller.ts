@@ -9,12 +9,9 @@ import {
     Delete,
     Param,
     Query,
-    UseInterceptors,
-    UploadedFile,
     Headers,
     UsePipes,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import {
     ApiTags,
     ApiResponse,
@@ -87,7 +84,6 @@ export class FlashcardsetController {
 
     @Post()
     @RequirePermissions('flashcardset:manage')
-    @UseInterceptors(FileInterceptor('thumbnail'))
     @ApiCookieAuth('cookie-auth')
     @ApiOperation({ summary: 'Create a new flashcard set (Teacher only)' })
     @ApiResponse({
@@ -96,10 +92,9 @@ export class FlashcardsetController {
         type: CreateFlashCardSetResponseDto,
     })
     async createFlashcardSet(
-        @Req() req: AuthenticatedRequest,
-        @UploadedFile() thumbnail?: Express.Multer.File
+        @Req() req: AuthenticatedRequest
     ) {
-        // Multer leaves the text fields on req.body: validate them with the zod schema (400 on bad input)
+        // JSON body: validate with the zod schema (400 on bad input)
         const createFlashcardsetDto: CreateFlashcardsetDto = parseSetForm(
             createSetFormSchema,
             req.body
@@ -107,8 +102,7 @@ export class FlashcardsetController {
 
         return this.flashcardsetService.createFlashcardSet(
             req.user,
-            createFlashcardsetDto,
-            thumbnail
+            createFlashcardsetDto
         );
     }
 
@@ -165,7 +159,6 @@ export class FlashcardsetController {
 
     @Put(':id')
     @RequirePermissions('flashcardset:manage')
-    @UseInterceptors(FileInterceptor('thumbnail'))
     @ApiCookieAuth('cookie-auth')
     @ApiOperation({ summary: 'Update a flashcard set by ID (Teacher only)' })
     @ApiResponse({
@@ -175,10 +168,9 @@ export class FlashcardsetController {
     })
     async updateFlashcardSet(
         @Req() req: AuthenticatedRequest,
-        @Param('id') id: string,
-        @UploadedFile() thumbnail?: Express.Multer.File
+        @Param('id') id: string
     ) {
-        // Multer leaves the text fields on req.body: validate them with the zod schema (400 on bad input)
+        // JSON body: validate with the zod schema (400 on bad input)
         const updateFlashcardSetDto: UpdateFlashcardSetDto = parseSetForm(
             updateSetFormSchema,
             req.body
@@ -187,8 +179,7 @@ export class FlashcardsetController {
         return this.flashcardsetService.updateFlashcardSet(
             id,
             req.user,
-            updateFlashcardSetDto,
-            thumbnail
+            updateFlashcardSetDto
         );
     }
 

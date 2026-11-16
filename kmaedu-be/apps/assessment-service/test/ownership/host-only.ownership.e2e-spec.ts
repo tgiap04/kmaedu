@@ -95,7 +95,6 @@ describe('host-only examroom/examsession/attempt routes (e2e)', () => {
                 id: student.id,
                 username: student.id,
                 name: `Name ${student.id}`,
-                avatar: null,
             },
         ]);
     });

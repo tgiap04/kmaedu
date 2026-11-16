@@ -10,7 +10,6 @@ import {
     redactMetadata,
 } from '@kmaedu/grpc';
 import { ServiceMetadata } from '@kmaedu/auth-jwt';
-import { canonicalR2PublicBase } from '@kmaedu/common';
 import { Observable } from 'rxjs';
 
 export const R2_GRPC = 'R2_GRPC';
@@ -78,42 +77,6 @@ export class R2Client implements OnModuleInit {
         }
     }
 
-    /** Uploads a file and returns its R2 key. */
-    async uploadFile(
-        filename: string,
-        data: Buffer,
-        mimetype: string,
-        folder: string | undefined,
-        metadata: Metadata
-    ): Promise<string> {
-        const response = await this.call(
-            'UploadFile',
-            metadata,
-            (options, md) =>
-                this.r2.uploadFile(
-                    {
-                        userId: '',
-                        filename,
-                        content: data,
-                        mimetype,
-                        folder: folder ?? '',
-                    },
-                    md,
-                    options
-                ),
-            { deadlineMs: 60_000 }
-        );
-        if (!response.success) {
-            throw new Error(response.message || 'Upload failed');
-        }
-        const key = response.keyR2 || response.fileId;
-        if (!key) {
-            this.logger.error('R2 upload succeeded without returning a key');
-            throw new Error('R2 service returned empty key');
-        }
-        return key;
-    }
-
     /** Idempotent batch delete reporting per-key failures; missing keys count as deleted. */
     async deleteObjectsPartial(
         keys: string[],
@@ -127,10 +90,5 @@ export class R2Client implements OnModuleInit {
             { deadlineMs }
         );
         return { deletedCount: response.deletedCount, failedKeys: response.failedKeys ?? [] };
-    }
-
-    getPublicUrl(key: string): string {
-        const base = canonicalR2PublicBase(process.env.R2_PUBLIC_URL || 'https://examio-r2.fayedark.com');
-        return `${base}/${key}`;
     }
 }

@@ -44,7 +44,7 @@ export class FlashcardSetSharingSettingsResponseDto {
     @ApiProperty({ example: '123456', required: false, nullable: true })
     accessCode: string | null;
 
-    @ApiProperty({ description: 'Whitelisted users { id, username, name, avatar }', type: [Object] })
+    @ApiProperty({ description: 'Whitelisted users { id, username, name }', type: [Object] })
     whitelist: object[];
 
     @ApiProperty({ description: 'Users who unlocked the current code', type: [Object] })
@@ -80,9 +80,6 @@ export class FlashcardSetPublicInfoDto {
     @ApiProperty({ example: 'Bộ thẻ cơ bản' })
     description?: string;
 
-    @ApiProperty({ example: 'https://example.com/thumb.jpg' })
-    thumbnail?: string;
-
     @ApiProperty({ example: 100 })
     viewCount: number;
 
@@ -94,14 +91,12 @@ export class FlashcardSetPublicInfoDto {
             id: 'user123',
             username: 'john_doe',
             name: 'John Doe',
-            avatar: 'https://example.com/avatar.jpg',
         },
     })
     creator: {
         id: string;
         username: string;
         name: string | null;
-        avatar: string | null;
     };
 
     @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })

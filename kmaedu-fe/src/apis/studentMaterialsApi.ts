@@ -6,7 +6,6 @@ export interface RecentFlashcardSet {
   id: string;
   title: string;
   description: string | null;
-  thumbnail: string | null;
   viewCount: number;
   flashcardCount: number;
   lastViewedAt: string;
@@ -15,7 +14,6 @@ export interface RecentFlashcardSet {
     id: string;
     username: string;
     name: string | null;
-    avatar: string | null;
   } | null;
   isPublic: boolean;
   isPinned: boolean;

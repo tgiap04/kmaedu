@@ -1,6 +1,6 @@
 import { UserEnricher } from './user-enricher';
 
-const pu = (id: string) => ({ id, username: `u${id}`, name: `N${id}`, avatar: null });
+const pu = (id: string) => ({ id, username: `u${id}`, name: `N${id}` });
 
 function setup() {
     const auth = {

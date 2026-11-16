@@ -35,7 +35,6 @@ describe('StudyRoomSocketAuth', () => {
         id: 'user1',
         username: 'alice',
         name: 'Alice',
-        avatar: 'https://example.com/avatar.png',
         ...over,
     });
 
@@ -80,7 +79,7 @@ describe('StudyRoomSocketAuth', () => {
         const result = await service.authenticate(mockSocket(token));
         expect(verify).toHaveBeenCalledWith(token);
         expect(result).toEqual({
-            user: { id: 'user1', name: 'Alice', avatar: 'https://example.com/avatar.png' },
+            user: { id: 'user1', name: 'Alice' },
             av: 3,
             exp: EXP,
         });
@@ -88,7 +87,7 @@ describe('StudyRoomSocketAuth', () => {
 
     it('falls back to the accessToken cookie and ignores the retired token cookie', async () => {
         verify.mockResolvedValue(user({ id: 'user2' }));
-        profiles.mockResolvedValue([row({ id: 'user2', name: 'Bob', avatar: null })]);
+        profiles.mockResolvedValue([row({ id: 'user2', name: 'Bob' })]);
         const token = await jwt();
         await service.authenticate(mockSocket(undefined, { cookie: `accessToken=${token}; Path=/` }));
         expect(verify).toHaveBeenLastCalledWith(token);

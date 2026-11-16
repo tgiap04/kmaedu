@@ -1,12 +1,10 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { MessagingModule, R2DeleteTaskWriter } from '@kmaedu/messaging';
+import { MessagingModule } from '@kmaedu/messaging';
 import { QuizsetService } from './quizset.service';
 import { QuizsetController } from './quizset.controller';
 import { PrismaService } from '../../prisma';
 import { GenerateIdService } from '@kmaedu/common';
-import { GrpcClientModule } from '@kmaedu/grpc';
 import { RedisService } from '@kmaedu/redis';
-import { R2_GRPC_REGISTRATION, R2Client } from '../../clients/r2.client';
 import { CONTENT_MESSAGING } from '../../messaging/content-messaging';
 import { QuizSetRepository } from './quizset.repository';
 import { QuizsetSharingController } from './quizset-sharing.controller';
@@ -16,14 +14,12 @@ import { QuizSetSnapshotService } from './quiz-set-snapshot.service';
 import { UserSearchService } from '../common/user-search.service';
 
 @Module({
-    imports: [GrpcClientModule.register(R2_GRPC_REGISTRATION), MessagingModule.forRoot(CONTENT_MESSAGING)],
+    imports: [MessagingModule.forRoot(CONTENT_MESSAGING)],
     providers: [
         PrismaService,
         RedisService,
         QuizsetService,
         GenerateIdService,
-        R2Client,
-        R2DeleteTaskWriter,
         QuizSetRepository,
         QuizsetSharingService,
         QuizSetOwnerResolver,

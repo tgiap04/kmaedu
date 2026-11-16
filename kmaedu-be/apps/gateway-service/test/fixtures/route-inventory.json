@@ -119,8 +119,6 @@
     "GET /api/v1/flashcardsets/users/search",
     "GET /api/v1/profile",
     "PUT /api/v1/profile",
-    "POST /api/v1/profile/upload-avatar",
-    "POST /api/v1/profile/upload-banner",
     "GET /api/v1/quizsets",
     "POST /api/v1/quizsets",
     "DELETE /api/v1/quizsets/:id",

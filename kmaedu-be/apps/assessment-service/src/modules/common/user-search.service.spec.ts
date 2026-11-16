@@ -6,7 +6,7 @@ import {
     UserSearchService,
 } from './user-search.service';
 
-const person = (id: string) => ({ id, username: `u${id}`, name: null, avatar: null });
+const person = (id: string) => ({ id, username: `u${id}`, name: null });
 
 describe('user search (gap 5)', () => {
     describe('SearchQueryPipe', () => {
@@ -46,7 +46,7 @@ describe('user search (gap 5)', () => {
         it('never returns more than the four public fields', async () => {
             searchUsers.mockResolvedValue([{ ...person('a'), email: 'a@b.test' }]);
             const [p] = await service.search('abc', 'me', md);
-            expect(Object.keys(p).sort()).toEqual(['avatar', 'id', 'name', 'username']);
+            expect(Object.keys(p).sort()).toEqual(['id', 'name', 'username']);
         });
 
         it('does not even call auth for a short term', async () => {

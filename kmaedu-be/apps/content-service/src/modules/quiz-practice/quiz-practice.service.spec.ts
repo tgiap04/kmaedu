@@ -69,7 +69,7 @@ function build(found: unknown = set()) {
     };
     const users = {
         profileMap: jest.fn(async (ids: string[]) =>
-            new Map(ids.filter((i) => i === 'teacher').map((i) => [i, { id: i, username: 't', name: 'Teach', avatar: null }] as const))
+            new Map(ids.filter((i) => i === 'teacher').map((i) => [i, { id: i, username: 't', name: 'Teach' }] as const))
         ),
     };
     const service = new QuizPracticeService(prisma as never, redis as never, repo as never, users as never);
@@ -206,12 +206,12 @@ describe('QuizPracticeService', () => {
             const { service, prisma } = build();
             prisma.quizSet.findMany.mockResolvedValue([
                 {
-                    id: 's1', title: 'T', description: null, thumbnail: null,
+                    id: 's1', title: 'T', description: null,
                     userId: 'teacher', _count: { detailsQuizQuestions: 3 },
                     practiceAttempts: [{ id: 'a', isSubmitted: false, score: 9, updatedAt: new Date(0) }],
                 },
                 {
-                    id: 's2', title: 'U', description: 'd', thumbnail: null,
+                    id: 's2', title: 'U', description: 'd',
                     userId: 'gone', _count: { detailsQuizQuestions: 0 }, practiceAttempts: [],
                 },
             ]);

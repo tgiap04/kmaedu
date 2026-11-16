@@ -13,7 +13,6 @@ export interface QuizSetBrief {
     id: string;
     title: string;
     description: null;
-    thumbnail: null;
     /** Teacher views only (asked of content); student views never carry it. */
     questionCount?: number;
 }
@@ -30,8 +29,8 @@ const isSummary = (value: unknown): value is Required<QuizSetSummaryBrief> =>
     typeof (value as QuizSetSummaryBrief).questionCount === 'number';
 
 /**
- * The room's quiz set as every response shows it. Content owns the set (description and thumbnail
- * included); assessment keeps only the title, so those two stay `null` to keep the response shape.
+ * The room's quiz set as every response shows it. Content owns the set (description
+ * included); assessment keeps only the title, so it stays `null` to keep the response shape.
  */
 export function toQuizSetBrief(
     room: { quizSetId: string; quizSetTitle: string },
@@ -41,7 +40,6 @@ export function toQuizSetBrief(
         id: room.quizSetId,
         title: summary?.title ?? room.quizSetTitle,
         description: null,
-        thumbnail: null,
     };
     if (summary?.questionCount !== undefined) brief.questionCount = summary.questionCount;
     return brief;

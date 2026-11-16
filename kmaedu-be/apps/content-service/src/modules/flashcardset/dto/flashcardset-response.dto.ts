@@ -30,9 +30,6 @@ export class FlashCardSetDto {
     @ApiProperty({ description: 'Mô tả bộ thẻ ghi nhớ', required: false })
     description?: string;
 
-    @ApiProperty({ description: 'Ảnh thumbnail', required: false })
-    thumbnail?: string;
-
     @ApiProperty({ description: 'Các thẻ tag', type: [String] })
     tag: string[];
 

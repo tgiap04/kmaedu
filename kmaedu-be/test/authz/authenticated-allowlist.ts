@@ -66,8 +66,6 @@ export const AUTHENTICATED_ALLOWLIST: AllowlistEntry[] = [
     { key: 'AuthController.syncRefreshToken', selfScoped: true },
     { key: 'ProfileController.getProfile', selfScoped: true },
     { key: 'ProfileController.updateProfile', selfScoped: true },
-    { key: 'ProfileController.uploadAvatar', selfScoped: true },
-    { key: 'ProfileController.uploadBanner', selfScoped: true },
     { key: 'DevicesController.getDevices', spec: auth('devices') },
     { key: 'DevicesController.logoutDevice', spec: auth('devices') },
     { key: 'DevicesController.logoutAllOthers', spec: auth('devices') },

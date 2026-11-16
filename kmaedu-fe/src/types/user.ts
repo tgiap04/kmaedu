@@ -8,8 +8,6 @@ export interface User {
   username: string;
   email: string;
   name: string;
-  avatar: string;
-  banner: string;
   bio: string;
   role: "STUDENT" | "TEACHER";
   isSystemAdmin: boolean;

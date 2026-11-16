@@ -64,7 +64,6 @@ model QuizSet {
     title       String
     description String?
     userId      String
-    thumbnail   String?
     isPublic    Boolean  @default(false)
     isPinned    Boolean  @default(false)
     tags        String[] @default([])
@@ -126,7 +125,6 @@ model FlashCardSet {
     id          String   @id @default(cuid())
     title       String
     userId      String
-    thumbnail   String?
     description String?
     tag         String[] @default([])
     isPublic    Boolean  @default(false)

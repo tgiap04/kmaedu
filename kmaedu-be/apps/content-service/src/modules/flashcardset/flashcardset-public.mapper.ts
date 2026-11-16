@@ -16,7 +16,6 @@ interface SetRow {
     title: string;
     description: string | null;
     userId: string;
-    thumbnail: string | null;
     tag: string[];
     isPublic: boolean;
     isPinned: boolean;
@@ -38,7 +37,6 @@ const pickSet = (s: SetRow) => ({
     title: s.title,
     description: s.description,
     userId: s.userId,
-    thumbnail: s.thumbnail,
     isPublic: s.isPublic,
     isPinned: s.isPinned,
     viewCount: s.viewCount,
@@ -50,14 +48,12 @@ export interface Creator {
     id: string;
     username: string;
     name: string | null;
-    avatar: string | null;
 }
 
 const pickCreator = (u: Creator): Creator => ({
     id: u.id,
     username: u.username,
     name: u.name,
-    avatar: u.avatar,
 });
 
 /** `GET study/:id` and `POST study/:id/with-code`. */

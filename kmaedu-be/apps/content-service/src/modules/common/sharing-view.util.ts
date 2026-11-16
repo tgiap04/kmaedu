@@ -33,7 +33,7 @@ export async function toSharingView(
         list.flatMap((id) => {
             const p = byId.get(id);
             return p
-                ? [{ id: p.id, username: p.username, name: p.name, avatar: p.avatar }]
+                ? [{ id: p.id, username: p.username, name: p.name }]
                 : [];
         });
     return {

@@ -5,7 +5,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
 import { Label } from "@/components/antd/label";
-import { Avatar, AvatarImage } from "@/components/antd/avatar";
+import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import {
   Dialog,
   DialogContent,
@@ -71,7 +71,6 @@ export default function FlashcardStudyPage() {
   const [viewCount, setViewCount] = useState(0);
   const [creator, setCreator] = useState<{
     name: string | null;
-    avatar: string | null;
     username: string;
   } | null>(null);
 
@@ -378,7 +377,9 @@ export default function FlashcardStudyPage() {
             {creator && (
               <div className="hidden items-center gap-2 sm:flex">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={creator.avatar || "/avt-default.webp"} />
+                  <AvatarFallback>
+                    {displayUserName(creator).charAt(0).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <span className="text-xs text-muted-foreground">
                   {displayUserName(creator)}

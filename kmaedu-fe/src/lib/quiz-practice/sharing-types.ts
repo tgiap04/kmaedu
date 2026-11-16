@@ -3,7 +3,6 @@ export interface SharingPerson {
   id: string;
   username: string;
   name: string | null;
-  avatar: string | null;
 }
 
 export interface SharingView {

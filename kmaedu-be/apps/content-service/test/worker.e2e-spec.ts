@@ -11,7 +11,7 @@ const BASE = 'https://cdn.kmaedu.test';
 
 /**
  * The real worker role of content (outbox relay + generation watchdog + r2_delete_tasks drain) against real
- * Postgres and RabbitMQ (it boots with no finance-service configured): a deleted set's thumbnail leaves
+ * Postgres and RabbitMQ (it boots with no finance-service configured): a queued `r2_delete_tasks` key leaves
  * through r2 `DeleteObjects` exactly once, as the service token `svc:content`, and the
  * `content.quizset.deleted` outbox row is relayed and marked published.
  */
@@ -50,14 +50,9 @@ describe('content worker role (e2e)', () => {
         process.chdir(originalCwd);
     });
 
-    it('delete of a set with an R2 thumbnail: one task in the tx, then ONE DeleteObjects([key]) as svc:content, then the task is gone', async () => {
-        const owner = await t.createUser(['TEACHER']);
-        const key = `quizset-thumbnails/${owner.id}/${rid()}.png`;
-        const id = `qs_${rid()}`;
-        await t.prisma.quizSet.create({ data: { id, title: 't', userId: owner.id, thumbnail: `${BASE}/${key}` } });
-
-        const res = await call(t.server, 'delete', `/quizsets/${id}`, await t.tokenFor(owner));
-        expect(res.status).toBe(200);
+    it('a queued r2_delete_tasks key: ONE DeleteObjects([key]) as svc:content, then the task is gone', async () => {
+        const key = `r2-test/${rid()}/${rid()}.png`;
+        await t.prisma.r2DeleteTask.create({ data: { key } });
 
         await eventually(async () => (await t.prisma.r2DeleteTask.count({ where: { key } })) === 0);
         const deletes = r2.calls.filter((c) => c.keys.includes(key));

@@ -4,7 +4,7 @@ import { authV1 } from '@kmaedu/contracts';
 import { AdminRolesService } from './admin-roles.service';
 
 const user = (over: Partial<authV1.User> = {}): authV1.User => ({
-    id: 'u1', email: 'u1@x.io', username: 'u1', name: 'U', avatar: '',
+    id: 'u1', email: 'u1@x.io', username: 'u1', name: 'U',
     role: authV1.BaseRole.BASE_ROLE_STUDENT, isSystemAdmin: false, isVerified: true, isBanned: false,
     createdAt: String(Date.UTC(2026, 9, 17, 8)), updatedAt: String(Date.UTC(2026, 9, 17, 9)), ...over,
 });
@@ -37,7 +37,7 @@ describe('AdminRolesService', () => {
 
     it('listUsers: one page call + one active-admin count call (parallel), contract shape', async () => {
         const { service, auth } = setup();
-        auth.listUsers.mockResolvedValueOnce({ users: [user({ avatar: '' })], page: { total: 134, page: 2, limit: 20 } });
+        auth.listUsers.mockResolvedValueOnce({ users: [user()], page: { total: 134, page: 2, limit: 20 } });
         auth.listUsers.mockResolvedValueOnce({ users: [], page: { total: 2, page: 1, limit: 1 } });
         const res = await service.listUsers({ q: 'a', role: 'TEACHER', isSystemAdmin: false, page: 2, limit: 20 }, md);
         expect(auth.listUsers).toHaveBeenCalledTimes(2);
@@ -46,7 +46,7 @@ describe('AdminRolesService', () => {
         expect(res.meta).toEqual({ page: 2, limit: 20, total: 134 });
         expect(res.systemAdminCount).toBe(2);
         expect(res.data[0]).toEqual({
-            id: 'u1', email: 'u1@x.io', username: 'u1', name: 'U', avatar: null, role: 'STUDENT',
+            id: 'u1', email: 'u1@x.io', username: 'u1', name: 'U', role: 'STUDENT',
             isSystemAdmin: false, isBanned: false, isVerified: true, createdAt: '2026-10-17T08:00:00.000Z',
         });
     });

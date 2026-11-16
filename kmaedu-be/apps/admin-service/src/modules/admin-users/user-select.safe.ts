@@ -9,8 +9,6 @@ export interface UserSafeRow {
     username: string;
     name: string | null;
     bio: string | null;
-    avatar: string | null;
-    banner: string | null;
     role: 'STUDENT' | 'TEACHER';
     isSystemAdmin: boolean;
     isVerified: boolean;
@@ -29,8 +27,6 @@ export const userSelectSafe = {
     username: true,
     name: true,
     bio: true,
-    avatar: true,
-    banner: true,
     role: true,
     isSystemAdmin: true,
     isVerified: true,

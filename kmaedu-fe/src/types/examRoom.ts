@@ -13,7 +13,6 @@ export interface ExamRoom {
     id: string;
     title: string;
     questionCount?: number;
-    thumbnail?: string;
     _count?: {
       detailsQuizQuestions?: number;
     };

@@ -19,8 +19,6 @@ export const UpdateQuizSetDtoSchema = z.object({
         .union([z.array(z.string()), z.string()])
         .transform((val) => (typeof val === 'string' ? JSON.parse(val) : val))
         .optional(),
-    // Handle both URL string and empty string (when uploading file)
-    thumbnail: z.string().optional(),
 });
 
 export class UpdateQuizSetDto extends createZodDto(UpdateQuizSetDtoSchema) {
@@ -59,11 +57,4 @@ export class UpdateQuizSetDto extends createZodDto(UpdateQuizSetDtoSchema) {
         type: [String],
     })
     tags?: string[];
-
-    @ApiProperty({
-        description: 'URL of the thumbnail image for the quiz set',
-        example: 'https://example.com/thumbnail.jpg',
-        required: false,
-    })
-    thumbnail?: string;
 }

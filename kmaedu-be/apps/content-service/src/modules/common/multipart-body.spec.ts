@@ -49,11 +49,19 @@ describe('parseSetForm', () => {
         { title: 'T', isPublic: 'yes' },
         { title: 'T', tags: '[oops' },
         { title: 'T', tags: '{"a":1}' },
-        { title: 'T', thumbnail: 'not a url' },
     ])('rejects %j with 400', (body) => {
         expect(() => parseSetForm(createSetFormSchema, body)).toThrow(
             BadRequestException
         );
+    });
+
+    it('a client that still sends a legacy `thumbnail` field is not rejected; the field is dropped', () => {
+        expect(
+            parseSetForm(createSetFormSchema, { title: 'T', thumbnail: 'not a url' })
+        ).toEqual({ title: 'T', isPublic: false, isPinned: false, tags: [] });
+        expect(
+            parseSetForm(updateSetFormSchema, { title: 'N', thumbnail: 'x' })
+        ).toEqual({ title: 'N' });
     });
 
     it('update leaves unsent fields undefined (no silent reset to false/[])', () => {

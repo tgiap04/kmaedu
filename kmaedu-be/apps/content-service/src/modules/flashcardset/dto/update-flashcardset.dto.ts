@@ -19,8 +19,6 @@ export const UpdateFlashcardSetDtoSchema = z.object({
         .union([z.array(z.string()), z.string()])
         .transform((val) => (typeof val === 'string' ? JSON.parse(val) : val))
         .optional(),
-    // Handle both URL string and empty string (when uploading file)
-    thumbnail: z.string().optional(),
 });
 
 export class UpdateFlashcardSetDto extends createZodDto(
@@ -61,11 +59,4 @@ export class UpdateFlashcardSetDto extends createZodDto(
         type: [String],
     })
     tags?: string[];
-
-    @ApiProperty({
-        description: 'URL of the thumbnail image for the flashcard set',
-        example: 'https://example.com/thumbnail.jpg',
-        required: false,
-    })
-    thumbnail?: string;
 }

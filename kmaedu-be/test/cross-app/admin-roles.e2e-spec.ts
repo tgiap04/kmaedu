@@ -161,7 +161,7 @@ describe('admin role management (e2e, real auth + admin)', () => {
         expect(res.body.meta).toEqual({ page: 1, limit: 5, total: 1 });
         expect(res.body.systemAdminCount).toBe(1);
         expect(Object.keys(res.body.data[0]).sort()).toEqual(
-            ['avatar', 'createdAt', 'email', 'id', 'isBanned', 'isSystemAdmin', 'isVerified', 'name', 'role', 'username'].sort()
+            ['createdAt', 'email', 'id', 'isBanned', 'isSystemAdmin', 'isVerified', 'name', 'role', 'username'].sort()
         );
         const admins = await h.http().get('/admin/roles/users?isSystemAdmin=true').set(bearer(a.token));
         expect(admins.body.data.map((u: { id: string }) => u.id)).toEqual([a.id]);

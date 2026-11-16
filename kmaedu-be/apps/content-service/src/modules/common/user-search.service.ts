@@ -11,7 +11,6 @@ export interface UserSearchResult {
     id: string;
     username: string;
     name: string | null;
-    avatar: string | null;
 }
 
 /** `?q=` must be a string of at least 3 characters (trimmed). Anything else is a 400. */
@@ -51,6 +50,6 @@ export class UserSearchService {
         return found
             .filter((p) => p.id !== currentUserId)
             .slice(0, USER_SEARCH_LIMIT)
-            .map(({ id, username, name, avatar }) => ({ id, username, name, avatar }));
+            .map(({ id, username, name }) => ({ id, username, name }));
     }
 }

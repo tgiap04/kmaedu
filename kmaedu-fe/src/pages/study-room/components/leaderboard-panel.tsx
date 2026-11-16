@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/antd/card";
 import { Button } from "@/components/antd/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/antd/avatar";
+import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import { getStudyRoomLeaderboardApi } from "@/apis/studyRoomApi";
 import { LeaderboardEntry } from "@/types/studyRoom";
 
@@ -68,7 +68,6 @@ export function LeaderboardPanel({ roomId }: Props) {
                   {i + 1}
                 </span>
                 <Avatar size="small">
-                  <AvatarImage src={row.user?.avatar ?? undefined} alt={name} />
                   <AvatarFallback>
                     {name.charAt(0).toUpperCase()}
                   </AvatarFallback>

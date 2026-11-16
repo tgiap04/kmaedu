@@ -24,7 +24,6 @@ export interface FlashcardSetCreator {
   id: string;
   username: string;
   name: string | null;
-  avatar: string | null;
 }
 
 export interface FlashcardSet {
@@ -32,7 +31,6 @@ export interface FlashcardSet {
   title: string;
   description: string;
   userId: string;
-  thumbnail: string | null;
   isPublic: boolean;
   isPinned: boolean;
   viewCount: number;
@@ -53,7 +51,6 @@ export interface FlashcardSetPublicInfo {
   id: string;
   title: string;
   description?: string;
-  thumbnail?: string;
   viewCount: number;
   cardCount: number;
   creator: FlashcardSetCreator | null;

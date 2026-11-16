@@ -46,7 +46,7 @@ describe('AdminService (e2e, real guards)', () => {
     let app: INestApplication;
     let keys: TestKeyPair;
     let prisma: ReturnType<typeof fakePrisma>;
-    const authUser = { id: 'user-1', email: 'u@e.com', username: 'u', name: 'U', avatar: '', role: 1, isSystemAdmin: false, isVerified: true, isBanned: false, createdAt: '1760000000000' };
+    const authUser = { id: 'user-1', email: 'u@e.com', username: 'u', name: 'U', role: 1, isSystemAdmin: false, isVerified: true, isBanned: false, createdAt: '1760000000000' };
     const authClient = {
         getUser: jest.fn(async () => ({ user: authUser })),
         setSystemAdmin: jest.fn(async () => ({ user: { ...authUser, isSystemAdmin: true } })),

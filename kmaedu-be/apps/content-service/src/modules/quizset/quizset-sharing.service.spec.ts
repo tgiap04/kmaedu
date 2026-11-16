@@ -9,8 +9,8 @@ jest.mock('../common/sharing-list.util', () => ({
 
 const user = { id: 'owner' } as never;
 const people = [
-    { id: 'u1', username: 'one', name: 'One', avatar: null },
-    { id: 'u2', username: 'two', name: null, avatar: 'a.png' },
+    { id: 'u1', username: 'one', name: 'One' },
+    { id: 'u2', username: 'two', name: null },
 ];
 
 function build(set: Record<string, unknown> | null = null) {

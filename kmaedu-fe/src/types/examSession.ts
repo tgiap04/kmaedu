@@ -61,14 +61,12 @@ export interface ExamRoomBasic {
   quizSet?: {
     id: string;
     title: string;
-    thumbnail?: string;
     description?: string;
   };
   host?: {
     id: string;
     username: string;
     name?: string;
-    avatar?: string;
   } | null;
 }
 
@@ -91,7 +89,6 @@ export interface ExamSessionPublicInfo {
     id: string;
     username: string;
     name: string | null;
-    avatar: string | null;
   } | null;
   examRoom: {
     id: string;
@@ -111,7 +108,6 @@ export interface ExamSessionForStudy extends ExamSession {
     id: string;
     username: string;
     name: string | null;
-    avatar: string | null;
   } | null;
   isOwner?: boolean;
 }
@@ -124,6 +120,5 @@ export interface SharingSettings {
     id: string;
     username: string;
     name: string | null;
-    avatar: string | null;
   }[];
 }

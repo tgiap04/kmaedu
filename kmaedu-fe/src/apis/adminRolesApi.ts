@@ -7,7 +7,6 @@ export interface RoleUser {
   email: string;
   username: string;
   name: string;
-  avatar: string | null;
   role: BaseRole;
   isSystemAdmin: boolean;
   isBanned: boolean;

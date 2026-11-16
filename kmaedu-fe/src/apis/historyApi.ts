@@ -48,7 +48,6 @@ export interface ExamHistoryItem {
       quizSet: {
         id: string;
         title: string;
-        thumbnail: string | null;
       };
     };
   };

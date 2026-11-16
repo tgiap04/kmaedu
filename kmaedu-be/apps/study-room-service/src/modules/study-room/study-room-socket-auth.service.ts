@@ -14,7 +14,6 @@ import { PublicProfileClient } from '@kmaedu/grpc';
 export interface SocketUser {
     id: string;
     name: string | null;
-    avatar: string | null;
 }
 
 /** What the connection middleware stores in `socket.data` (besides `user`). */
@@ -129,7 +128,7 @@ export class StudyRoomSocketAuth {
     }
 
     /**
-     * Display name/avatar from auth (strict: an unreachable auth is
+     * Display name from auth (strict: an unreachable auth is
      * SERVICE_UNAVAILABLE, not an anonymous user). An id auth no longer knows
      * (deleted account) is UNAUTHORIZED. Ban state needs no read here: the
      * `av` check above already refused every pre-ban token.
@@ -147,6 +146,6 @@ export class StudyRoomSocketAuth {
             throw new SocketAuthError('SERVICE_UNAVAILABLE');
         }
         if (!profile) throw new SocketAuthError('UNAUTHORIZED');
-        return { id: profile.id, name: profile.name, avatar: profile.avatar };
+        return { id: profile.id, name: profile.name };
     }
 }

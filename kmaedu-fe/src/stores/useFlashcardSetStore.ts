@@ -32,13 +32,11 @@ interface FlashcardSetStore {
   ) => Promise<any>;
   fetchFlashcardSetById: (id: string) => Promise<void>;
   createFlashcardSet: (
-    credentials: CredentialsFlashcardSet,
-    thumbnailFile?: File
+    credentials: CredentialsFlashcardSet
   ) => Promise<void>;
   updateFlashcardSet: (
     id: string,
-    credentials: CredentialsFlashcardSet,
-    thumbnailFile?: File
+    credentials: CredentialsFlashcardSet
   ) => Promise<void>;
   deleteFlashcardSet: (id: string) => Promise<void>;
   setHistoryFlashcardsToFlashcardSet: (
@@ -137,13 +135,12 @@ export const useFlashcardSetStore = create<FlashcardSetStore>((set) => ({
   },
 
   createFlashcardSet: async (
-    credentials: CredentialsFlashcardSet,
-    thumbnailFile?: File
+    credentials: CredentialsFlashcardSet
   ) => {
     try {
       set({ loading: true, error: null });
 
-      const response = await createFlashcardSetApi(credentials, thumbnailFile);
+      const response = await createFlashcardSetApi(credentials);
 
       // Invalidate cache sau khi tạo mới
       storeCache.invalidate("flashcardsets");
@@ -172,16 +169,14 @@ export const useFlashcardSetStore = create<FlashcardSetStore>((set) => ({
 
   updateFlashcardSet: async (
     id: string,
-    credentials: CredentialsFlashcardSet,
-    thumbnailFile?: File
+    credentials: CredentialsFlashcardSet
   ) => {
     try {
       set({ loading: true, error: null });
 
       const response = await updateFlashcardSetApi(
         id,
-        credentials,
-        thumbnailFile
+        credentials
       );
 
       // Invalidate cache sau khi cập nhật

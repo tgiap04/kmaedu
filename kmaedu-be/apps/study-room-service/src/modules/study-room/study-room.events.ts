@@ -34,7 +34,6 @@ export interface ChatMessage {
 export interface RosterEntry {
     userId: string;
     name: string | null;
-    avatar: string | null;
     role: number;
     online: boolean;
     status: 'studying' | 'break' | null;

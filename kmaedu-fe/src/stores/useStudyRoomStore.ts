@@ -233,7 +233,6 @@ export const useStudyRoomStore = create<StudyRoomStore>((set, get) => ({
           {
             userId: p.userId,
             name: null,
-            avatar: null,
             role: 0,
             online: p.online,
             status: p.status,

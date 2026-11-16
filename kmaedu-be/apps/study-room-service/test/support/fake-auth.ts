@@ -10,7 +10,6 @@ export interface FakeAuthUser {
     username: string;
     email?: string;
     name?: string | null;
-    avatar?: string | null;
     deletedAt?: Date | null;
 }
 
@@ -33,7 +32,6 @@ const projection = (u: FakeAuthUser) => ({
     id: u.id,
     username: u.username,
     name: u.name ?? '',
-    avatar: u.avatar ?? '',
 });
 
 /**

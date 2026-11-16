@@ -34,7 +34,6 @@ function parseCached(raw: string | null): PublicUser | null {
                   id: v.id,
                   username: v.username,
                   name: v.name ?? '',
-                  avatar: v.avatar ?? '',
               })
             : null;
     } catch {

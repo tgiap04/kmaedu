@@ -8,7 +8,6 @@ export const CreateFlashcardsetSchema = z.object({
     isPublic: z.boolean().optional().default(false),
     isPinned: z.boolean().optional().default(false),
     tags: z.array(z.string()).optional().default([]),
-    thumbnail: z.string().url().optional(),
 });
 
 export class CreateFlashcardsetDto extends createZodDto(
@@ -48,11 +47,4 @@ export class CreateFlashcardsetDto extends createZodDto(
         type: [String],
     })
     tags: string[];
-
-    @ApiProperty({
-        description: 'URL of the thumbnail image for the flashcard set',
-        example: 'https://example.com/thumbnail.jpg',
-        required: false,
-    })
-    thumbnail?: string;
 }

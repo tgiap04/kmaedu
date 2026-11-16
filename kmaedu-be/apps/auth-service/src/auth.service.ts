@@ -595,7 +595,6 @@ export class AuthService {
     private async handleOAuthLogin(
         email: string,
         username: string,
-        avatar?: string,
         deviceInfo?: DeviceInfo,
         utmSource?: string | null
     ): Promise<OAuthLoginResult> {
@@ -608,7 +607,6 @@ export class AuthService {
                         id: this.generateIdService.generateId(),
                         email,
                         username,
-                        avatar,
                         isVerified: true,
                         password: null,
                         // Chỉ gắn nguồn khi TẠO user mới (first-touch); đăng nhập lại không đụng.
@@ -660,12 +658,11 @@ export class AuthService {
         deviceInfo?: DeviceInfo,
         utmSource?: string | null
     ): Promise<OAuthLoginResult> {
-        const { email, picture } = user;
+        const { email } = user;
         const username = email.split('@')[0];
         return this.handleOAuthLogin(
             email,
             username,
-            picture,
             deviceInfo,
             utmSource
         );
@@ -686,12 +683,11 @@ export class AuthService {
         if (!payload || !payload.email) {
             throw new BadRequestException('Invalid Google credential');
         }
-        const { email, picture, name } = payload;
+        const { email, name } = payload;
         const username = name || email.split('@')[0];
         return this.handleOAuthLogin(
             email,
             username,
-            picture,
             deviceInfo,
             utmSource
         );

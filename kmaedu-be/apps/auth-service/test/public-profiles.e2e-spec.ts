@@ -48,7 +48,7 @@ describe('auth gRPC identity RPCs behind the real guards (e2e)', () => {
         );
         expect(res.profiles.map((p) => p.id)).toEqual([b.id, a.id]);
         for (const p of res.profiles) {
-            expect(Object.keys(p).sort()).toEqual(['avatar', 'id', 'name', 'username']);
+            expect(Object.keys(p).sort()).toEqual(['id', 'name', 'username']);
             expect(JSON.stringify(p)).not.toContain('@e2e.test');
         }
     });

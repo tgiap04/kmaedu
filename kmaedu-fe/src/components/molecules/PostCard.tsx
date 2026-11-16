@@ -7,7 +7,6 @@ export interface Post {
   id: string;
   author: {
     name: string;
-    avatar?: string;
   };
   timestamp: string;
   category: string;
@@ -30,8 +29,6 @@ export function PostCard({ post, onPostClick }: PostCardProps) {
         {/* Header */}
         <div className="flex items-start gap-3">
           <UserAvatar
-            src={post.author.avatar}
-            alt={post.author.name}
             fallback={post.author.name.slice(0, 2).toUpperCase()}
             size="md"
           />

@@ -6,7 +6,7 @@
 
 ## Overview
 
-Profile management for authenticated users. Allows editing of display name, username, bio, avatar, and banner image. Avatar and banner images are uploaded to R2 object storage via a proxy endpoint, and the returned CDN URL is saved to the User record. Session management enables viewing all active device sessions and terminating remote sessions. Password change requires the current password and sends a confirmation email.
+Profile management for authenticated users. Allows editing of display name, username and bio. Avatars and banner images were removed (2026-11): there is no upload endpoint and no `avatar`/`banner` column; the UI shows initials. Session management enables viewing all active device sessions and terminating remote sessions. Password change requires the current password and sends a confirmation email.
 
 ## Polymorphic Behavior
 
@@ -20,7 +20,6 @@ N/A — no discriminator fields in Key Entities (User, UserSession have no DISC-
 |------|-------------|-----------------|------------|
 | FR-001 | Get current user profile | GET /api/v1/profile | yes |
 | FR-002 | Update profile information | PUT /api/v1/profile | yes |
-| FR-003 | Upload avatar or banner image | POST /api/v1/r2/image | yes |
 | FR-004 | List active sessions/devices | GET /api/v1/devices | yes |
 | FR-005 | Terminate a remote session | DELETE /api/v1/devices/:deviceId | yes |
 | FR-006 | Change account password | POST /api/v1/auth/change-password | yes |
@@ -35,12 +34,6 @@ None.
 **Source:** `kmaedu-be/apps/auth-service/src/auth.service.ts`
 **Applies to:** `GET /api/v1/profile`, `PUT /api/v1/profile`
 **Rule:** Users can only read and update their own profile. The profile endpoint reads the user ID from the session token — cross-user access is not possible.
-
-### BR-002_AvatarUploadSizeLimit
-**Linked FR:** FR-003
-**Source:** `kmaedu-be/apps/r2-service/src/r2.service.ts`
-**Applies to:** `POST /api/v1/r2/image`
-**Rule:** Uploaded images must not exceed 2MB. Files exceeding this limit return 400.
 
 ### BR-003_DeviceOwnership
 **Linked FR:** FR-004, FR-005
@@ -76,15 +69,6 @@ None.
 
 
 None.
-### INT-001_R2Storage
-**Linked FR:** FR-003
-**Source:** `kmaedu-be/apps/r2-service/src/r2.service.ts`
-**Type:** api-call
-**Target:** Cloudflare R2 object storage
-**Trigger:** User uploads avatar or banner image
-**Payload:** file binary, user-scoped key, MIME type
-**Failure handling:** File size/type validation; 400 returned on failure
-
 ### INT-002_MailService
 **Linked FR:** FR-006
 **Source:** `kmaedu-be/libs/common/src/services/mail.service.ts`
@@ -98,7 +82,6 @@ None.
 
 - **SC-001** — Profile form pre-fills with current user data from GET /api/v1/profile (covers FR-001)
 - **SC-002** — Saving profile updates User record and reflects changes on next page load (covers FR-002, BR-001)
-- **SC-003** — Avatar upload exceeding 2MB returns 400 (covers BR-002)
 - **SC-004** — DeviceList shows all sessions for the current user only (covers FR-004, BR-003)
 - **SC-005** — Terminating a remote session invalidates that session's token (covers FR-005, BR-003)
 - **SC-006** — Password change with incorrect current password returns 400 (covers BR-004)
@@ -114,7 +97,7 @@ None.
 
 ### US008 — Update Profile (Priority: high)
 
-**What happens:** A student navigates to their profile page, updates their name, username, bio, avatar, or banner image, and saves. Avatar and banner uploads go through R2 storage first and return a CDN URL that is then saved to the profile.
+**What happens:** A student navigates to their profile page, updates their name, username or bio, and saves.
 
 **Why this priority:** Profile is the user's identity on the platform — required for community features and personal branding.
 
@@ -124,7 +107,6 @@ None.
 
 1. **Given** all profile fields are valid, **When** the user clicks Save, **Then** the profile is updated and a success message is shown.
 2. **Given** the username is already taken, **When** the user saves, **Then** a validation error is shown.
-3. **Given** the avatar image is larger than 2MB, **When** the user uploads it, **Then** an error message is shown and the upload is rejected.
 
 **Requirements fulfilled:**
 
@@ -132,10 +114,8 @@ None.
   **Source:** `kmaedu-be/apps/auth-service/src/profile.controller.ts`
 - **FR-002** Update profile — `PUT /api/v1/profile` via `ProfileController.updateProfile`
   **Source:** `kmaedu-be/apps/auth-service/src/profile.controller.ts`
-- **FR-003** Upload image — `POST /api/v1/r2/image` via `R2Service.uploadImage`
-  **Source:** `kmaedu-be/apps/r2-service/src/r2.service.ts`
 
-**Rules enforced:** BR-001, BR-002
+**Rules enforced:** BR-001
 
 ---
 
@@ -195,7 +175,7 @@ See `edge-cases.md` for the full table of scenarios, expected behavior, and user
 
 | Entity | Table | Key Columns | Purpose |
 |--------|-------|-------------|---------|
-| User | `User` | id, email, username, name, avatar, banner, bio | Read and updated on profile save |
+| User | `User` | id, email, username, name, bio | Read and updated on profile save |
 | UserSession | `UserSession` | id, userId, deviceId, deviceName, browser, os, ipAddress, isActive, lastActivity, createdAt, expiresAt | Read in DeviceList; isActive toggled to false on session termination |
 
 ## Artifact References
@@ -214,7 +194,6 @@ See `edge-cases.md` for the full table of scenarios, expected behavior, and user
 
 ## Assumptions
 
-- Avatar and banner images are uploaded via the R2 service proxy, which returns a CDN URL stored in the User record.
 - Session termination sets `isActive = false` on the UserSession record; the session token is immediately rejected by the session validation middleware on the next request.
 - Password change requires the current password to be entered as a second factor; this prevents session hijacking from being used to change a password.
 - Confirmation email on password change is sent asynchronously and does not block the response.
@@ -232,6 +211,5 @@ See `edge-cases.md` for the full table of scenarios, expected behavior, and user
 
 ## Unresolved Questions
 
-1. **{Image dimensions}**: Whether there is a minimum or maximum image dimension requirement for avatar/banner uploads — not confirmed.
-2. **{Concurrent profile edits}**: Whether concurrent profile edits from two sessions are handled gracefully or can overwrite each other — not confirmed.
-3. **{Session cleanup on delete}**: Whether terminating a session also clears the refresh token from the database — not confirmed from source.
+1. **{Concurrent profile edits}**: Whether concurrent profile edits from two sessions are handled gracefully or can overwrite each other — not confirmed.
+2. **{Session cleanup on delete}**: Whether terminating a session also clears the refresh token from the database — not confirmed from source.

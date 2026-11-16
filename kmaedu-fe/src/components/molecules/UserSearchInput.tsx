@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/antd/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/antd/avatar";
+import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import { Badge } from "@/components/antd/badge";
 import { Button } from "@/components/antd/button";
 import { Card } from "@/components/antd/card";
@@ -15,7 +15,6 @@ export interface WhitelistUser {
   id: string;
   username: string;
   name: string | null;
-  avatar: string | null;
 }
 
 interface UserSearchInputProps {
@@ -107,7 +106,6 @@ export function UserSearchInput({
               variant="secondary"
               className="flex items-center gap-2 py-1.5 px-2">
               <Avatar className="h-5 w-5">
-                <AvatarImage src={user.avatar || undefined} />
                 <AvatarFallback className="text-xs">
                   {user.name?.[0] || user.username[0]}
                 </AvatarFallback>
@@ -164,7 +162,6 @@ export function UserSearchInput({
                       )}
                       onClick={() => handleSelectUser(user)}>
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar || undefined} />
                         <AvatarFallback>
                           {user.name?.[0] || user.username[0]}
                         </AvatarFallback>

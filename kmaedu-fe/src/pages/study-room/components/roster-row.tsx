@@ -1,5 +1,5 @@
 import { Ban, Crown, MicOff, MoreVertical, Shield } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/antd/avatar";
+import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import { Badge } from "@/components/antd/badge";
 import {
   DropdownMenu,
@@ -55,7 +55,6 @@ export function RosterRow({ entry, myRole, myId, blocked, actions }: RowProps) {
     <div className="flex items-center gap-3 py-2">
       <div className="relative">
         <Avatar>
-          <AvatarImage src={entry.avatar ?? undefined} alt={name} />
           <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
         <span

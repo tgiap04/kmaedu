@@ -31,7 +31,6 @@ describe('exam rooms over content quiz sets (e2e)', () => {
             id: mine.id,
             title: 'My algebra',
             description: null,
-            thumbnail: null,
             questionCount: 3,
         });
         expect((await t.prisma.examRoom.findUniqueOrThrow({ where: { id: ok.body.examRoom.id } })).quizSetTitle).toBe('My algebra');

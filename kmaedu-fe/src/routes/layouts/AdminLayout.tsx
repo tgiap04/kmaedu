@@ -135,7 +135,7 @@ export function AdminLayout() {
               <span aria-hidden className="h-8 w-px bg-hairline" />
               <ProfileDropdown
                 variant="header"
-                data={{ name: user?.name || user?.username || "Admin", email: user?.email || "", avatar: user?.avatar || "" }}
+                data={{ name: user?.name || user?.username || "Admin", email: user?.email || "" }}
               />
             </div>
           </div>

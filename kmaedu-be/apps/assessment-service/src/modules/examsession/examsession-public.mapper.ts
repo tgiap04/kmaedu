@@ -10,14 +10,12 @@ interface UserBrief {
     id: string;
     username: string;
     name: string | null;
-    avatar: string | null;
 }
 
 interface QuizSetBrief {
     id: string;
     title: string;
     description: string | null;
-    thumbnail: string | null;
 }
 
 interface SessionRow {
@@ -53,14 +51,12 @@ const pickUser = (u: UserBrief | null): UserBrief | null =>
         id: u.id,
         username: u.username,
         name: u.name,
-        avatar: u.avatar,
     };
 
 const pickQuizSet = (q: QuizSetBrief): QuizSetBrief => ({
     id: q.id,
     title: q.title,
     description: q.description,
-    thumbnail: q.thumbnail,
 });
 
 const pickSession = (s: SessionRow) => ({

@@ -4,7 +4,7 @@ import { AdminUsersService } from './admin-users.service';
 import { userSelectSafe } from './user-select.safe';
 
 const protoUser = (over: Record<string, unknown> = {}) => ({
-    id: 'u1', email: 'u1@x.io', username: 'u1', name: 'U', avatar: '', role: 1, isSystemAdmin: false,
+    id: 'u1', email: 'u1@x.io', username: 'u1', name: 'U', role: 1, isSystemAdmin: false,
     isVerified: false, isBanned: false, createdAt: '1700000000000', updatedAt: '1700000002000', bio: 'b', ...over,
 });
 const md = new Metadata();

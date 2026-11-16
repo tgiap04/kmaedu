@@ -1,6 +1,6 @@
 import { existingUserIds, prepareSharingUpdate, toSharingView } from './sharing-view.util';
 
-const person = (id: string) => ({ id, username: `u${id}`, name: null, avatar: null });
+const person = (id: string) => ({ id, username: `u${id}`, name: null });
 
 /** A directory double: knows only `known`, records the ids it was asked about. */
 function directory(known: string[]) {
@@ -31,7 +31,7 @@ describe('toSharingView', () => {
         });
         expect(view.whitelist.map((p) => p.id)).toEqual(['1', '2']);
         expect(view.codeGranted.map((p) => p.id)).toEqual(['2']);
-        expect(Object.keys(view.whitelist[0]).sort()).toEqual(['avatar', 'id', 'name', 'username']);
+        expect(Object.keys(view.whitelist[0]).sort()).toEqual(['id', 'name', 'username']);
         expect(view).toMatchObject({ isPublic: true, accessCode: null });
     });
 

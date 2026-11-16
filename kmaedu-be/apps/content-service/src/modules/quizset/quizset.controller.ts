@@ -10,11 +10,8 @@ import {
     Delete,
     Param,
     Query,
-    UseInterceptors,
-    UploadedFile,
     UsePipes,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import {
     ApiTags,
     ApiResponse,
@@ -73,7 +70,6 @@ export class QuizsetController {
 
     @Post()
     @RequirePermissions('quizset:manage')
-    @UseInterceptors(FileInterceptor('thumbnail'))
     @ApiCookieAuth('cookie-auth')
     @ApiOperation({ summary: 'Create a new quiz set (Teacher only)' })
     @ApiResponse({
@@ -82,10 +78,9 @@ export class QuizsetController {
         type: CreateQuizSetResponseDto,
     })
     async createQuizSet(
-        @Req() req: AuthenticatedRequest,
-        @UploadedFile() thumbnail?: Express.Multer.File
+        @Req() req: AuthenticatedRequest
     ) {
-        // Multer leaves the text fields on req.body: validate them with the zod schema (400 on bad input)
+        // JSON body: validate with the zod schema (400 on bad input)
         const createQuizsetDto: CreateQuizsetDto = parseSetForm(
             createSetFormSchema,
             req.body
@@ -93,8 +88,7 @@ export class QuizsetController {
 
         return this.quizsetService.createQuizSet(
             req.user,
-            createQuizsetDto,
-            thumbnail
+            createQuizsetDto
         );
     }
 
@@ -150,7 +144,6 @@ export class QuizsetController {
 
     @Put(':id')
     @RequirePermissions('quizset:manage')
-    @UseInterceptors(FileInterceptor('thumbnail'))
     @ApiCookieAuth('cookie-auth')
     @ApiOperation({ summary: 'Update a quiz set by ID (Teacher only)' })
     @ApiResponse({
@@ -160,10 +153,9 @@ export class QuizsetController {
     })
     async updateQuizSet(
         @Req() req: AuthenticatedRequest,
-        @Param('id') id: string,
-        @UploadedFile() thumbnail?: Express.Multer.File
+        @Param('id') id: string
     ) {
-        // Multer leaves the text fields on req.body: validate them with the zod schema (400 on bad input)
+        // JSON body: validate with the zod schema (400 on bad input)
         const updateQuizSetDto: UpdateQuizSetDto = parseSetForm(
             updateSetFormSchema,
             req.body
@@ -172,8 +164,7 @@ export class QuizsetController {
         return this.quizsetService.updateQuizSet(
             id,
             req.user,
-            updateQuizSetDto,
-            thumbnail
+            updateQuizSetDto
         );
     }
 

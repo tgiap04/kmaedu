@@ -13,12 +13,6 @@ export class UserDto {
     @ApiProperty({ description: 'Tên hiển thị', required: false })
     name?: string;
 
-    @ApiProperty({ description: 'Ảnh đại diện', required: false })
-    avatar?: string;
-
-    @ApiProperty({ description: 'Ảnh bìa', required: false })
-    banner?: string;
-
     @ApiProperty({ description: 'Tiểu sử', required: false })
     bio?: string;
 

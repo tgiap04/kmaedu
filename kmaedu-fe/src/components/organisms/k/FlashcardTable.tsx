@@ -6,7 +6,6 @@ import { ExamStatus } from "@/components/atoms/k/ExamStatusBadge";
 export interface FlashcardTableData {
   id: string;
   icon: string;
-  thumbnail?: string | null;
   name: string;
   description: string;
   cardCount: number;
@@ -37,7 +36,6 @@ const FlashcardTableComponent = ({
   const tableData: ManagementTableData[] = flashcards.map((flashcard) => ({
     id: flashcard.id,
     icon: flashcard.icon,
-    thumbnail: flashcard.thumbnail,
     name: flashcard.name,
     description: flashcard.description,
     questionCount: flashcard.cardCount,

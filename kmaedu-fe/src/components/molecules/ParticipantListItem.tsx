@@ -1,4 +1,4 @@
-import { Avatar, AvatarImage } from "@/components/antd/avatar";
+import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import { cn } from "@/lib/utils";
 
 interface ParticipantListItemProps {
@@ -6,7 +6,6 @@ interface ParticipantListItemProps {
   subtitle: string;
   status?: "online" | "offline" | "away";
   className?: string;
-  avatar?: string;
 }
 
 const statusColors = {
@@ -20,13 +19,12 @@ export function ParticipantListItem({
   subtitle,
   status = "offline",
   className,
-  avatar,
 }: ParticipantListItemProps) {
   return (
     <div className={cn("flex items-center gap-3 pb-2", className)}>
       <div className="relative">
         <Avatar className="!h-10 !w-10 !-mt-2">
-          {avatar && <AvatarImage src={avatar} alt={name} />}
+          <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
         <span
           className={cn(

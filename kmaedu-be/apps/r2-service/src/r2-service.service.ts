@@ -91,7 +91,7 @@ export class R2ServiceService {
     /**
      * Lấy public URL của file
      *
-     * Chỉ nên dùng cho asset công khai (avatar, thumbnail, ...). Với private
+     * Chỉ nên dùng cho asset công khai (ảnh công khai, ...). Với private
      * content, dùng getSignedUrl/resolveUrl để tránh lộ key qua URL vĩnh viễn.
      */
     getPublicUrl(key: string): string {

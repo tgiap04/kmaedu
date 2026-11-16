@@ -63,7 +63,6 @@ export interface ChatMessage {
 export interface RosterEntry {
   userId: string;
   name: string | null;
-  avatar: string | null;
   role: number;
   online: boolean;
   status: "studying" | "break" | null;
@@ -114,7 +113,7 @@ export interface RoomSnapshot {
 // Phòng trong danh sách "của tôi" (REST /studyrooms/mine)
 export interface StudyRoomListItem extends StudyRoomSummary, PomodoroConfig {
   currentMediaUrl?: string | null;
-  host?: { id: string; name: string | null; avatar: string | null } | null;
+  host?: { id: string; name: string | null } | null;
   _count?: { members: number };
   createdAt?: string;
   updatedAt?: string;
@@ -124,7 +123,7 @@ export interface LeaderboardEntry {
   userId: string;
   role: number;
   totalFocusSeconds: number;
-  user: { id: string; name: string | null; avatar: string | null } | null;
+  user: { id: string; name: string | null } | null;
 }
 
 // Client → Server

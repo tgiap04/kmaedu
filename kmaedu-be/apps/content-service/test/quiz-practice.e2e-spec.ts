@@ -123,7 +123,7 @@ describe('quiz sharing and student practice (e2e)', () => {
         const mine = list.sets.find((s: { id: string }) => s.id === setId);
         expect(mine).toMatchObject({ questionCount: 3, owner: { name: expect.any(String) } });
         expect(Object.keys(mine).sort()).toEqual(
-            ['description', 'id', 'lastAttempt', 'owner', 'questionCount', 'thumbnail', 'title'].sort()
+            ['description', 'id', 'lastAttempt', 'owner', 'questionCount', 'title'].sort()
         );
         const sharing = (await get(`/quizsets/${setId}/sharing`, 'teacher')).body;
         expect(sharing.codeGranted.map((u: { id: string }) => u.id)).toEqual([student.id]);

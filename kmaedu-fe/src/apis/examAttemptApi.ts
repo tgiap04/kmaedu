@@ -35,7 +35,6 @@ export interface ExamAttemptWithQuestions extends ExamAttempt {
     id: string;
     username: string;
     name: string | null;
-    avatar: string | null;
   } | null;
   isOwner: boolean;
   examSession: {
@@ -131,7 +130,6 @@ export interface ExamAttemptUser {
   id: string;
   username: string;
   name: string | null;
-  avatar: string | null;
 }
 
 export interface ExamAttemptListItem {

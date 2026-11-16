@@ -1,6 +1,6 @@
 import { UserEnricher } from './user-enricher.service';
 
-const pu = (id: string) => ({ id, username: `u${id}`, name: `N${id}`, avatar: null });
+const pu = (id: string) => ({ id, username: `u${id}`, name: `N${id}` });
 
 describe('UserEnricher (content)', () => {
     it('enriches owners through one batched public-profile lookup (no email)', async () => {

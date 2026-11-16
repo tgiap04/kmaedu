@@ -106,7 +106,6 @@ export async function bootStudyRoomApp(
                 username: id,
                 email: `${id}@sr.test`,
                 name: `Name ${id}`,
-                avatar: '',
             });
             return { id, roles, av: 0 };
         },

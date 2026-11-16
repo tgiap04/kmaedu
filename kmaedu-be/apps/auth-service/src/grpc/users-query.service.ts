@@ -70,7 +70,7 @@ export class UsersQueryService {
         return ids.flatMap((id) => (byId.has(id) ? [toUser(byId.get(id)!)] : []));
     }
 
-    /** id, username, name, avatar only: never an email. */
+    /** id, username, name only: never an email. */
     async getPublicProfiles(userIds: string[]): Promise<authV1.PublicProfile[]> {
         const ids = this.uniqueIds(userIds);
         if (!ids.length) return [];

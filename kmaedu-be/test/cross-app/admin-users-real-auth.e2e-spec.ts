@@ -30,7 +30,7 @@ describe('admin over real auth gRPC (phase 10 e2e)', () => {
         expect(res.status).toBe(200);
         expect(res.body).toMatchObject({ total: 1, page: 1, pageSize: 5 });
         expect(Object.keys(res.body.rows[0]).sort()).toEqual(
-            ['id', 'email', 'username', 'name', 'bio', 'avatar', 'banner', 'role', 'isSystemAdmin', 'isVerified', 'isBanned', 'deletedAt', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy'].sort()
+            ['id', 'email', 'username', 'name', 'bio', 'role', 'isSystemAdmin', 'isVerified', 'isBanned', 'deletedAt', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy'].sort()
         );
         expect(res.body.rows[0]).toMatchObject({ id: target.id, role: 'STUDENT', deletedAt: null });
         expect(JSON.stringify(res.body)).not.toContain('password');

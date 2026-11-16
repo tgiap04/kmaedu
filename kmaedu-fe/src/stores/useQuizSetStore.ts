@@ -36,13 +36,11 @@ interface QuizSetState {
   fetchAllQuizSets: (options?: { forceRefresh?: boolean }) => Promise<any>;
   fetchQuizSetById: (id: string) => Promise<void>;
   createQuizSet: (
-    credentials: CredentialsQuizSet,
-    thumbnailFile?: File
+    credentials: CredentialsQuizSet
   ) => Promise<void>;
   updateQuizSet: (
     id: string,
-    credentials: CredentialsQuizSet,
-    thumbnailFile?: File
+    credentials: CredentialsQuizSet
   ) => Promise<void>;
   deleteQuizSet: (id: string) => Promise<void>;
   setQuizzesToQuizset: (
@@ -126,12 +124,11 @@ export const useQuizSetStore = create<QuizSetState>((set) => ({
     }
   },
 
-  createQuizSet: async (credentials, thumbnailFile) => {
+  createQuizSet: async (credentials) => {
     set({ loading: true });
     try {
       const response: ResponseCreateQuizset = await createQuizSetApi(
-        credentials,
-        thumbnailFile
+        credentials
       );
       set((state) => ({
         quizSetsK: [response.quizSet, ...state.quizSetsK],
@@ -215,15 +212,13 @@ export const useQuizSetStore = create<QuizSetState>((set) => ({
 
   updateQuizSet: async (
     id: string,
-    credentials: CredentialsQuizSet,
-    thumbnailFile?: File
+    credentials: CredentialsQuizSet
   ) => {
     set({ loading: true });
     try {
       const response: ResponseCreateQuizset = await updateQuizSetApi(
         id,
-        credentials,
-        thumbnailFile
+        credentials
       );
       set((state) => ({
         quizSetsK: state.quizSetsK.map((qs) =>

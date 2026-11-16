@@ -6,7 +6,6 @@ export const USER_SELECT = {
     email: true,
     username: true,
     name: true,
-    avatar: true,
     role: true,
     isSystemAdmin: true,
     isVerified: true,
@@ -15,7 +14,6 @@ export const USER_SELECT = {
     updatedAt: true,
     utmSource: true,
     bio: true,
-    banner: true,
     createdBy: true,
     updatedBy: true,
 } satisfies Prisma.UserSelect;
@@ -24,7 +22,6 @@ export const PUBLIC_PROFILE_SELECT = {
     id: true,
     username: true,
     name: true,
-    avatar: true,
 } satisfies Prisma.UserSelect;
 
 export type UserRow = Prisma.UserGetPayload<{ select: typeof USER_SELECT }>;
@@ -51,7 +48,6 @@ export function toUser(row: UserRow): authV1.User {
         email: row.email,
         username: row.username,
         name: row.name ?? '',
-        avatar: row.avatar ?? '',
         role: toProtoRole(row.role),
         isSystemAdmin: row.isSystemAdmin,
         isVerified: row.isVerified,
@@ -60,7 +56,6 @@ export function toUser(row: UserRow): authV1.User {
         updatedAt: String(row.updatedAt.getTime()),
         utmSource: row.utmSource ?? undefined,
         bio: row.bio ?? undefined,
-        banner: row.banner ?? undefined,
         createdBy: row.createdBy ?? undefined,
         updatedBy: row.updatedBy ?? undefined,
     };
@@ -72,6 +67,5 @@ export function toPublicProfile(row: PublicProfileRow): authV1.PublicProfile {
         id: row.id,
         username: row.username,
         name: row.name ?? '',
-        avatar: row.avatar ?? '',
     };
 }

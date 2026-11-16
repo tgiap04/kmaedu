@@ -1,4 +1,4 @@
-import { R2DeleteTaskWriter } from '@kmaedu/messaging';
+import { OutboxService } from '@kmaedu/messaging';
 import { bootContentApp, rid, type ContentTestApp, type TestUser } from './support/content-test-app';
 import { call } from './support/http';
 import { seedQuizSet } from './support/seed';
@@ -41,8 +41,8 @@ describe('content.quizset.deleted outbox event (e2e)', () => {
 
     it('a failed transaction leaves the set AND no event (nothing is announced for a set that still exists)', async () => {
         const { id } = await seedQuizSet(t, owner.id);
-        // every module provides its own writer instance: fail the shared prototype method
-        const spy = jest.spyOn(R2DeleteTaskWriter.prototype, 'enqueue').mockRejectedValueOnce(new Error('boom'));
+        // fail the outbox write that follows the row delete in the same tx (shared prototype method)
+        const spy = jest.spyOn(OutboxService.prototype, 'add').mockRejectedValueOnce(new Error('boom'));
         try {
             const res = await call(t.server, 'delete', `/quizsets/${id}`, token);
             expect(res.status).toBeGreaterThanOrEqual(500);

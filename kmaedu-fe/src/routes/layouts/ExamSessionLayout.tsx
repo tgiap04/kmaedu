@@ -26,7 +26,6 @@ export function ExamSessionLayout({ children }: PropsWithChildren) {
   const profile = {
     name: user?.name || user?.username || "Người dùng",
     email: user?.email || "",
-    avatar: user?.avatar || "",
   };
 
   return (

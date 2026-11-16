@@ -6,7 +6,6 @@ import { R2Client } from './r2.client';
 
 function setup(overrides: Record<string, jest.Mock> = {}) {
     const service = {
-        uploadFile: jest.fn((..._a: unknown[]) => of({ success: true, keyR2: 'k1', fileId: '' })),
         deleteObjects: jest.fn((..._a: unknown[]) => of({ deletedCount: 2 })),
         ...overrides,
     };
@@ -27,20 +26,12 @@ describe('R2Client', () => {
         expect(service.deleteObjects.mock.calls[0][1]).toBe(md);
     });
 
-    it('calls r2 as a service: every operation attaches a token for the r2 audience', async () => {
+    it('calls r2 as a service: the operation attaches a token for the r2 audience', async () => {
         const { client, serviceMetadata } = setup();
         const md = buildMetadata();
         await client.deleteObjectsPartial(['a'], md);
-        await client.uploadFile('f.png', Buffer.from('x'), 'image/png', undefined, md);
-        expect(serviceMetadata.attach).toHaveBeenCalledTimes(2);
+        expect(serviceMetadata.attach).toHaveBeenCalledTimes(1);
         for (const call of serviceMetadata.attach.mock.calls) expect(call[1]).toBe('r2');
-    });
-
-    it('uploadFile returns the key and passes metadata', async () => {
-        const { client, service } = setup();
-        const md = buildMetadata();
-        await expect(client.uploadFile('f.png', Buffer.from('x'), 'image/png', 'images', md)).resolves.toBe('k1');
-        expect(service.uploadFile.mock.calls[0][1]).toBe(md);
     });
 
     it('deleteObjectsPartial returns per-key failures', async () => {
@@ -66,8 +57,6 @@ describe('R2Client', () => {
         const compileOnly = () => {
             // @ts-expect-error metadata is required
             void client.deleteObjectsPartial(['k']);
-            // @ts-expect-error metadata is required
-            void client.uploadFile('f', Buffer.alloc(0), 'image/png', undefined);
             return new Metadata();
         };
         expect(typeof compileOnly).toBe('function');

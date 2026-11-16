@@ -43,14 +43,14 @@ describe('QuizSetTitles', () => {
         const call = jest.fn().mockResolvedValue([{ id: 'q', title: 'Quiz', questionCount: 12 }]);
         const { titles } = build({}, call);
         const [room] = await titles.withQuizSets([{ quizSetId: 'q', quizSetTitle: 'Stored' }], md);
-        expect(room.quizSet).toEqual({ id: 'q', title: 'Quiz', description: null, thumbnail: null, questionCount: 12 });
+        expect(room.quizSet).toEqual({ id: 'q', title: 'Quiz', description: null, questionCount: 12 });
         expect(toQuizSetBrief({ quizSetId: 'q', quizSetTitle: 'Stored' })).not.toHaveProperty('questionCount');
     });
 
     it('fails soft: an outage leaves the title stored on the room', async () => {
         const { titles } = build({}, jest.fn().mockRejectedValue(new Error('down')));
         const [room] = await titles.withQuizSets([{ quizSetId: 'q', quizSetTitle: 'Stored' }], md);
-        expect(room.quizSet).toEqual({ id: 'q', title: 'Stored', description: null, thumbnail: null });
+        expect(room.quizSet).toEqual({ id: 'q', title: 'Stored', description: null });
     });
 
     it('a fresh title wins over the stored one; an empty page makes no call', async () => {

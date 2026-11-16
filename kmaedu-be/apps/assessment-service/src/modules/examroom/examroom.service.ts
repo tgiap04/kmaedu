@@ -140,7 +140,7 @@ export class ExamRoomService {
 
     /**
      * Anonymous teaser for a room that has at least one PUBLIC session: title,
-     * description and the host's display name and avatar. Never an email, the
+     * description and the host's display name. Never an email, the
      * quiz set or any session data; any other room is "not found".
      */
     async getExamRoomPublicById(id: string) {
@@ -160,7 +160,7 @@ export class ExamRoomService {
         const host = (await this.users.profileMap([hostId])).get(hostId);
         return {
             ...teaser,
-            host: { name: host?.name ?? null, avatar: host?.avatar ?? null },
+            host: { name: host?.name ?? null },
         };
     }
 

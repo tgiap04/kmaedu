@@ -25,11 +25,11 @@ describe('read-after-write cache coherence (e2e)', () => {
         path: string,
         fields: Record<string, string>
     ) => {
-        let r = request(t.server)
+        // Set create/update take JSON only (no thumbnail upload any more).
+        return request(t.server)
             [method](`/api/v1${path}`)
-            .set('Authorization', `Bearer ${tok}`);
-        for (const [k, v] of Object.entries(fields)) r = r.field(k, v);
-        return r;
+            .set('Authorization', `Bearer ${tok}`)
+            .send(fields);
     };
 
     it('flashcard set: PUT title, then GET /flashcardsets/:id returns the new title at once (and the list too)', async () => {

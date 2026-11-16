@@ -38,7 +38,6 @@ export async function seedDevUsers(prisma: PrismaClient): Promise<{ adminId: str
             email: adminEmail,
             username: 'admin',
             name: 'Admin User',
-            avatar: '',
             // SYSTEM_ADMIN is the `isSystemAdmin` flag (base role stays STUDENT).
             isSystemAdmin: true,
             isVerified: true,
@@ -60,8 +59,7 @@ export async function seedDevUsers(prisma: PrismaClient): Promise<{ adminId: str
                 email: u.email,
                 username: u.username,
                 name: u.name,
-                avatar: '',
-                role: 'TEACHER',
+                    role: 'TEACHER',
                 isSystemAdmin: false,
                 isVerified: true,
                 isBanned: u.isBanned ?? false,

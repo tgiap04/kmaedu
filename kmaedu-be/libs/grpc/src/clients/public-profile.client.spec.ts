@@ -18,7 +18,6 @@ const profile = (id: string, extra: Record<string, unknown> = {}) => ({
     id,
     username: `u${id}`,
     name: `Name ${id}`,
-    avatar: '',
     ...extra,
 });
 const grpcError = (code: number, details = 'x') =>
@@ -116,7 +115,7 @@ describe('PublicProfileClient.getPublicProfiles', () => {
             2,
             profileCacheKey('2'),
             profileTombstoneKey('2'),
-            JSON.stringify(profile('2', { avatar: null })),
+            JSON.stringify(profile('2')),
             PROFILE_CACHE_TTL_SECONDS,
         ]);
         expect(PROFILE_CACHE_TTL_SECONDS).toBe(600);
@@ -148,7 +147,7 @@ describe('PublicProfileClient.getPublicProfiles', () => {
             of({ profiles: [profile('1', { email: 'a@b.test', isBanned: true })] })
         );
         const [p] = await client.getPublicProfiles(['1']);
-        expect(Object.keys(p!).sort()).toEqual(['avatar', 'id', 'name', 'username']);
+        expect(Object.keys(p!).sort()).toEqual(['id', 'name', 'username']);
         expect(store.get(profileCacheKey('1'))).not.toMatch(/email|isBanned/);
     });
 

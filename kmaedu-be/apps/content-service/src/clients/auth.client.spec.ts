@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { buildMetadata } from '@kmaedu/grpc';
 import { AuthClient, CONTENT_PROFILE_CACHE_PREFIX } from './auth.client';
 
-const profile = (id: string) => ({ id, username: `u${id}`, name: `Name ${id}`, avatar: '' });
+const profile = (id: string) => ({ id, username: `u${id}`, name: `Name ${id}` });
 
 function setup() {
     const store = new Map<string, string>();
@@ -59,6 +59,6 @@ describe('AuthClient (content)', () => {
         expect(users.searchUsers.mock.calls[0][0]).toEqual({ query: 'abc', limit: 20 });
         expect(users.searchUsers.mock.calls[0][1]).toBe(md);
         expect(attach).toHaveBeenCalledWith(md, 'auth');
-        expect(out).toEqual([{ ...profile('s1'), avatar: null }]);
+        expect(out).toEqual([profile('s1')]);
     });
 });

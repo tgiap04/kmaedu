@@ -117,9 +117,9 @@ test('auth reaches the gateway control plane by default', () => {
     assert.match(env, /GATEWAY_GRPC_URL=gateway:50051/);
 });
 
-test('auth knows R2_PUBLIC_URL: a replaced avatar/banner is queued for deletion and a foreign R2 URL is refused', () => {
-    // Without it ownedR2KeyFromUrl / isForeignR2Url see no R2 host: old images stay in R2 forever.
-    assert.strictEqual(envValue('auth', 'R2_PUBLIC_URL'), '${R2_PUBLIC_URL:-}');
+test('auth and content no longer read R2_PUBLIC_URL (avatars, banners and set thumbnails were removed)', () => {
+    assert.strictEqual(envValue('auth', 'R2_PUBLIC_URL'), undefined);
+    assert.strictEqual(envValue('content', 'R2_PUBLIC_URL'), undefined);
 });
 
 test('Cloudflare Turnstile is gone: no TURNSTILE_* in compose or any env template', () => {
@@ -260,7 +260,6 @@ test('content runs api+worker: it relays the outbox (content.*), settles generat
     assert.strictEqual(envValue('content', 'VOCABULARY_GRPC_URL'), 'vocabulary:50051');
     assert.strictEqual(envValue('content', 'AUTH_GRPC_URL'), 'auth:50051');
     assert.strictEqual(envValue('content', 'AI_GRPC_URL'), 'ai:50051');
-    assert.ok(envValue('content', 'R2_PUBLIC_URL') !== undefined);
     assert.ok(envValue('content', 'SERVICE_CLIENT_SECRET').includes('${CONTENT_SERVICE_CLIENT_SECRET:?'));
     assert.deepStrictEqual(networksOf('content'), ['internal']);
     for (const dep of ['content-migrate', 'postgres', 'redis', 'rabbitmq', 'r2']) {

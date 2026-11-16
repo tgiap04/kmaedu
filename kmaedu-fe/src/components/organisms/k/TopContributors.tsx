@@ -5,7 +5,6 @@ import { ContributorBadge } from "@/components/atoms/k/ContributorBadge";
 export interface Contributor {
   id: string;
   name: string;
-  avatar?: string;
   posts: number;
   rank: number;
 }
@@ -30,8 +29,6 @@ export function TopContributors({ contributors }: TopContributorsProps) {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <UserAvatar
-                  src={contributor.avatar}
-                  alt={contributor.name}
                   fallback={contributor.name.slice(0, 2).toUpperCase()}
                   size="sm"
                 />

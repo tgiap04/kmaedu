@@ -76,30 +76,8 @@ export type ResponseCreateFlashcardSet = {
 };
 
 export async function createFlashcardSetApi(
-  credentials: CredentialsFlashcardSet,
-  thumbnailFile?: File
+  credentials: CredentialsFlashcardSet
 ): Promise<ResponseCreateFlashcardSet> {
-  // If thumbnail file is provided, use FormData
-  if (thumbnailFile) {
-    const formData = new FormData();
-    formData.append("thumbnail", thumbnailFile);
-    formData.append("title", credentials.title);
-    if (credentials.description)
-      formData.append("description", credentials.description);
-    if (credentials.isPublic !== undefined)
-      formData.append("isPublic", String(credentials.isPublic));
-    if (credentials.isPinned !== undefined)
-      formData.append("isPinned", String(credentials.isPinned));
-    if (credentials.tags)
-      formData.append("tags", JSON.stringify(credentials.tags));
-
-    const response = await api.post("/flashcardsets", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return response.data;
-  }
-
-  // Otherwise use JSON
   const response = await api.post("/flashcardsets", credentials);
   return response.data;
 }
@@ -200,30 +178,8 @@ export async function getFlashcardSetFlashcardsApi(
 
 export async function updateFlashcardSetApi(
   id: string,
-  credentials: Partial<CredentialsFlashcardSet>,
-  thumbnailFile?: File
+  credentials: Partial<CredentialsFlashcardSet>
 ): Promise<ResponseCreateFlashcardSet> {
-  // If thumbnail file is provided, use FormData
-  if (thumbnailFile) {
-    const formData = new FormData();
-    formData.append("thumbnail", thumbnailFile);
-    if (credentials.title) formData.append("title", credentials.title);
-    if (credentials.description)
-      formData.append("description", credentials.description);
-    if (credentials.isPublic !== undefined)
-      formData.append("isPublic", String(credentials.isPublic));
-    if (credentials.isPinned !== undefined)
-      formData.append("isPinned", String(credentials.isPinned));
-    if (credentials.tags)
-      formData.append("tags", JSON.stringify(credentials.tags));
-
-    const response = await api.put(`/flashcardsets/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return response.data;
-  }
-
-  // Otherwise use JSON (only send changed fields)
   const response = await api.put(`/flashcardsets/${id}`, credentials);
   return response.data;
 }
@@ -312,7 +268,7 @@ export async function getFlashcardSetForStudy(
   id: string,
   accessCode?: string
 ): Promise<
-  FlashcardSet & { creator: { name: string; avatar: string | null } }
+  FlashcardSet & { creator: { name: string } }
 > {
   if (!accessCode) {
     const response = await api.get(`/flashcardsets/study/${id}`);
@@ -353,7 +309,7 @@ export async function getFlashcardSetWithCode(
 
 /**
  * Get sharing settings for a flashcard set (owner only): whitelist and the
- * users who unlocked the current code, as { id, username, name, avatar }.
+ * users who unlocked the current code, as { id, username, name }.
  */
 export async function getSharingSettings(id: string): Promise<SharingView> {
   const response = await api.get(`/flashcardsets/${id}/sharing`);

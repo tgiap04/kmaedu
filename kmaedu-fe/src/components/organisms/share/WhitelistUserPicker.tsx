@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Search, X } from "lucide-react";
 import { Input } from "@/components/antd/input";
 import { Label } from "@/components/antd/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/antd/avatar";
+import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { SharingPerson, SharingSearchUser } from "@/lib/quiz-practice/sharing-types";
 import {
@@ -103,7 +103,6 @@ export function WhitelistUserPicker({ saved, change, onChange, search }: Whiteli
                   className="flex w-full items-center gap-3 p-2 text-left transition-colors hover:bg-muted"
                 >
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar || undefined} />
                     <AvatarFallback>{initialOf(user)}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
@@ -122,7 +121,7 @@ export function WhitelistUserPicker({ saved, change, onChange, search }: Whiteli
           {people.map((p) => (
             <span key={p.id} className="inline-flex items-center gap-2 rounded-full bg-muted px-2 py-1 text-sm">
               <Avatar className="h-5 w-5">
-                <AvatarImage src={p.avatar || "/avt-default.webp"} />
+                <AvatarFallback className="text-[10px]">{initialOf(p)}</AvatarFallback>
               </Avatar>
               <span className="max-w-[120px] truncate">{p.name || p.username}</span>
               <button

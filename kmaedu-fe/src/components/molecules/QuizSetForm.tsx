@@ -6,7 +6,6 @@ import { Input } from "@/components/antd/input";
 import { Label } from "@/components/antd/label";
 import { Switch } from "@/components/antd/switch";
 import { Loader2 } from "lucide-react";
-import { ThumbnailUpload } from "@/components/atoms/k/ThumbnailUpload";
 
 /**
  * Interface cho dữ liệu form QuizSet
@@ -17,7 +16,6 @@ export interface QuizSetFormData {
   isPublic: boolean;
   isPinned: boolean;
   tags: string[];
-  thumbnail?: string | File | null;
 }
 
 interface QuizSetFormProps {
@@ -47,7 +45,6 @@ export function QuizSetForm({
       isPublic: false,
       isPinned: false,
       tags: [],
-      thumbnail: "",
     }
   );
 
@@ -165,15 +162,6 @@ export function QuizSetForm({
         {errors.description && (
           <p className="text-sm text-red-500">{errors.description}</p>
         )}
-      </div>
-
-      {/* Thumbnail Upload */}
-      <div className="space-y-2">
-        <ThumbnailUpload
-          label="Thumbnail"
-          value={formData.thumbnail}
-          onChange={(value) => setFormData({ ...formData, thumbnail: value })}
-        />
       </div>
 
       {/* Tags */}

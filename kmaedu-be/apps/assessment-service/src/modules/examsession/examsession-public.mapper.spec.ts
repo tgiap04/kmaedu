@@ -33,7 +33,6 @@ const host = {
     id: 'h',
     username: 'host',
     name: 'Host',
-    avatar: null,
     email: 'host@x.test',
     password: 'secret',
 };
@@ -46,7 +45,6 @@ const room = {
         id: 'q',
         title: 'Q',
         description: null,
-        thumbnail: null,
         userId: 'h',
         detailsQuizQuestions: [{ quizQuestion: { answer: 'A' } }],
     },
@@ -88,7 +86,6 @@ describe('exam session mappers', () => {
             id: 'h',
             username: 'host',
             name: 'Host',
-            avatar: null,
         });
         expect(view.isOwner).toBe(false);
     });

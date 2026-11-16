@@ -8,9 +8,8 @@ import {
     InternalServerErrorException,
     NotFoundException,
 } from '@nestjs/common';
-import { GenerateIdService, ownerKeyFolder, sanitizeFilename } from '@kmaedu/common';
-import { assertThumbnailAllowed, thumbnailKeyToDelete } from '../common/owned-thumbnail';
-import { OutboxService, R2DeleteTaskWriter } from '@kmaedu/messaging';
+import { GenerateIdService } from '@kmaedu/common';
+import { OutboxService } from '@kmaedu/messaging';
 import { EXPIRED_TIME } from '@kmaedu/redis';
 
 import { CreateQuizsetDto } from './dto/create-quizset.dto';
@@ -19,11 +18,7 @@ import { UpdateQuizSetDto } from './dto/update-quizset.dto';
 import { SetQuizzToQuizsetDto } from './dto/set-quizz-to-quizset.dto';
 import { SaveHistoryToQuizsetDto } from './dto/save-history-to-quizset.dto';
 import { QuizSetRepository } from './quizset.repository';
-import { R2Client } from '../../clients/r2.client';
-import { buildMetadata } from '@kmaedu/grpc';
 import type { AuthUser } from '@kmaedu/auth-jwt';
-
-const THUMBNAIL_AREA = 'quizset-thumbnails';
 
 /** `kmaedu.events.v1.ContentQuizSetDeleted` (JSON uses the camelCase field names). */
 export const QUIZSET_DELETED_EVENT = 'content.quizset.deleted';
@@ -34,37 +29,18 @@ export class QuizsetService {
         private readonly prisma: PrismaService,
         private readonly quizSetRepository: QuizSetRepository,
         private readonly generateIdService: GenerateIdService,
-        private readonly r2Service: R2Client,
-        private readonly r2Deletes: R2DeleteTaskWriter,
         private readonly outbox: OutboxService
     ) {}
 
     async createQuizSet(
         user: AuthUser,
-        dto: CreateQuizsetDto,
-        thumbnailFile?: Express.Multer.File
+        dto: CreateQuizsetDto
     ) {
         if (!dto.title || dto.title.trim() === '') {
             throw new ConflictException('Tiêu đề không được để trống');
         }
 
-        assertThumbnailAllowed(dto.thumbnail, THUMBNAIL_AREA, user.id);
-
         try {
-            // Handle thumbnail upload if file is provided
-            let thumbnailUrl = dto.thumbnail || null;
-            if (thumbnailFile) {
-                const fileName = `${this.generateIdService.generateId()}-${sanitizeFilename(thumbnailFile.originalname)}`;
-                const r2Key = await this.r2Service.uploadFile(
-                    fileName,
-                    thumbnailFile.buffer,
-                    thumbnailFile.mimetype,
-                    ownerKeyFolder(THUMBNAIL_AREA, user.id),
-                    buildMetadata()
-                );
-                thumbnailUrl = this.r2Service.getPublicUrl(r2Key);
-            }
-
             // Use repository to create quizset
             const newQuizSet = await this.quizSetRepository.create(
                 {
@@ -83,7 +59,6 @@ export class QuizsetService {
                           ? JSON.parse(dto.tags)
                           : [],
                     userId: user.id,
-                    thumbnail: thumbnailUrl,
                 },
                 user.id
             );
@@ -249,22 +224,8 @@ export class QuizsetService {
             throw new NotFoundException('Bộ câu hỏi không tồn tại');
         }
 
-        // Hard delete + R2 cleanup task in ONE tx: the thumbnail is queued if and
-        // only if the row is gone (the worker deletes it, with retry).
         await this.prisma.$transaction(async (tx) => {
-            // The key comes from the row deleted inside this tx, and is queued only
-            // when it is the owner's own object that no other row still uses.
-            const deleted = await this.quizSetRepository.delete(id, user.id, tx);
-            const key = await thumbnailKeyToDelete(
-                deleted.thumbnail,
-                THUMBNAIL_AREA,
-                user.id,
-                (url) =>
-                    tx.quizSet.count({
-                        where: { userId: user.id, thumbnail: url },
-                    })
-            );
-            await this.r2Deletes.enqueue(tx, [key]);
+            await this.quizSetRepository.delete(id, user.id, tx);
             // Assessment flags the rooms built on this set (`sourceDeleted`); written in the same tx, so it
             // is published if and only if the set is really gone. Running sessions keep their snapshot.
             await this.outbox.add(tx, QUIZSET_DELETED_EVENT, { quizSetIds: [id], ownerId: user.id });
@@ -373,8 +334,7 @@ export class QuizsetService {
     async updateQuizSet(
         id: string,
         user: AuthUser,
-        dto: UpdateQuizSetDto,
-        thumbnailFile?: Express.Multer.File
+        dto: UpdateQuizSetDto
     ) {
         try {
             // Check ownership first
@@ -387,85 +347,25 @@ export class QuizsetService {
                 throw new NotFoundException('Bộ câu hỏi không tồn tại');
             }
 
-            assertThumbnailAllowed(
-                dto.thumbnail,
-                THUMBNAIL_AREA,
-                user.id,
-                quizSet.thumbnail
-            );
-
-            // Handle thumbnail upload if file is provided
-            let thumbnailUrl = dto.thumbnail;
-            let thumbnailReplaced = false;
-            if (
-                thumbnailFile &&
-                thumbnailFile.buffer &&
-                thumbnailFile.buffer.length > 0
-            ) {
-                const fileName = `${this.generateIdService.generateId()}-${sanitizeFilename(thumbnailFile.originalname)}`;
-                const r2Key = await this.r2Service.uploadFile(
-                    fileName,
-                    thumbnailFile.buffer,
-                    thumbnailFile.mimetype,
-                    ownerKeyFolder(THUMBNAIL_AREA, user.id),
-                    buildMetadata()
-                );
-                thumbnailUrl = this.r2Service.getPublicUrl(r2Key);
-
-                // The old object is queued with the row update below (same tx).
-                thumbnailReplaced = true;
-            } else if (thumbnailFile) {
-                // File was sent but is empty - keep existing thumbnail
-                console.warn(
-                    'Thumbnail file was sent but has no content, keeping existing thumbnail'
-                );
-                thumbnailUrl = quizSet.thumbnail || undefined;
-            }
-
             // Update using repository (auto invalidate cache)
             // Note: DTO is already parsed in controller
-            await this.prisma.$transaction(async (tx) => {
-                // The replaced object is read inside the tx, not from the pre-tx fetch.
-                const before = thumbnailReplaced
-                    ? await tx.quizSet.findUnique({
-                          where: { id },
-                          select: { thumbnail: true },
-                      })
-                    : null;
-                await this.quizSetRepository.update(
-                    id,
-                    {
-                        ...(dto.title && { title: dto.title }),
-                        ...(dto.description !== undefined && {
-                            description: dto.description,
-                        }),
-                        ...(dto.isPublic !== undefined && {
-                            isPublic: dto.isPublic,
-                        }),
-                        ...(dto.isPinned !== undefined && {
-                            isPinned: dto.isPinned,
-                        }),
-                        ...(dto.tags !== undefined && { tags: dto.tags }),
-                        ...(thumbnailUrl !== undefined &&
-                            thumbnailUrl !== '' && {
-                                thumbnail: thumbnailUrl,
-                            }),
-                    },
-                    user.id,
-                    tx
-                );
-                const oldThumbnailKey = await thumbnailKeyToDelete(
-                    before?.thumbnail,
-                    THUMBNAIL_AREA,
-                    user.id,
-                    (url) =>
-                        tx.quizSet.count({
-                            where: { userId: user.id, thumbnail: url },
-                        })
-                );
-                await this.r2Deletes.enqueue(tx, [oldThumbnailKey]);
-            });
-            await this.quizSetRepository.invalidateWrite('UPDATE', id, user.id);
+            await this.quizSetRepository.update(
+                id,
+                {
+                    ...(dto.title && { title: dto.title }),
+                    ...(dto.description !== undefined && {
+                        description: dto.description,
+                    }),
+                    ...(dto.isPublic !== undefined && {
+                        isPublic: dto.isPublic,
+                    }),
+                    ...(dto.isPinned !== undefined && {
+                        isPinned: dto.isPinned,
+                    }),
+                    ...(dto.tags !== undefined && { tags: dto.tags }),
+                },
+                user.id
+            );
 
             // Fetch updated quizset with _count for consistent response with list endpoint
             const updatedQuizSet = await this.prisma.quizSet.findUnique({

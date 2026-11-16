@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ProfileForm } from "@/components/molecules/profile/ProfileForm";
 import { ChangePasswordSection } from "@/components/molecules/profile/ChangePasswordSection";
 import { DeviceList } from "@/components/molecules/profile/DeviceList";
@@ -8,7 +8,6 @@ import {
   User,
   Shield,
   Monitor,
-  Camera,
   Loader2,
   CheckCircle2,
   CalendarDays,
@@ -17,8 +16,6 @@ import {
 import {
   getProfileApi,
   updateProfileApi,
-  uploadAvatarApi,
-  uploadBannerApi,
   type UserProfile,
 } from "@/apis/profileApi";
 import { useToast } from "@/components/antd/toast";
@@ -34,23 +31,12 @@ export default function ProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "security" | "devices">("profile");
 
-  // Local image state
-  const [avatar, setAvatar] = useState<string>("");
-  const [banner, setBanner] = useState<string>("");
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
-
-  const avatarInputRef = useRef<HTMLInputElement>(null);
-  const bannerInputRef = useRef<HTMLInputElement>(null);
-
   // Fetch profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const data = await getProfileApi();
         setProfile(data);
-        setAvatar(data.avatar || "");
-        setBanner(data.banner || "");
       } catch (error) {
         console.error("Không thể tải hồ sơ:", error);
         toast.error("Không thể tải hồ sơ.");
@@ -66,8 +52,6 @@ export default function ProfilePage() {
     try {
       const data = await getProfileApi();
       setProfile(data);
-      setAvatar(data.avatar || "");
-      setBanner(data.banner || "");
       await getUser();
     } catch (error) {
       console.error("Không thể làm mới dữ liệu người dùng:", error);
@@ -88,38 +72,6 @@ export default function ProfilePage() {
     }
   }, [refreshUserData, toast]);
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      setIsUploadingAvatar(true);
-      const result = await uploadAvatarApi(file);
-      setAvatar(result.url);
-      await handleProfileUpdate({ avatar: result.url });
-    } catch (error) {
-      console.error("Lỗi tải ảnh đại diện:", error);
-      toast.error("Không thể tải ảnh đại diện.");
-    } finally {
-      setIsUploadingAvatar(false);
-    }
-  };
-
-  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      setIsUploadingBanner(true);
-      const result = await uploadBannerApi(file);
-      setBanner(result.url);
-      await handleProfileUpdate({ banner: result.url });
-    } catch (error) {
-      console.error("Lỗi tải ảnh bìa:", error);
-      toast.error("Không thể tải ảnh bìa.");
-    } finally {
-      setIsUploadingBanner(false);
-    }
-  };
-
   if (isLoading || !profile) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
@@ -138,15 +90,10 @@ export default function ProfilePage() {
     })
     : null;
 
-  // Compute profile completeness score (20% for each filled/verified attribute)
+  // Compute profile completeness score (1/3 for each filled/verified attribute)
   const getCompleteness = () => {
-    let score = 0;
-    if (profile.name) score += 20;
-    if (profile.bio) score += 20;
-    if (profile.avatar) score += 20;
-    if (profile.banner) score += 20;
-    if (profile.isVerified) score += 20;
-    return score;
+    const done = [profile.name, profile.bio, profile.isVerified].filter(Boolean).length;
+    return Math.round((done / 3) * 100);
   };
   const completeness = getCompleteness();
 
@@ -167,63 +114,17 @@ export default function ProfilePage() {
         {/* Left Sticky Summary Card */}
         <div className="col-span-12 lg:col-span-4 lg:sticky lg:top-24">
           <div className="rounded-xl border border-hairline bg-surface-card overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
-            {/* Banner Area */}
-            <div
-              className="group relative flex h-32 w-full cursor-pointer items-center justify-center overflow-hidden bg-gradient-to-br from-coral/20 via-canvas to-accent-teal/20"
-              onClick={() => bannerInputRef.current?.click()}
-            >
-              {banner ? (
-                <img
-                  src={banner}
-                  alt="Banner"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-1.5">
-                  <div className="rounded-xl bg-surface-card p-2 border border-hairline/60">
-                    <Camera className="h-4 w-4 text-muted-text" />
-                  </div>
-                  <span className="text-xxs font-semibold uppercase tracking-wider text-muted-text">Tải ảnh bìa</span>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-surface-dark/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100 flex items-center justify-center">
-                {isUploadingBanner ? (
-                  <Loader2 className="h-6 w-6 animate-spin text-on-dark" />
-                ) : (
-                  <span className="flex items-center gap-1.5 text-xs font-semibold text-on-dark uppercase tracking-wider">
-                    <Camera className="h-3.5 w-3.5" />
-                    Thay ảnh bìa
-                  </span>
-                )}
-              </div>
-            </div>
+            {/* Header gradient */}
+            <div className="h-32 w-full bg-gradient-to-br from-coral/20 via-canvas to-accent-teal/20" />
 
             {/* Avatar & Info Content */}
             <div className="px-6 pb-6 relative">
               {/* Floating Avatar Container */}
               <div className="absolute -top-12 left-6">
-                <div
-                  className="group relative cursor-pointer rounded-full border-4 border-surface-card shadow-md overflow-hidden h-20 w-20 sm:h-24 sm:w-24 bg-surface-soft flex items-center justify-center"
-                  onClick={() => avatarInputRef.current?.click()}
-                >
-                  {avatar ? (
-                    <img
-                      src={avatar}
-                      alt={profile.name || profile.username}
-                      className="h-full w-full object-cover rounded-full"
-                    />
-                  ) : (
-                    <span className="text-xl font-semibold text-coral sm:text-2xl uppercase select-none font-display">
-                      {initials}
-                    </span>
-                  )}
-                  <div className="absolute inset-0 flex items-center justify-center bg-surface-dark/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100 rounded-full">
-                    {isUploadingAvatar ? (
-                      <Loader2 className="h-5 w-5 animate-spin text-on-dark" />
-                    ) : (
-                      <Camera className="h-5 w-5 text-on-dark" />
-                    )}
-                  </div>
+                <div className="rounded-full border-4 border-surface-card shadow-md overflow-hidden h-20 w-20 sm:h-24 sm:w-24 bg-surface-soft flex items-center justify-center">
+                  <span className="text-xl font-semibold text-coral sm:text-2xl uppercase select-none font-display">
+                    {initials}
+                  </span>
                 </div>
               </div>
 
@@ -271,7 +172,7 @@ export default function ProfilePage() {
                   <p className="text-xxs text-muted-soft">
                     {completeness === 100
                       ? "Hồ sơ của bạn đã hoàn thành đầy đủ! 🎉"
-                      : "Thêm ảnh, viết giới thiệu & xác thực email để đạt 100%."}
+                      : "Viết giới thiệu & xác thực email để đạt 100%."}
                   </p>
                 </div>
 
@@ -349,24 +250,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-
-      {/* Hidden file upload inputs */}
-      <input
-        ref={avatarInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleAvatarUpload}
-        disabled={isUploadingAvatar}
-      />
-      <input
-        ref={bannerInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleBannerUpload}
-        disabled={isUploadingBanner}
-      />
     </div>
   );
 }

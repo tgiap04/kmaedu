@@ -39,7 +39,6 @@ import { PromoIllustration, SidebarBrandCard, SidebarSectionLabel } from "@/comp
 interface Profile {
   name: string;
   email: string;
-  avatar: string;
   model?: string;
 }
 
@@ -97,7 +96,6 @@ export function SidebarKit({ collapsed = false }: SidebarKitProps) {
   const [profile, setProfile] = React.useState<Profile>({
     name: "",
     email: "",
-    avatar: "",
   });
   const { pathname: currentPath } = useLocation();
   const navigate = useNavigate();
@@ -123,7 +121,6 @@ export function SidebarKit({ collapsed = false }: SidebarKitProps) {
       setProfile({
         name: user.name || user.username,
         email: user.email,
-        avatar: user.avatar || "",
       });
     }
   }, [user]);

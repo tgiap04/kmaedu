@@ -16,8 +16,6 @@ export function toUserSafeRow(u: authV1.User): UserSafeRow {
         username: u.username,
         name: u.name || null,
         bio: u.bio ?? null,
-        avatar: u.avatar || null,
-        banner: u.banner ?? null,
         role: u.role === authV1.BaseRole.BASE_ROLE_TEACHER ? 'TEACHER' : 'STUDENT',
         isSystemAdmin: u.isSystemAdmin,
         isVerified: u.isVerified,

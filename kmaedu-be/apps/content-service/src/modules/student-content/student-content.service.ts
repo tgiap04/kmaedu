@@ -85,7 +85,6 @@ export class StudentContentService {
             id: set.id,
             title: set.title,
             description: set.description,
-            thumbnail: set.thumbnail,
             viewCount: set.viewCount,
             flashcardCount: set._count.detailsFlashCard,
             lastViewedAt: set.updatedAt.toISOString(),

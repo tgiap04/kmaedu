@@ -58,7 +58,6 @@ describe('assessment user enrichment and email-leak contract (e2e)', () => {
             id: host.id,
             username: host.id,
             name: nameOf(host),
-            avatar: null,
         });
         const body = await call(t.server, 'put', `/examrooms/${roomId}`, tok.host, {
             title: 'renamed',
@@ -68,7 +67,7 @@ describe('assessment user enrichment and email-leak contract (e2e)', () => {
         expect(body.body.examRoom.host.name).toBe(nameOf(host));
         const teaser = await get(`/examrooms/get-public/${roomId}`, 'student');
         expect(teaser.status).toBe(200);
-        expect(teaser.body.host).toEqual({ name: nameOf(host), avatar: null });
+        expect(teaser.body.host).toEqual({ name: nameOf(host) });
         expect(keysDeep(teaser.body).has('email')).toBe(false);
     });
 

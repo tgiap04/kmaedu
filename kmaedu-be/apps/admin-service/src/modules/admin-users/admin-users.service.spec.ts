@@ -3,7 +3,7 @@ import { Metadata } from '@grpc/grpc-js';
 import { AdminUsersService } from './admin-users.service';
 
 const row = (over: Record<string, unknown> = {}) => ({
-    id: 'u1', email: 'u1@x.io', username: 'u1', name: '', avatar: '', role: 1, isSystemAdmin: false,
+    id: 'u1', email: 'u1@x.io', username: 'u1', name: '', role: 1, isSystemAdmin: false,
     isVerified: true, isBanned: false, createdAt: '1700000000000', updatedAt: '1700000001000', ...over,
 });
 const ctx = { adminId: 'admin1', ipAddress: '1.1.1.1', userAgent: 'jest' };

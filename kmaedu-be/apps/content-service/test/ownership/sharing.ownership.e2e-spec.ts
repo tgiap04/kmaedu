@@ -86,7 +86,7 @@ describe('sharing: ownership, deltas, cap and code memory (e2e)', () => {
             expect(added.body.whitelist.map((u: { id: string }) => u.id).sort()).toEqual(
                 [student.id, fellow.id].sort()
             );
-            expect(Object.keys(added.body.whitelist[0]).sort()).toEqual(['avatar', 'id', 'name', 'username']);
+            expect(Object.keys(added.body.whitelist[0]).sort()).toEqual(['id', 'name', 'username']);
             const pub = await run('put', p, 'owner', { isPublic: true });
             expect(pub.body.isPublic).toBe(true);
             expect(pub.body.whitelist).toHaveLength(2);

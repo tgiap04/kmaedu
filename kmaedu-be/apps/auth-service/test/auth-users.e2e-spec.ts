@@ -115,7 +115,7 @@ describe('auth user RPCs of phase 10 (e2e, real Postgres + real guards)', () => 
             const res = await lastValueFrom(users.searchUsers({ query: prefix, limit: 10 }, md(teacher.token)));
             expect(res.profiles.map((p) => p.id).sort()).toEqual([a.id, b.id].sort());
             for (const p of res.profiles) {
-                expect(Object.keys(p).sort()).toEqual(['avatar', 'id', 'name', 'username']);
+                expect(Object.keys(p).sort()).toEqual(['id', 'name', 'username']);
             }
             const byEmail = await lastValueFrom(users.searchUsers({ query: a.email, limit: 10 }, md(teacher.token)));
             expect(byEmail.profiles.map((p) => p.id)).toEqual([a.id]);

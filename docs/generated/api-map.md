@@ -37,8 +37,6 @@ Groups backend routes by domain. Each route maps to a BL handler (from `behavior
 |--------|------|---------------|------|-------|
 | GET | /api/v1/profile | [UNMAPPED] | Bearer | auth |
 | PUT | /api/v1/profile | [UNMAPPED] | Bearer | auth |
-| POST | /api/v1/profile/upload-avatar | BL005 | Bearer | auth |
-| POST | /api/v1/profile/upload-banner | BL005 | Bearer | auth |
 
 ---
 
@@ -297,7 +295,7 @@ Phase 07 (2026-10-20). Detail: `route-list.md` § Quiz Practice.
 | BL### | Handler | Type | Mapped Routes |
 |-------|---------|------|---------------|
 | BL003 | AuthService | integration | Auth routes (login, register, OAuth, token, logout, me, exchange) |
-| BL005 | R2ClientService | integration | POST /api/v1/profile/upload-avatar, POST /api/v1/profile/upload-banner |
+| BL005 | R2ClientService | integration | — (avatar/banner upload removed 2026-11; clients only delete objects now) |
 | BL006 | R2Service | integration | POST /api/v1/r2/image |
 | BL008 | MailService | mail | sendVerificationEmail, verifyAccount, send-code-reset-password, reset-password, send-code-change-password, change-password |
 | BL009 | SessionValidationMiddleware | middleware | All Bearer-authenticated routes (global) |
@@ -334,7 +332,7 @@ Owner column (phase 19): the service behind each route, from the `upstream` of i
 ## Unresolved
 
 - `BL004`, `BL010` and `BL011` (finance client, SePay webhook and its gateway proxy) were removed with the wallet/subscription/payment feature; the `/wallet/*`, `/payment/*` and `/webhook/sepay` routes no longer exist.
-- `BL005` (R2ClientService) covers avatar/banner upload but no other R2 operations (`BL005` names the pre-split exam-service client; the clients now live in auth, content and ai-chat `src/clients/r2.client.ts`).
+- `BL005` (R2ClientService): avatar/banner upload was removed (2026-11); the auth and content clients now only drain `r2_delete_tasks`.
 - BL inventory covers 12 behavior logic items; 143 routes lack explicit BL mapping. These routes are handled by NestJS controllers/services scanned in Wave 0 but not yet attributed to a named BL entry.
 - `BL001` (SessionCleanupCron) and `BL002` (UserRegisteredHandler) have no HTTP route — internal/scheduled/event-driven only.
 - `BL007` (OcrService; OCR now runs in ai-service on `document.uploaded`), `BL012` (AuthSyncBootstrap), `BL014` (ExportPDFHook) — no HTTP route mapping.

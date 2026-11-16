@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaService } from '../prisma';
-import { MessagingModule, R2DeleteTaskWriter } from '@kmaedu/messaging';
+import { MessagingModule } from '@kmaedu/messaging';
 import { RedisService } from '@kmaedu/redis';
 import { UserRepository } from '../repositories/user.repository';
 import { UserUpdateWriter } from './user-update.writer';
@@ -14,7 +14,6 @@ import { UserUpdatedPublisher } from './user-updated.publisher';
         UserRepository,
         UserUpdatedPublisher,
         UserUpdateWriter,
-        R2DeleteTaskWriter,
     ],
     exports: [UserUpdateWriter],
 })

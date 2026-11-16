@@ -733,7 +733,6 @@ export class StudyRoomGateway
             .map((m: any) => ({
                 userId: m.userId,
                 name: m.user?.name ?? null,
-                avatar: m.user?.avatar ?? null,
                 role: m.role,
                 online: !!presence[m.userId],
                 status: presence[m.userId] ?? null,

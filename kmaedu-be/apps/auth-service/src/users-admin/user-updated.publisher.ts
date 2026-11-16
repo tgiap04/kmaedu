@@ -6,7 +6,7 @@ import type { UserUpdated } from '@kmaedu/contracts/generated/kmaedu/events/v1/a
 export const USER_UPDATED = 'auth.user.updated';
 
 /** Profile fields a `auth.user.updated` event can name in `changed`. */
-export type UserChangedField = 'name' | 'bio' | 'avatar' | 'banner' | 'is_verified';
+export type UserChangedField = 'name' | 'bio' | 'is_verified';
 
 /**
  * `auth.user.updated` is a state event: `version` is the row's `updatedAt` in

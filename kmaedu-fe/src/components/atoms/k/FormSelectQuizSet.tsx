@@ -10,7 +10,6 @@ import { Card, CardContent } from "@/components/antd/card";
 import { Switch } from "@/components/antd/switch";
 import { Field, FieldContent, FieldLabel } from "@/components/antd/field";
 import { Item } from "@/components/antd/item";
-import { ThumbnailUpload } from "@/components/atoms/k/ThumbnailUpload";
 
 interface FormSelectQuizSetProps {
   selectedIds: string[];
@@ -33,7 +32,6 @@ export function FormSelectQuizSet({
     tags: "",
     isPublic: false,
     isPinned: false,
-    thumbnail: null as string | File | null,
   });
 
   const handleCheckboxChange = (quizSetId: string, checked: boolean) => {
@@ -60,11 +58,6 @@ export function FormSelectQuizSet({
       .map((tag) => tag.trim())
       .filter((tag) => tag.length > 0);
 
-    const thumbnailFile =
-      formData.thumbnail instanceof File ? formData.thumbnail : undefined;
-    const thumbnailUrl =
-      typeof formData.thumbnail === "string" ? formData.thumbnail : null;
-
     await createQuizSet(
       {
         title: formData.title,
@@ -72,11 +65,9 @@ export function FormSelectQuizSet({
         tags: tagsArray,
         isPublic: formData.isPublic,
         isPinned: formData.isPinned,
-        thumbnail: thumbnailUrl,
         questions: [],
         questionCount: 0,
       },
-      thumbnailFile
     );
 
     // Reset form
@@ -86,7 +77,6 @@ export function FormSelectQuizSet({
       tags: "",
       isPublic: false,
       isPinned: false,
-      thumbnail: null,
     });
     setShowCreateForm(false);
 
@@ -101,7 +91,6 @@ export function FormSelectQuizSet({
       tags: "",
       isPublic: false,
       isPinned: false,
-      thumbnail: null,
     });
     setShowCreateForm(false);
   };
@@ -209,15 +198,6 @@ export function FormSelectQuizSet({
                     setFormData({ ...formData, tags: e.target.value })
                   }
                   className="bg-background"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <ThumbnailUpload
-                  value={formData.thumbnail}
-                  onChange={(value) =>
-                    setFormData({ ...formData, thumbnail: value })
-                  }
                 />
               </div>
 

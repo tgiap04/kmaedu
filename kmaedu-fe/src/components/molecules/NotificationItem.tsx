@@ -15,7 +15,6 @@ export interface NotificationItemData {
     primary?: { label: string; onClick: () => void };
     secondary?: { label: string; onClick: () => void };
   };
-  avatar?: string;
 }
 
 interface NotificationItemProps {
@@ -43,16 +42,8 @@ export function NotificationItem({
       )}
       onClick={handleClick}>
       <div className="flex gap-4 p-4">
-        {/* Icon or Avatar */}
-        {notification.avatar ? (
-          <img
-            src={notification.avatar}
-            alt=""
-            className="h-10 w-10 shrink-0 rounded-full object-cover"
-          />
-        ) : (
-          <NotificationIcon type={notification.type} />
-        )}
+        {/* Icon */}
+        <NotificationIcon type={notification.type} />
 
         {/* Content */}
         <div className="flex-1 space-y-1">

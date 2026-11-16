@@ -72,7 +72,6 @@ export default function ManageExamPage() {
       quizSetsK.map((quizSet) => ({
         id: quizSet.id,
         icon: "📘",
-        thumbnail: quizSet.thumbnail,
         name: quizSet.title,
         description: quizSet.description || "",
         questionCount: quizSet.questionCount,
@@ -133,7 +132,6 @@ export default function ManageExamPage() {
           isPublic: quizSet.isPublic,
           isPinned: quizSet.isPinned,
           tags: quizSet.tags || [],
-          thumbnail: quizSet.thumbnail || "",
         });
         setSelectedQuizSetId(id);
         setIsEditModalOpen(true);
@@ -165,9 +163,6 @@ export default function ManageExamPage() {
   const handleCreateSubmit = useCallback(
     async (data: QuizSetFormData) => {
       try {
-        const thumbnailFile = data.thumbnail instanceof File ? data.thumbnail : undefined;
-        const thumbnailUrl = typeof data.thumbnail === "string" ? data.thumbnail : null;
-
         await createQuizSet(
           {
             title: data.title,
@@ -175,11 +170,9 @@ export default function ManageExamPage() {
             isPublic: data.isPublic,
             isPinned: data.isPinned,
             tags: data.tags,
-            thumbnail: thumbnailUrl,
             questionCount: 0,
             questions: [],
           },
-          thumbnailFile,
         );
         invalidateQuizStats();
         setIsCreateModalOpen(false);
@@ -196,9 +189,6 @@ export default function ManageExamPage() {
     async (data: QuizSetFormData) => {
       if (selectedQuizSetId) {
         try {
-          const thumbnailFile = data.thumbnail instanceof File ? data.thumbnail : undefined;
-          const thumbnailUrl = typeof data.thumbnail === "string" ? data.thumbnail : null;
-
           await updateQuizSet(
             selectedQuizSetId,
             {
@@ -207,11 +197,9 @@ export default function ManageExamPage() {
               isPublic: data.isPublic,
               isPinned: data.isPinned,
               tags: data.tags,
-              thumbnail: thumbnailUrl,
               questionCount: 0,
               questions: [],
             },
-            thumbnailFile,
           );
           invalidateQuizStats();
           setIsEditModalOpen(false);

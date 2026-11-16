@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 export interface Conversation {
   id: string;
   userName: string;
-  userAvatar?: string;
   lastMessage: string;
   timestamp: string;
   unreadCount?: number;
@@ -35,8 +34,6 @@ export function ConversationItem({
       )}>
       <div className="flex items-start gap-3">
         <UserAvatar
-          src={conversation.userAvatar}
-          alt={conversation.userName}
           fallback={conversation.userName.slice(0, 2).toUpperCase()}
           online={conversation.isOnline}
           size="md"

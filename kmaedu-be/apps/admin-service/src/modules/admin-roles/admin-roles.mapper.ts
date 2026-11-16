@@ -8,7 +8,6 @@ export interface RoleUserItem {
     email: string;
     username: string;
     name: string;
-    avatar: string | null;
     role: BaseRoleName;
     isSystemAdmin: boolean;
     isBanned: boolean;
@@ -45,7 +44,6 @@ export function toRoleUserItem(u: authV1.User): RoleUserItem {
         email: u.email,
         username: u.username,
         name: u.name,
-        avatar: u.avatar || null,
         role: fromProtoRole(u.role),
         isSystemAdmin: u.isSystemAdmin,
         isBanned: u.isBanned,

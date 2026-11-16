@@ -7,8 +7,6 @@ import { ApiProperty } from '@nestjs/swagger';
 export const UpdateProfileSchema = z.object({
     name: z.string().max(100).optional(),
     bio: z.string().max(500).optional(),
-    avatar: z.string().url().optional().nullable(),
-    banner: z.string().url().optional().nullable(),
 });
 
 // ================== REQUEST DTOs ==================
@@ -19,12 +17,6 @@ export class UpdateProfileDto extends createZodDto(UpdateProfileSchema) {
 
     @ApiProperty({ description: 'Giới thiệu bản thân', required: false })
     bio?: string;
-
-    @ApiProperty({ description: 'URL ảnh đại diện', required: false })
-    avatar?: string | null;
-
-    @ApiProperty({ description: 'URL ảnh bìa', required: false })
-    banner?: string | null;
 }
 
 // ================== RESPONSE DTOs ==================
@@ -41,12 +33,6 @@ export class ProfileResponseDto {
 
     @ApiProperty({ description: 'Tên hiển thị' })
     name: string | null;
-
-    @ApiProperty({ description: 'URL ảnh đại diện' })
-    avatar: string | null;
-
-    @ApiProperty({ description: 'URL ảnh bìa' })
-    banner: string | null;
 
     @ApiProperty({ description: 'Giới thiệu bản thân' })
     bio: string | null;

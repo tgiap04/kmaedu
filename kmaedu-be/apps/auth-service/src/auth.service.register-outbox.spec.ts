@@ -148,7 +148,7 @@ describe('AuthService registration outbox', () => {
     });
 
     it('Google OAuth creation writes auth.user.registered in the same tx', async () => {
-        await (service as any).handleOAuthLogin('new@example.com', 'newbie', undefined, undefined, 'fb');
+        await (service as any).handleOAuthLogin('new@example.com', 'newbie', undefined, 'fb');
 
         expect(outbox.add).toHaveBeenCalledWith(tx, 'auth.user.registered', {
             userId: 'user-1',

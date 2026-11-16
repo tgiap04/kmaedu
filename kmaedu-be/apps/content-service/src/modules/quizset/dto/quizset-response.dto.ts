@@ -33,9 +33,6 @@ export class QuizSetDto {
     @ApiProperty({ description: 'Mô tả bộ câu hỏi', required: false })
     description?: string;
 
-    @ApiProperty({ description: 'Ảnh thumbnail', required: false })
-    thumbnail?: string;
-
     @ApiProperty({ description: 'Các thẻ tag', type: [String] })
     tags: string[];
 
@@ -71,9 +68,6 @@ export class QuizSetWithoutQuestionsDto {
 
     @ApiProperty({ description: 'Mô tả bộ câu hỏi', required: false })
     description?: string;
-
-    @ApiProperty({ description: 'Ảnh thumbnail', required: false })
-    thumbnail?: string;
 
     @ApiProperty({ description: 'Các thẻ tag', type: [String] })
     tags: string[];

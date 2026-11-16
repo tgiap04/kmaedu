@@ -9,7 +9,6 @@ const set = {
     title: 'T',
     description: null,
     userId: 'o',
-    thumbnail: null,
     tag: ['a'],
     isPublic: false,
     isPinned: false,
@@ -33,7 +32,6 @@ const creator = {
     id: 'o',
     username: 'o',
     name: null,
-    avatar: null,
     email: 'o@x.test',
 };
 

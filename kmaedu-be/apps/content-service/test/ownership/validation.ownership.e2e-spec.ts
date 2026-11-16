@@ -150,18 +150,17 @@ describe('request validation (e2e)', () => {
         expect(card.status).toBe(201);
     });
 
-    describe('multipart create/update (FE builders: fields as text, optional file)', () => {
+    describe('create/update bodies (JSON only since thumbnails were removed; string-typed values still parse)', () => {
         const form = (
             method: 'post' | 'put',
             path: string,
             who: 'teacher' | 'student',
             fields: Record<string, string>
         ) => {
-            let r = request(t.server)
+            return request(t.server)
                 [method](`/api/v1${path}`)
-                .set('Authorization', `Bearer ${tok[who]}`);
-            for (const [k, v] of Object.entries(fields)) r = r.field(k, v);
-            return r;
+                .set('Authorization', `Bearer ${tok[who]}`)
+                .send(fields);
         };
 
         it.each([
@@ -194,7 +193,7 @@ describe('request validation (e2e)', () => {
         );
 
         it.each(['/quizsets', '/flashcardsets'])(
-            'POST %s: malformed multipart -> 400 (never 409/500)',
+            'POST %s: malformed body -> 400 (never 409/500)',
             async (path) => {
                 expect(
                     (

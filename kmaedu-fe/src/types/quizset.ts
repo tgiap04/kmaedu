@@ -40,7 +40,6 @@ export interface QuizSet {
   title: string;
   description: string;
   userId: string;
-  thumbnail: string | null;
   isPublic: boolean;
   isPinned: boolean;
   tags: string[];

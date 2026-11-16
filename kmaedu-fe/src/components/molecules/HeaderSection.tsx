@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import Logo from "../atoms/Logo";
 import LanguageSwitcher from "./language-switcher";
 import { Facehash } from "facehash";
-import { Avatar } from "@/components/antd/avatar";
 
 const menuItems = [
   { name: "nav.features", href: "/#features" },
@@ -115,16 +114,7 @@ export default function HeaderSection() {
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  {user?.avatar ? (
-                    <Avatar
-                      src={user.avatar}
-                      alt={user.name}
-                      size={40}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <Facehash name={user?.name || "User"} size={40} className="text-coral" />
-                  )}
+                  <Facehash name={user?.name || "User"} size={40} className="text-coral" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-[180px]">
                   <DropdownMenuLabel className="font-semibold">

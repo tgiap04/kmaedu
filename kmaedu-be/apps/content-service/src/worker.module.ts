@@ -14,7 +14,7 @@ import { PrismaModule } from './prisma';
 /**
  * Worker-role module (`ROLE=worker`): relays the content outbox (`content.generation.requested`,
  * `content.quizset.deleted`), fails generation jobs ai-service never answered (the watchdog) and
- * drains `r2_delete_tasks` (set thumbnails) through its own small pg pool, deleting through r2-service
+ * drains `r2_delete_tasks` (object keys queued by deletes) through its own small pg pool, deleting through r2-service
  * as `svc:content`. No HTTP/gRPC listener. Nothing here calls document-service
  * (service tokens are refused there).
  */

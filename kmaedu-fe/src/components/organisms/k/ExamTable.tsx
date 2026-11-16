@@ -6,7 +6,6 @@ import { ExamStatus } from "@/components/atoms/k/ExamStatusBadge";
 export interface ExamTableData {
   id: string;
   icon: string;
-  thumbnail?: string | null;
   name: string;
   description: string;
   questionCount: number;
@@ -32,7 +31,6 @@ const ExamTableComponent = ({
   const tableData: ManagementTableData[] = exams.map((exam) => ({
     id: exam.id,
     icon: exam.icon,
-    thumbnail: exam.thumbnail,
     name: exam.name,
     description: exam.description,
     questionCount: exam.questionCount,

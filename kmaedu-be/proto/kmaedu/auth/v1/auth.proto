@@ -30,11 +30,13 @@ enum BaseRole {
 }
 
 message User {
+  // Avatars and banners were removed (2026-11).
+  reserved 5, 13;
+  reserved "avatar", "banner";
   string id = 1;
   string email = 2;
   string username = 3;
   string name = 4;
-  string avatar = 5;
   BaseRole role = 6;
   bool is_system_admin = 7;
   bool is_verified = 8;
@@ -45,7 +47,6 @@ message User {
   optional string utm_source = 11;
   // Admin-facing profile fields (the admin users table/detail keep their shape).
   optional string bio = 12;
-  optional string banner = 13;
   // Unix epoch milliseconds.
   int64 updated_at = 14;
   optional string created_by = 15;
@@ -53,10 +54,12 @@ message User {
 }
 
 message PublicProfile {
+  // Avatars were removed (2026-11).
+  reserved 4;
+  reserved "avatar";
   string id = 1;
   string username = 2;
   string name = 3;
-  string avatar = 4;
 }
 
 message RoleChange {

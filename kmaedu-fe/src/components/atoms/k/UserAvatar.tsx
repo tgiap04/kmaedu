@@ -1,9 +1,7 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/antd/avatar";
+import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import { cn } from "@/lib/utils";
 
 interface UserAvatarProps {
-  src?: string;
-  alt: string;
   fallback: string;
   online?: boolean;
   size?: "sm" | "md" | "lg";
@@ -17,8 +15,6 @@ const sizeClasses = {
 };
 
 export function UserAvatar({
-  src,
-  alt,
   fallback,
   online,
   size = "md",
@@ -27,7 +23,6 @@ export function UserAvatar({
   return (
     <div className="relative shrink-0">
       <Avatar className={cn(sizeClasses[size], className)}>
-        <AvatarImage src={src} alt={alt} />
         <AvatarFallback className="bg-primary/10 text-primary font-semibold">
           {fallback}
         </AvatarFallback>

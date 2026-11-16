@@ -26,7 +26,6 @@ const row = (id: string, extra: Record<string, unknown> = {}) => ({
     email: `${id}@x.dev`,
     username: id,
     name: `Name ${id}`,
-    avatar: null,
     role: 'STUDENT',
     isSystemAdmin: false,
     isVerified: true,
@@ -36,7 +35,6 @@ const row = (id: string, extra: Record<string, unknown> = {}) => ({
     updatedAt: new Date(1_700_000_001_000),
     utmSource: null,
     bio: null,
-    banner: null,
     createdBy: null,
     updatedBy: null,
     ...extra,
@@ -175,20 +173,20 @@ describe('AuthService gRPC contract (handlers behind the real guards)', () => {
             expect(prisma.user.findUnique.mock.calls[0][0].where).toEqual({ email: 'e@x.dev' });
         });
 
-        it('GetPublicProfilesByIds: any verified user or service, 4 fields only, one query, input order', async () => {
+        it('GetPublicProfilesByIds: any verified user or service, 3 fields only, one query, input order', async () => {
             prisma.user.findMany.mockResolvedValue([
-                { id: 'b', username: 'b', name: null, avatar: 'a.png' },
-                { id: 'a', username: 'a', name: 'A', avatar: null },
+                { id: 'b', username: 'b', name: null },
+                { id: 'a', username: 'a', name: 'A' },
             ]);
             const student = md(await signTestToken(keys, { claims: { roles: ['STUDENT'] } }));
             const res = await lastValueFrom(
                 auth.getPublicProfilesByIds({ userIds: ['a', 'ghost', 'b'] }, student)
             );
             expect(res.profiles.map((p) => p.id)).toEqual(['a', 'b']);
-            for (const p of res.profiles) expect(Object.keys(p).sort()).toEqual(['avatar', 'id', 'name', 'username']);
+            for (const p of res.profiles) expect(Object.keys(p).sort()).toEqual(['id', 'name', 'username']);
             expect(prisma.user.findMany).toHaveBeenCalledTimes(1);
             expect(prisma.user.findMany.mock.calls[0][0].select).toEqual({
-                id: true, username: true, name: true, avatar: true,
+                id: true, username: true, name: true,
             });
             // Also reachable by any service token.
             await expect(

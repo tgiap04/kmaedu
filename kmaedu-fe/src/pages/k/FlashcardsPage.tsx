@@ -75,7 +75,6 @@ export default function FlashcardsPage() {
       flashcardSetsK.map((set) => ({
         id: set.id,
         icon: "🎴",
-        thumbnail: set.thumbnail,
         name: set.title,
         fileName: set.title,
         description: set.description || "",
@@ -144,7 +143,6 @@ export default function FlashcardsPage() {
           isPublic: flashcardSet.isPublic,
           isPinned: flashcardSet.isPinned,
           tags: flashcardSet.tags || [],
-          thumbnail: flashcardSet.thumbnail || "",
         });
         setSelectedFlashcardSetId(id);
         setIsEditModalOpen(true);
@@ -193,9 +191,6 @@ export default function FlashcardsPage() {
   const handleCreateSubmit = useCallback(
     async (data: FlashcardSetFormData) => {
       try {
-        const thumbnailFile = data.thumbnail instanceof File ? data.thumbnail : undefined;
-        const thumbnailUrl = typeof data.thumbnail === "string" ? data.thumbnail : null;
-
         await createFlashcardSet(
           {
             title: data.title,
@@ -203,9 +198,7 @@ export default function FlashcardsPage() {
             isPublic: data.isPublic,
             isPinned: data.isPinned,
             tags: data.tags,
-            thumbnail: thumbnailUrl,
           },
-          thumbnailFile,
         );
         invalidateFlashcardStats();
         setIsCreateModalOpen(false);
@@ -222,9 +215,6 @@ export default function FlashcardsPage() {
     async (data: FlashcardSetFormData) => {
       if (selectedFlashcardSetId) {
         try {
-          const thumbnailFile = data.thumbnail instanceof File ? data.thumbnail : undefined;
-          const thumbnailUrl = typeof data.thumbnail === "string" ? data.thumbnail : null;
-
           await updateFlashcardSet(
             selectedFlashcardSetId,
             {
@@ -233,9 +223,7 @@ export default function FlashcardsPage() {
               isPublic: data.isPublic,
               isPinned: data.isPinned,
               tags: data.tags,
-              thumbnail: thumbnailUrl,
             },
-            thumbnailFile,
           );
           setIsEditModalOpen(false);
           setSelectedFlashcardSetId(null);

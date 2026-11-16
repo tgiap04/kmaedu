@@ -146,7 +146,6 @@ export async function bootContentApp(
                 username: id,
                 email: `${id}@own.test`,
                 name: `Name ${id}`,
-                avatar: '',
             });
             return { id, roles, av: 0 };
         },

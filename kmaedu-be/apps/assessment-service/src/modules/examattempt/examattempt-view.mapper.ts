@@ -105,12 +105,11 @@ function pickSession(s: SessionRow, withAnswers: boolean, questions?: QuestionRo
                 id: room.id,
                 title: room.title,
                 description: room.description,
-                // The set's own description and thumbnail belong to content-service: they stay null here.
+                // The set's own description belongs to content-service: it stays null here.
                 quizSet: {
                     id: room.quizSetId,
                     title: room.quizSetTitle,
                     description: null,
-                    thumbnail: null,
                     // Same shape as when the questions were a relation, now cut from the session's snapshot.
                     ...(questions && {
                         detailsQuizQuestions: questions.map((q) => ({

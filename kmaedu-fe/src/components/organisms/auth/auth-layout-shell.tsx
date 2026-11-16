@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/antd/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/antd/avatar";
+import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 
 export function AuthLayoutShell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -62,7 +62,6 @@ export function AuthLayoutShell({ children }: { children: React.ReactNode }) {
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-3 rounded-full border border-hairline bg-canvas px-2 py-1.5 shadow-sm transition-colors hover:bg-surface-soft">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={user.avatar} />
                       <AvatarFallback>
                         {user.username?.charAt(0).toUpperCase() || "U"}
                       </AvatarFallback>

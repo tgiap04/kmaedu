@@ -145,7 +145,6 @@ export class ExamSessionPublicInfoDto {
         id: string;
         username: string;
         name: string | null;
-        avatar: string | null;
     };
 
     @ApiProperty()

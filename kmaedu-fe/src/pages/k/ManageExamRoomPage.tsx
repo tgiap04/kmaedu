@@ -77,7 +77,6 @@ export default function ManageExamRoomPage() {
             name: displayUserName(attempt.user),
             examName: (attempt as ExamAttemptListItem & { examRoomTitle?: string }).examRoomTitle || "Phòng thi",
             status: "offline",
-            avatar: attempt.user?.avatar || "",
           }));
 
         setRecentParticipants(participants);

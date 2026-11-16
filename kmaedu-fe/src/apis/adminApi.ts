@@ -12,7 +12,6 @@ export interface UserRow {
   email: string;
   username: string;
   name: string;
-  avatar: string;
   role: "STUDENT" | "TEACHER";
   isSystemAdmin: boolean;
   isBanned: boolean;

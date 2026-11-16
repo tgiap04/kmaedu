@@ -44,7 +44,6 @@ export interface SharedQuizSet {
   id: string;
   title: string;
   description: string | null;
-  thumbnail: string | null;
   questionCount: number;
   owner: { name: string | null } | null;
   lastAttempt: {

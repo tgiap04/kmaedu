@@ -44,7 +44,6 @@ export class QuizPracticeService {
                     id: true,
                     title: true,
                     description: true,
-                    thumbnail: true,
                     userId: true,
                     _count: { select: { detailsQuizQuestions: true } },
                     practiceAttempts: {
@@ -65,7 +64,6 @@ export class QuizPracticeService {
                     id: s.id,
                     title: s.title,
                     description: s.description,
-                    thumbnail: s.thumbnail,
                     questionCount: s._count.detailsQuizQuestions,
                     owner: { name: owners.get(s.userId)?.name ?? null },
                     lastAttempt: last

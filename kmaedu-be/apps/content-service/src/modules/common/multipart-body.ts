@@ -2,10 +2,9 @@ import { BadRequestException } from '@nestjs/common';
 import { z } from 'zod';
 
 /**
- * Body of the create/update routes that accept an optional thumbnail upload.
- * The FE sends multipart text fields when a file is attached (booleans as
- * "true"/"false", `tags` as a JSON string) and plain JSON otherwise; both go
- * through the same schema so a bad value is a 400, never a silent default.
+ * Body of the set create/update routes (JSON). Booleans may also arrive as
+ * "true"/"false" and `tags` as a JSON string; all forms go through the same
+ * schema so a bad value is a 400, never a silent default.
  */
 const bool = z.preprocess(
     (v) => (v === 'true' ? true : v === 'false' ? false : v),
@@ -27,7 +26,6 @@ export const setFormFields = {
     isPublic: bool,
     isPinned: bool,
     tags,
-    thumbnail: z.string().url().optional(),
 };
 
 export const createSetFormSchema = z.object({
@@ -35,7 +33,6 @@ export const createSetFormSchema = z.object({
     isPublic: setFormFields.isPublic.default(false),
     isPinned: setFormFields.isPinned.default(false),
     tags: setFormFields.tags.default([]),
-    thumbnail: setFormFields.thumbnail,
     description: setFormFields.description,
 });
 
@@ -46,7 +43,6 @@ export const updateSetFormSchema = z.object({
     isPublic: setFormFields.isPublic.optional(),
     isPinned: setFormFields.isPinned.optional(),
     tags: setFormFields.tags.optional(),
-    thumbnail: setFormFields.thumbnail,
 });
 
 /** Empty-string text fields (a cleared form input) count as "not sent". */

@@ -36,7 +36,7 @@ export function RoleUserTable(props: RoleUserTableProps) {
       key: "user",
       render: (_, row) => (
         <div className="flex items-center gap-3">
-          <Avatar src={row.avatar ?? undefined}>{(row.name || row.username || "?").charAt(0).toUpperCase()}</Avatar>
+          <Avatar>{(row.name || row.username || "?").charAt(0).toUpperCase()}</Avatar>
           <div className="min-w-0">
             <div className="truncate font-medium text-ink">{row.name || row.username}</div>
             <div className="truncate text-xs text-ink/60">{row.email}</div>

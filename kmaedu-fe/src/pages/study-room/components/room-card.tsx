@@ -8,7 +8,7 @@ import {
   Settings2,
   Users,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/antd/avatar";
+import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import { Badge } from "@/components/antd/badge";
 import { cn } from "@/lib/utils";
 import { AccessType, StudyRoomListItem } from "@/types/studyRoom";
@@ -95,10 +95,6 @@ function RoomCardBase({ room, isHost, onEnter, onConfig }: Props) {
       <div className="mt-4 flex items-center justify-between border-t border-hairline pt-3">
         <div className="flex min-w-0 items-center gap-2">
           <Avatar size="small">
-            <AvatarImage
-              src={room.host?.avatar ?? undefined}
-              alt={room.host?.name ?? ""}
-            />
             <AvatarFallback>
               {displayUserInitial(room.host, "?")}
             </AvatarFallback>

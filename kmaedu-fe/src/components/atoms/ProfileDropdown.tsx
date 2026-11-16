@@ -12,7 +12,6 @@ import { Facehash } from "facehash";
 interface Profile {
   name: string;
   email: string;
-  avatar: string;
   model?: string;
 }
 
@@ -24,7 +23,6 @@ interface ProfileDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
 const SAMPLE_PROFILE_DATA: Profile = {
   name: "Anonymous User",
   email: "user@mail.com",
-  avatar: "",
 };
 
 export default function ProfileDropdown({
@@ -71,11 +69,7 @@ export default function ProfileDropdown({
                 <span aria-hidden className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-brand-soft-hover/80 blur-2xl" />
                 <div className="relative flex items-center gap-3">
                   <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-soft ring-2 ring-canvas shadow-[0_2px_8px_rgba(217,45,41,0.15)]">
-                    {data.avatar ? (
-                      <img src={data.avatar} alt={data.name} width={48} height={48} className="h-full w-full object-cover" />
-                    ) : (
-                      <Facehash name={data.name} size={48} className="text-coral" />
-                    )}
+                    <Facehash name={data.name} size={48} className="text-coral" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] font-semibold text-ink">{data.name}</p>
@@ -139,17 +133,7 @@ export default function ProfileDropdown({
             )}
           >
             <div className={cn("grid shrink-0 place-items-center overflow-hidden rounded-full bg-brand-soft", compact ? "h-11 w-11 ring-2 ring-brand-border shadow-[0_2px_8px_rgba(217,45,41,0.15)]" : "h-11 w-11 ring-2 ring-canvas shadow-[0_2px_8px_rgba(217,45,41,0.15)]")}>
-              {data.avatar ? (
-                <img
-                  src={data.avatar}
-                  alt={data.name}
-                  width={44}
-                  height={44}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <Facehash name={data.name} size={44} className="text-coral" />
-              )}
+              <Facehash name={data.name} size={44} className="text-coral" />
             </div>
             {!compact && (
               <span className="flex min-w-0 flex-1 items-center gap-1.5 pl-1">

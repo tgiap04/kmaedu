@@ -34,7 +34,7 @@ services:
             - REDIS_PORT=6379
             - REDIS_PASSWORD=${REDIS_PASSWORD:-}
             - RABBITMQ_URL=amqp://studyroom:${RABBITMQ_STUDYROOM_PASS:?RABBITMQ_STUDYROOM_PASS is required}@rabbitmq:5672
-            # Names/avatars from auth (GetPublicProfilesByIds with a service token)
+            # Names from auth (GetPublicProfilesByIds with a service token)
             - AUTH_GRPC_URL=auth:50051
             - JWT_ISSUER=${JWT_ISSUER:-kmaedu-auth}
             - JWT_AUDIENCE=${JWT_AUDIENCE:-kmaedu}
