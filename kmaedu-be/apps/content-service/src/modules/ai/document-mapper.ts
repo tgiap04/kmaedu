@@ -3,6 +3,7 @@ import { documentV1 } from '@kmaedu/contracts';
 const Status = documentV1.DocumentProcessingStatus;
 
 const STATUS_NAME: Partial<Record<documentV1.DocumentProcessingStatus, string>> = {
+    [Status.DOCUMENT_PROCESSING_STATUS_UPLOADING]: 'UPLOADING',
     [Status.DOCUMENT_PROCESSING_STATUS_PENDING]: 'PENDING',
     [Status.DOCUMENT_PROCESSING_STATUS_PROCESSING]: 'PROCESSING',
     [Status.DOCUMENT_PROCESSING_STATUS_COMPLETED]: 'COMPLETED',

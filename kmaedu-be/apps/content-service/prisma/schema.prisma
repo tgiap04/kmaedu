@@ -338,7 +338,7 @@ model GenerationJob {
     filename   String
     // quiz | flashcard
     type       String
-    // QUEUED | PROCESSING | COMPLETED | FAILED | CANCELLED
+    // WAITING_UPLOAD | QUEUED | PROCESSING | COMPLETED | FAILED | CANCELLED
     status     String   @default("QUEUED")
     // { numItems, isNarrowSearch, keyword? } of `content.generation.requested`
     options    Json

@@ -55,8 +55,20 @@ export class GenerationJobRepository {
     /** A job of the document that has not reached a terminal state. */
     activeByStorage(storageId: string, userId: string, type: string): Promise<GenerationJob | null> {
         return this.prisma.generationJob.findFirst({
-            where: { storageId, userId, type, status: { in: [JobStatus.QUEUED, JobStatus.PROCESSING] } },
+            where: { storageId, userId, type, status: { in: [...OPEN_STATUSES] } },
             orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    /** Every job of the user waiting for this document's upload (both types), in ONE query. */
+    findWaitingForUpload(userId: string, storageId: string | string[]): Promise<GenerationJob[]> {
+        return this.prisma.generationJob.findMany({
+            where: {
+                userId,
+                storageId: Array.isArray(storageId) ? { in: storageId } : storageId,
+                status: JobStatus.WAITING_UPLOAD,
+            },
+            orderBy: { createdAt: 'asc' },
         });
     }
 
@@ -102,7 +114,7 @@ export class GenerationJobRepository {
         return count === 1;
     }
 
-    /** QUEUED / PROCESSING jobs whose last status change is older than `before`: nobody answered them. */
+    /** WAITING_UPLOAD / QUEUED / PROCESSING jobs whose last status change is older than `before`: nobody answered them. */
     findStuckInFlight(before: Date, limit: number): Promise<GenerationJob[]> {
         return this.prisma.generationJob.findMany({
             where: { status: { in: [...IN_FLIGHT_STATUSES] }, updatedAt: { lt: before } },

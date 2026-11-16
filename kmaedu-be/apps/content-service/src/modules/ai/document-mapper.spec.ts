@@ -5,6 +5,7 @@ const Status = documentV1.DocumentProcessingStatus;
 
 describe('document mapper', () => {
     it.each([
+        [Status.DOCUMENT_PROCESSING_STATUS_UPLOADING, 'UPLOADING'],
         [Status.DOCUMENT_PROCESSING_STATUS_PENDING, 'PENDING'],
         [Status.DOCUMENT_PROCESSING_STATUS_PROCESSING, 'PROCESSING'],
         [Status.DOCUMENT_PROCESSING_STATUS_COMPLETED, 'COMPLETED'],

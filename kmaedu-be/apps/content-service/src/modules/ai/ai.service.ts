@@ -1,20 +1,15 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Metadata } from '@grpc/grpc-js';
 import type { AuthUser } from '@kmaedu/auth-jwt';
 import { DocumentClient, requireUserToken, rethrowAsDocumentHttp, userMetadata } from '@kmaedu/grpc';
 import { processingStatusName } from './document-mapper';
 import { GenerationJobService, GenerationOptions } from './generation-job.service';
-import { GenerationJobRepository } from './generation-job.repository';
 import { GenerationLockService } from './generation-lock.service';
+import { GenerationStarted, UploadWaitService } from './upload-wait.service';
 import { DEFAULT_GENERATE_ITEMS, generationTypeOf, needsReprocessing, parseGenerateQuantity } from './generation-request-rules';
 import { GenerationType, MAX_GENERATE_FILE_BYTES } from './generation.constants';
 import { GenerateFromFileDto, RegenerateDto } from './dto/ai.dto';
 
-export interface GenerationStarted {
-    jobId: string;
-    status: string;
-    message: string;
-}
 
 /** What `generate-from-file` tells the user it started. */
 function generateFromFileMessage(reused: boolean, reprocessing: boolean): string {
@@ -25,13 +20,11 @@ function generateFromFileMessage(reused: boolean, reprocessing: boolean): string
 /** HTTP-facing generation flows. Queueing lives in `GenerationJobService`. */
 @Injectable()
 export class AIService {
-    private readonly logger = new Logger(AIService.name);
-
     constructor(
         private readonly documents: DocumentClient,
         private readonly generation: GenerationJobService,
-        private readonly jobs: GenerationJobRepository,
-        private readonly locks: GenerationLockService
+        private readonly locks: GenerationLockService,
+        private readonly uploadWait: UploadWaitService
     ) {}
 
     /** Upload (or reuse) the file in document-service and queue the generation. Returns at once. */
@@ -73,18 +66,20 @@ export class AIService {
             const doc = upload.document;
             if (!doc) throw new NotFoundException('Upload không tồn tại');
 
-            if (upload.reused && processingStatusName(doc) === 'PROCESSING') {
-                const running = await this.jobs.activeByStorage(doc.id, user.id, type);
-                if (running) {
-                    await this.locks.release(user.id, type);
-                    return { jobId: running.id, status: 'processing', message: 'File này đang được xử lý, vui lòng chờ hoàn tất.' };
-                }
+            const status = processingStatusName(doc);
+            if (upload.reused && (status === 'PROCESSING' || status === 'UPLOADING')) {
+                const running = await this.uploadWait.reuseRunning(doc.id, user.id, type);
+                if (running) return running;
+            }
+            // Still going to the storage (a new upload, or a reused one that is not there yet): park the job.
+            if (status === 'UPLOADING') {
+                return await this.uploadWait.waitForUpload(user.id, doc, type, options, dto.modelType, metadata);
             }
 
             // A new upload was queued for OCR with its row; a reused FAILED / PENDING one is re-queued here.
             const reprocessing = upload.reused && needsReprocessing(doc);
             if (reprocessing) await this.ensureProcessed(doc.id, metadata);
-            const download = await this.signedDownload(doc, metadata);
+            const download = await this.uploadWait.signedDownload(doc, metadata);
 
             const submitted = await this.generation.submit({
                 userId: user.id,
@@ -124,6 +119,10 @@ export class AIService {
 
         await this.locks.acquire(user.id, type);
         try {
+            if (processingStatusName(doc) === 'UPLOADING') {
+                const running = await this.uploadWait.reuseRunning(doc.id, user.id, type);
+                return running ?? (await this.uploadWait.waitForUpload(user.id, doc, type, options, dto.modelType, metadata));
+            }
             if (needsReprocessing(doc)) await this.ensureProcessed(doc.id, metadata);
             const submitted = await this.generation.submit({
                 userId: user.id,
@@ -132,7 +131,7 @@ export class AIService {
                 type,
                 options,
                 model: dto.modelType,
-                download: await this.signedDownload(doc, metadata),
+                download: await this.uploadWait.signedDownload(doc, metadata),
             });
             return {
                 jobId: submitted.jobId,
@@ -142,23 +141,6 @@ export class AIService {
         } catch (error) {
             await this.locks.release(user.id, type);
             throw error;
-        }
-    }
-
-    /**
-     * A presigned GET handed to ai-service with the request, so it can process a document that has no chunks
-     * yet instead of waiting for the OCR pipeline. Best effort: without it ai-service falls back to waiting.
-     */
-    private async signedDownload(
-        doc: { id: string; mimetype: string },
-        metadata: Metadata
-    ): Promise<{ url: string; mimetype: string } | undefined> {
-        try {
-            const { downloadUrl } = await this.documents.getDownloadUrl(doc.id, metadata);
-            return downloadUrl ? { url: downloadUrl, mimetype: doc.mimetype } : undefined;
-        } catch (error) {
-            this.logger.warn(`No download URL for document ${doc.id}, generation waits for the OCR: ${(error as Error).message}`);
-            return undefined;
         }
     }
 

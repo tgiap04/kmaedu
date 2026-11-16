@@ -4,6 +4,7 @@ import { OutboxService } from '@kmaedu/messaging';
 import { GenerationJob, PrismaService } from '../../prisma';
 import { GenerationJobRepository } from './generation-job.repository';
 import { GenerationLockService } from './generation-lock.service';
+import { buildGenerationRequested } from './generation-requested-payload';
 import {
     GenerationType,
     JobStatus,
@@ -11,6 +12,7 @@ import {
     IN_FLIGHT_STATUSES,
     resolveJobTimeoutMs,
     REAPER_BATCH,
+    UPLOAD_FAILED_ERROR,
 } from './generation.constants';
 
 export interface GenerationOptions {
@@ -47,7 +49,8 @@ const notCancellable = () =>
     new ConflictException({ statusCode: 409, code: 'JOB_NOT_CANCELLABLE', message: 'Không thể hủy job đã hoàn thành hoặc thất bại' });
 
 /**
- * The lifecycle of one generation job. `submit` inserts the job QUEUED together with its
+ * The lifecycle of one generation job. A document still UPLOADING parks the job WAITING_UPLOAD (no event)
+ * until `document.uploaded` queues it. `submit` inserts the job QUEUED together with its
  * `content.generation.requested` outbox row in ONE transaction, so a job never exists without the event
  * that makes ai-service work on it. Every later status change is conditional (see the repository), so the
  * result event, a cancel and the watchdog settle a job exactly once.
@@ -78,21 +81,73 @@ export class GenerationJobService {
                 options: { ...input.options },
                 model: input.model || undefined,
             });
-            await this.outbox.add(tx, 'content.generation.requested', {
-                jobId: id,
-                userId: input.userId,
-                storageId: input.storageId,
-                type: input.type,
-                options: {
-                    numItems: input.options.numItems,
-                    isNarrowSearch: input.options.isNarrowSearch,
-                    ...(input.options.keyword ? { keyword: input.options.keyword } : {}),
-                },
-                model: input.model ?? '',
-                ...(input.download ? { downloadUrl: input.download.url, mimetype: input.download.mimetype } : {}),
-            });
+            await this.outbox.add(
+                tx,
+                'content.generation.requested',
+                buildGenerationRequested({ jobId: id, ...input })
+            );
         });
         return { jobId: id };
+    }
+
+    /**
+     * The document is still UPLOADING in document-service: the job is inserted WAITING_UPLOAD with NO outbox
+     * row (ai-service has nothing to download yet). `startWaitingForUpload` / `failWaitingForUpload` move it on.
+     */
+    async submitWaitingForUpload(input: Omit<SubmitJobInput, 'download'>): Promise<SubmittedJob> {
+        const id = this.ids.generateId();
+        await this.jobs.insert(this.prisma, {
+            id,
+            userId: input.userId,
+            storageId: input.storageId,
+            filename: input.filename,
+            type: input.type,
+            status: JobStatus.WAITING_UPLOAD,
+            options: { ...input.options },
+            model: input.model || undefined,
+        });
+        return { jobId: id };
+    }
+
+    /**
+     * `document.uploaded`: every WAITING_UPLOAD job of the user for that document -> QUEUED, each with the
+     * `content.generation.requested` row in ONE transaction. The conditional transition is the guard (a
+     * replay or a racing second path finds the job QUEUED and writes no second event). Returns the count promoted.
+     */
+    async startWaitingForUpload(userId: string, storageId: string, download?: { url: string; mimetype: string }): Promise<number> {
+        let started = 0;
+        for (const job of await this.jobs.findWaitingForUpload(userId, storageId)) {
+            const promoted = await this.prisma.$transaction(async (tx) => {
+                if (!(await this.jobs.transition(tx, job.id, [JobStatus.WAITING_UPLOAD], JobStatus.QUEUED))) return false;
+                await this.outbox.add(
+                    tx,
+                    'content.generation.requested',
+                    buildGenerationRequested({
+                        jobId: job.id,
+                        userId: job.userId,
+                        storageId: job.storageId,
+                        type: job.type,
+                        options: job.options as unknown as GenerationOptions,
+                        model: job.model,
+                        download,
+                    })
+                );
+                return true;
+            });
+            if (promoted) started += 1;
+        }
+        return started;
+    }
+
+    /** `document.upload_failed`: the WAITING_UPLOAD jobs of the document -> FAILED `UPLOAD_FAILED`, locks released after the commit. */
+    async failWaitingForUpload(userId: string, storageId: string): Promise<number> {
+        let failed = 0;
+        for (const job of await this.jobs.findWaitingForUpload(userId, storageId)) {
+            if (!(await this.jobs.transition(this.prisma, job.id, [JobStatus.WAITING_UPLOAD], JobStatus.FAILED, { error: UPLOAD_FAILED_ERROR }))) continue;
+            failed += 1;
+            await this.locks.releaseAfterTerminal(job);
+        }
+        return failed;
     }
 
     /** `DELETE job/:id`. CANCELLED is idempotent (a second call answers 200); COMPLETED / FAILED jobs are 409. */

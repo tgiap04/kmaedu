@@ -134,12 +134,21 @@ export class GenerationEventsHandler {
         await this.jobs.recordProgress(this.prisma, jobId, progress);
     }
 
-    /** The documents are gone: generated history keeps its rows but loses the link (ai-chat removes its own links). */
+    /**
+     * The documents are gone: generated history keeps its rows but loses the link (ai-chat removes its own
+     * links), and a job still waiting for one of them to finish uploading is cancelled (it can never start).
+     * The cancel is a conditional write of its own, idempotent on a replay; locks are freed once it holds.
+     */
     @EventHandler('document.deleted')
     async onDocumentDeleted(envelope: Envelope, tx: Prisma.TransactionClient): Promise<void> {
         const { storageIds, userId } = parse(deletedSchema, envelope);
         if (storageIds.length === 0) return;
         await this.jobs.detachHistory(tx, userId, storageIds);
+        for (const job of await this.jobs.findWaitingForUpload(userId, storageIds)) {
+            if (await this.jobs.transition(this.prisma, job.id, [JobStatus.WAITING_UPLOAD], JobStatus.CANCELLED)) {
+                await this.locks.releaseAfterTerminal(job);
+            }
+        }
     }
 
     private async fail(jobId: string, reason: string): Promise<void> {

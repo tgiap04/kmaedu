@@ -87,3 +87,34 @@ describe('GET job/:id while the job runs', () => {
         expect(res).not.toHaveProperty('progress');
     });
 });
+
+describe('document.deleted while a job waits for its upload', () => {
+    const tx = { tag: 'tx' };
+    function handler(waiting: Array<{ id: string }>, moved = true) {
+        const jobs = {
+            detachHistory: jest.fn().mockResolvedValue(undefined),
+            findWaitingForUpload: jest.fn().mockResolvedValue(waiting),
+            transition: jest.fn().mockResolvedValue(moved),
+        };
+        const locks = { releaseAfterTerminal: jest.fn().mockResolvedValue(undefined) };
+        const prisma = { tag: 'prisma' };
+        const h = new GenerationEventsHandler(prisma as never, jobs as never, locks as never, {} as never);
+        return { h, jobs, locks, prisma };
+    }
+    const deleted = { id: 'e2', type: 'document.deleted', source: 'document', data: { storageIds: ['d1', 'd2'], userId: 'u1' } } as never;
+
+    it('cancels the waiting jobs of every deleted document and frees their locks', async () => {
+        const { h, jobs, locks, prisma } = handler([{ id: 'j1' }, { id: 'j2' }]);
+        await h.onDocumentDeleted(deleted, tx as never);
+        expect(jobs.detachHistory).toHaveBeenCalledWith(tx, 'u1', ['d1', 'd2']);
+        expect(jobs.findWaitingForUpload.mock.calls).toEqual([['u1', ['d1', 'd2']]]); // one query for all ids
+        expect(jobs.transition).toHaveBeenCalledWith(prisma, 'j1', [JobStatus.WAITING_UPLOAD], JobStatus.CANCELLED);
+        expect(locks.releaseAfterTerminal).toHaveBeenCalledTimes(2);
+    });
+
+    it('frees no lock for a job that already moved on', async () => {
+        const { h, locks } = handler([{ id: 'j1' }], false);
+        await h.onDocumentDeleted(deleted, tx as never);
+        expect(locks.releaseAfterTerminal).not.toHaveBeenCalled();
+    });
+});

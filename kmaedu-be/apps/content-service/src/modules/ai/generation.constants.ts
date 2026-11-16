@@ -1,7 +1,12 @@
 import { EXPIRED_TIME } from '@kmaedu/redis';
 
-/** `GenerationJob.status`. PROCESSING is accepted wherever QUEUED is (a worker may report progress later). */
+/**
+ * `GenerationJob.status`. PROCESSING is accepted wherever QUEUED is (a worker may report progress later).
+ * WAITING_UPLOAD: the document is still UPLOADING in document-service, so no
+ * `content.generation.requested` exists yet; `document.uploaded` moves the job to QUEUED.
+ */
 export const JobStatus = {
+    WAITING_UPLOAD: 'WAITING_UPLOAD',
     QUEUED: 'QUEUED',
     PROCESSING: 'PROCESSING',
     COMPLETED: 'COMPLETED',
@@ -10,8 +15,8 @@ export const JobStatus = {
 } as const;
 export type JobStatusValue = (typeof JobStatus)[keyof typeof JobStatus];
 
-/** States an `ai.generation.*` event, the watchdog and a cancel may settle (the job is queued at ai-service). */
-export const IN_FLIGHT_STATUSES: readonly JobStatusValue[] = [JobStatus.QUEUED, JobStatus.PROCESSING];
+/** States an `ai.generation.*` event, the watchdog and a cancel may settle (the job is queued at ai-service, or waits for its upload). */
+export const IN_FLIGHT_STATUSES: readonly JobStatusValue[] = [JobStatus.WAITING_UPLOAD, JobStatus.QUEUED, JobStatus.PROCESSING];
 /** States a job can still leave (it holds the generation lock): the same set as IN_FLIGHT_STATUSES. */
 export const OPEN_STATUSES: readonly JobStatusValue[] = IN_FLIGHT_STATUSES;
 
@@ -39,7 +44,7 @@ export const GENERATION_LOCK_TTL_SECONDS = 30 * 60;
 export const generationLockKey = (userId: string, type: GenerationType): string => `content:gen:lock:${userId}:${type}`;
 
 /**
- * A QUEUED / PROCESSING job whose last status change is older than this is failed with
+ * A WAITING_UPLOAD / QUEUED / PROCESSING job whose last status change is older than this is failed with
  * `GENERATION_TIMEOUT` (ai-service never answered, or its answer went to a DLQ).
  * `GENERATION_JOB_TIMEOUT_MINUTES`, default 60, never below 10 (a smaller value would fail jobs that are
  * still being worked on: ai-service retries a not-yet-processed document for minutes).
@@ -75,3 +80,6 @@ export const MODEL_CATALOG_CACHE_SECONDS = EXPIRED_TIME.TEN_MINUTES;
 export const MODEL_UNAVAILABLE_MESSAGE = 'Model hiện tại không khả dụng, thử model khác.';
 export const GENERATION_FAILED_MESSAGE = 'Không thể tạo nội dung từ file này, vui lòng thử lại.';
 export const JOB_CANCELLED_MESSAGE = 'Tác vụ đã bị hủy.';
+/** `GenerationJob.error` of a job whose document never reached the storage (`document.upload_failed`). */
+export const UPLOAD_FAILED_ERROR = 'UPLOAD_FAILED';
+export const UPLOAD_FAILED_MESSAGE = 'Không tải được tài liệu lên kho lưu trữ, vui lòng thử lại.';

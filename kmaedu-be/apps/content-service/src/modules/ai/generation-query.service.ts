@@ -10,12 +10,19 @@ import {
     JOB_CANCELLED_MESSAGE,
     JobStatus,
     MODEL_UNAVAILABLE_MESSAGE,
+    UPLOAD_FAILED_ERROR,
+    UPLOAD_FAILED_MESSAGE,
 } from './generation.constants';
 
 const uploadNotFound = () => new NotFoundException('Upload không tồn tại');
 
 /** Reasons ai-service reports for a model that cannot serve the request. */
 const isModelFailure = (reason: string | null) => !!reason && reason.startsWith('MODEL_');
+
+function failureMessage(reason: string | null): string {
+    if (reason === UPLOAD_FAILED_ERROR) return UPLOAD_FAILED_MESSAGE;
+    return isModelFailure(reason) ? MODEL_UNAVAILABLE_MESSAGE : GENERATION_FAILED_MESSAGE;
+}
 
 /** The job status a never-generated document reports for its OCR status; any other status is pending. */
 const DOCUMENT_ONLY_JOB_STATUS: Partial<Record<string, string>> = {
@@ -105,10 +112,13 @@ export class GenerationQueryService {
                 return {
                     ...base,
                     status: 'failed',
-                    error: isModelFailure(job.error) ? MODEL_UNAVAILABLE_MESSAGE : GENERATION_FAILED_MESSAGE,
+                    error: failureMessage(job.error),
                 };
             case JobStatus.CANCELLED:
                 return { ...base, status: 'failed', error: JOB_CANCELLED_MESSAGE };
+            case JobStatus.WAITING_UPLOAD:
+                // the document is still going to the storage: no ai-service report exists yet
+                return { ...base, status: 'processing', progress: job.progress ?? { stage: 'uploading', at: job.createdAt.getTime() } };
             default:
                 // the newest stage ai-service reported (absent until the first report)
                 return job.progress ? { ...base, status: 'processing', progress: job.progress } : { ...base, status: 'processing' };

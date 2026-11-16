@@ -78,13 +78,13 @@ describe('GenerationJobService.submit', () => {
 });
 
 describe('GenerationJobService.cancel', () => {
-    it('QUEUED -> CANCELLED releases the lock and touches no money', async () => {
+    it('a WAITING_UPLOAD / QUEUED / PROCESSING job -> CANCELLED releases the lock and touches no money', async () => {
         const h = build();
         await h.service.cancel(job() as never);
         expect(h.jobs.transition).toHaveBeenCalledWith(
             expect.anything(),
             'j1',
-            [JobStatus.QUEUED, JobStatus.PROCESSING],
+            [JobStatus.WAITING_UPLOAD, JobStatus.QUEUED, JobStatus.PROCESSING],
             JobStatus.CANCELLED
         );
         expect(h.locks.releaseAfterTerminal).toHaveBeenCalledTimes(1);
@@ -109,7 +109,7 @@ describe('GenerationJobService.cancel', () => {
 });
 
 describe('GenerationJobService.reap', () => {
-    it('is the watchdog only: silent QUEUED / PROCESSING jobs fail with GENERATION_TIMEOUT and free their lock', async () => {
+    it('is the watchdog only: silent WAITING_UPLOAD / QUEUED / PROCESSING jobs fail with GENERATION_TIMEOUT and free their lock', async () => {
         const h = build();
         h.jobs.findStuckInFlight.mockResolvedValue([job({ id: 'j1' }), job({ id: 'j2' })]);
         h.jobs.transition.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
@@ -119,7 +119,7 @@ describe('GenerationJobService.reap', () => {
         expect(h.jobs.transition).toHaveBeenCalledWith(
             expect.anything(),
             'j1',
-            [JobStatus.QUEUED, JobStatus.PROCESSING],
+            [JobStatus.WAITING_UPLOAD, JobStatus.QUEUED, JobStatus.PROCESSING],
             JobStatus.FAILED,
             { error: 'GENERATION_TIMEOUT' }
         );
