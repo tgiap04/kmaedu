@@ -36,30 +36,30 @@ interface MaterialRowProps {
 export function MaterialRow({ icon, tone, title, titleAddon, meta, metric, action, menu }: MaterialRowProps) {
   const ActionIcon = action.icon;
   return (
-    <div className="flex items-center gap-3 px-4 py-3.5 md:px-5">
-      <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl [&_svg]:size-5 [&_svg]:stroke-[1.9]", toneClass[tone])}>{icon}</span>
+    <div className="flex items-center gap-3 px-4 py-2.5 md:px-5">
+      <span className={cn("grid size-9 shrink-0 place-items-center rounded-lg [&_svg]:size-[18px] [&_svg]:stroke-[1.9]", toneClass[tone])}>{icon}</span>
 
       <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1.5 text-[15px] font-semibold text-ink">
+        <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
           <span className="truncate" title={title}>{title}</span>
           {titleAddon}
         </p>
-        <p className="mt-0.5 truncate text-[13px] text-muted-foreground">{meta.filter(Boolean).join("  •  ")}</p>
+        <p className="mt-0.5 truncate text-[12px] text-muted-foreground">{meta.filter(Boolean).join("  •  ")}</p>
       </div>
 
-      {metric && <div className="hidden w-[200px] shrink-0 items-center gap-2 text-[13px] text-body lg:flex [&_svg]:size-4 [&_svg]:shrink-0">{metric}</div>}
+      {metric && <div className="hidden w-[180px] shrink-0 items-center gap-2 text-[13px] text-body lg:flex [&_svg]:size-4 [&_svg]:shrink-0">{metric}</div>}
 
       <button
         type="button"
         onClick={action.onClick}
         className={cn(
-          "inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border px-4 text-[14px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 sm:min-w-[136px]",
+          "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full border px-3.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 sm:min-w-[112px]",
           action.variant === "neutral"
             ? "border-hairline bg-surface-soft text-body-strong hover:bg-surface-card"
             : "border-brand-border bg-brand-soft text-brand hover:bg-[#fde4e2]",
         )}
       >
-        <ActionIcon className="size-4" aria-hidden />
+        <ActionIcon className="size-3.5" aria-hidden />
         <span className="hidden sm:inline">{action.label}</span>
         <span className="sr-only sm:hidden">{action.label}</span>
       </button>
@@ -70,7 +70,7 @@ export function MaterialRow({ icon, tone, title, titleAddon, meta, metric, actio
             <button
               type="button"
               aria-label={`Tùy chọn cho ${title}`}
-              className="grid size-9 shrink-0 place-items-center rounded-full text-body transition-colors hover:bg-surface-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+              className="grid size-8 shrink-0 place-items-center rounded-full text-body transition-colors hover:bg-surface-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             >
               <MoreVertical className="size-4" aria-hidden />
             </button>
@@ -91,5 +91,5 @@ export function MaterialRow({ icon, tone, title, titleAddon, meta, metric, actio
 
 /** Red "PDF" badge on a pink tile, as in the mock's document rows. */
 export function PdfBadgeIcon() {
-  return <span className="grid h-7 w-6 place-items-center rounded-[5px] bg-brand text-[8px] font-bold tracking-tight text-white shadow-sm">PDF</span>;
+  return <span className="grid h-6 w-5 place-items-center rounded-[4px] bg-brand text-[7px] font-bold tracking-tight text-white shadow-sm">PDF</span>;
 }
