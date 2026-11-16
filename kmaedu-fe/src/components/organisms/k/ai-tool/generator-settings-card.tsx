@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, CircleHelp, FileText, Settings, Sparkle } from "lucide-react";
+import { ChevronDown, ChevronUp, CircleHelp, FileText, Sparkle } from "lucide-react";
 import { Switch } from "@/components/antd/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/antd/tooltip";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,6 @@ const clampCount = (value: number) => Math.min(MAX_COUNT, Math.max(MIN_COUNT, va
 
 interface GeneratorSettingsCardProps {
   idPrefix: string;
-  title: string;
   countLabel: string;
   count: number;
   onCountChange: (value: number) => void;
@@ -26,17 +25,12 @@ const rowClass = "flex min-h-[44px] items-center gap-3 text-[15px] text-body-str
 
 /** Item count stepper and the keyword-focus toggle. */
 export function GeneratorSettingsCard(props: GeneratorSettingsCardProps) {
-  const { idPrefix, title, countLabel, count, onCountChange, isNarrow, onNarrowChange, narrowHint, keyword, onKeywordChange, disabled } = props;
+  const { idPrefix, countLabel, count, onCountChange, isNarrow, onNarrowChange, narrowHint, keyword, onKeywordChange, disabled } = props;
   const countId = `${idPrefix}-count`;
   const narrowId = `${idPrefix}-narrow`;
 
   return (
     <section className={cn(aiPanelClass, "space-y-2 p-4 md:p-5")}>
-      <h3 className={cn(rowClass, "min-h-0 pb-1 text-[16px] font-semibold text-ink")}>
-        <Settings />
-        {title}
-      </h3>
-
       <div className={rowClass} data-tour="ai-tool-count">
         <FileText />
         <label htmlFor={countId} className="flex-1">{countLabel}</label>

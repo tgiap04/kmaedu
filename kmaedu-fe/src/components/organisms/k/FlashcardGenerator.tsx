@@ -69,7 +69,6 @@ export function FlashcardGenerator({ aside }: { aside?: ReactNode }) {
         />
         <GeneratorSettingsCard
           idPrefix="flashcard"
-          title="Tùy chỉnh flashcard"
           countLabel="Số lượng thẻ"
           count={cardCount}
           onCountChange={setCardCount}
@@ -116,7 +115,16 @@ export function FlashcardGenerator({ aside }: { aside?: ReactNode }) {
         ) : hasResult ? (
           <FlashcardResultPreview cards={generatedCards} current={currentCard} onChange={goToCard} />
         ) : (
-          <ResultEmptyState icon={<Layers />} text="Tải lên file PDF và nhấn Tạo flashcard với AI để xem kết quả." />
+          <ResultEmptyState
+            icon={<Layers />}
+            title="Chưa có flashcard nào"
+            description="Bộ thẻ AI tạo từ tài liệu của bạn sẽ hiện ở đây."
+            steps={[
+              { label: "Tải lên tài liệu PDF", done: hasFile },
+              { label: "Chọn số lượng thẻ" },
+              { label: "Nhấn “Tạo flashcard với AI”" },
+            ]}
+          />
         )}
       </ResultPanel>
     </div>

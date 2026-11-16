@@ -62,7 +62,6 @@ export function TestGenerator({ aside }: { aside?: ReactNode }) {
         />
         <GeneratorSettingsCard
           idPrefix="test"
-          title="Tùy chỉnh đề thi"
           countLabel="Số lượng câu hỏi"
           count={questionCount}
           onCountChange={setQuestionCount}
@@ -109,7 +108,16 @@ export function TestGenerator({ aside }: { aside?: ReactNode }) {
         ) : hasResult ? (
           <QuizResultList questions={generatedTest} />
         ) : (
-          <ResultEmptyState icon={<FileText />} text="Tải lên file PDF và nhấn Tạo đề thi với AI để xem kết quả." />
+          <ResultEmptyState
+            icon={<FileText />}
+            title="Chưa có đề thi nào"
+            description="Đề thi AI tạo từ tài liệu của bạn sẽ hiện ở đây."
+            steps={[
+              { label: "Tải lên tài liệu PDF", done: hasFile },
+              { label: "Chọn số câu hỏi" },
+              { label: "Nhấn “Tạo đề thi với AI”" },
+            ]}
+          />
         )}
       </ResultPanel>
     </div>

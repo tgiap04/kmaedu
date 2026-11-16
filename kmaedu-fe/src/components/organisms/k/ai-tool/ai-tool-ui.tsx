@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /** White rounded panel used by every block of the AI tool page. */
@@ -67,12 +67,41 @@ export function ResultPager({
   );
 }
 
-/** Centered message shown in the result panel before anything was generated. */
-export function ResultEmptyState({ icon, text }: { icon: ReactNode; text: string }) {
+export interface EmptyStateStep {
+  label: string;
+  done?: boolean;
+}
+
+/** Result panel before anything was generated: an icon in soft rings, a short message and the steps to get there. */
+export function ResultEmptyState({ icon, title, description, steps }: { icon: ReactNode; title: string; description: string; steps: EmptyStateStep[] }) {
   return (
-    <div className="flex min-h-[360px] flex-1 flex-col items-center justify-center rounded-2xl bg-surface-soft px-6 text-center">
-      <IconTile className="mb-4 h-14 w-14">{icon}</IconTile>
-      <p className="max-w-md text-sm text-body md:text-base">{text}</p>
+    <div className="flex min-h-[360px] flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-hairline bg-gradient-to-b from-surface-soft to-canvas px-6 py-10 text-center">
+      <div className="relative mb-5 grid place-items-center" aria-hidden="true">
+        <span className="absolute h-28 w-28 rounded-full bg-brand/5" />
+        <span className="absolute h-20 w-20 rounded-full bg-brand/10" />
+        <IconTile className="relative h-14 w-14 shadow-[0_8px_20px_rgba(238,47,43,0.15)]">{icon}</IconTile>
+      </div>
+      <h4 className="text-[17px] font-semibold text-ink">{title}</h4>
+      <p className="mt-1 max-w-sm text-sm text-body">{description}</p>
+
+      <ol className="mt-6 w-full max-w-sm space-y-2 text-left">
+        {steps.map((step, index) => (
+          <li key={step.label} className="flex items-center gap-3 rounded-xl border border-hairline bg-canvas px-4 py-3">
+            <span
+              className={cn(
+                "grid h-7 w-7 shrink-0 place-items-center rounded-full text-[13px] font-semibold tabular-nums",
+                step.done ? "bg-brand text-white" : "bg-surface-soft text-body-strong",
+              )}
+            >
+              {step.done ? <Check className="h-4 w-4" strokeWidth={3} aria-hidden="true" /> : index + 1}
+            </span>
+            <span className={cn("text-sm", step.done ? "text-body" : "text-body-strong")}>
+              {step.label}
+              {step.done && <span className="sr-only"> (đã xong)</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

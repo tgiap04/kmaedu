@@ -790,3 +790,25 @@
 }
 
 
+
+/* Barely-there scrollbar: 3px thumb on WebKit/Blink; Firefox (no ::-webkit-scrollbar) gets the thin one. */
+@utility scrollbar-hairline {
+  &::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: var(--color-hairline);
+  }
+  &:hover::-webkit-scrollbar-thumb {
+    background: var(--color-body);
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-hairline) transparent;
+  }
+}

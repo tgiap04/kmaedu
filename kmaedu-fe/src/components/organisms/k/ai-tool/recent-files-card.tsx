@@ -13,14 +13,9 @@ import {
   AlertDialogTitle,
 } from "@/components/antd/alert-dialog";
 import { useRecentUploadsStore } from "@/stores/useAIGeneratorStore";
+import { formatFileSize } from "@/lib/history/history-format";
 import { cn } from "@/lib/utils";
 import { aiPanelClass, IconTile } from "./ai-tool-ui";
-
-function formatFileSize(bytes: number) {
-  if (!bytes) return "0 KB";
-  const mb = bytes / 1024 / 1024;
-  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
-}
 
 /** Recently uploaded PDFs as chips: click to reuse a file, × to delete it and its generation history. */
 export function RecentFilesCard({ disabled }: { disabled: boolean }) {
@@ -56,7 +51,7 @@ export function RecentFilesCard({ disabled }: { disabled: boolean }) {
         </Link>
       </div>
 
-      <div className="mt-4 flex max-h-[232px] flex-col gap-2 overflow-y-auto">
+      <div className="scrollbar-hairline -mr-2 mt-4 flex max-h-[160px] flex-col gap-2 overflow-y-auto pr-2">
         {isLoading ? (
           <span className="inline-flex items-center gap-2 py-2 text-sm text-body">
             <Loader2 className="h-4 w-4 animate-spin" />
