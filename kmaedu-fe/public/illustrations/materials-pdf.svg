@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 140" fill="none">
+  <defs>
+    <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff1f0"/></linearGradient>
+    <linearGradient id="tag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6534f"/><stop offset="1" stop-color="#d92d29"/></linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#d92d29" flood-opacity=".16"/></filter>
+  </defs>
+  <ellipse cx="100" cy="126" rx="50" ry="6" fill="#f8c9c5" opacity=".45"/>
+  <g filter="url(#sh)">
+    <rect x="78" y="20" width="62" height="86" rx="10" fill="#fde4e2" stroke="#fbd5d2" stroke-width="1.5"/>
+    <path d="M70 26h38l20 20v66a9 9 0 0 1-9 9H70a9 9 0 0 1-9-9V35a9 9 0 0 1 9-9Z" fill="url(#pg)" stroke="#fbd5d2" stroke-width="1.5"/>
+    <path d="M108 26v12a8 8 0 0 0 8 8h12" fill="#fde4e2" stroke="#fbd5d2" stroke-width="1.5"/>
+    <rect x="72" y="50" width="30" height="5" rx="2.5" fill="#fbd5d2"/>
+    <rect x="72" y="60" width="40" height="5" rx="2.5" fill="#fde4e2"/>
+    <rect x="72" y="100" width="34" height="5" rx="2.5" fill="#fde4e2"/>
+    <rect x="80" y="74" width="40" height="20" rx="5" fill="url(#tag)"/>
+    <text x="100" y="88.5" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">PDF</text>
+  </g>
+  <path d="M44 48l2.4 6.2L53 56.6l-6.6 2.4L44 65.2l-2.4-6.2L35 56.6l6.6-2.4Z" fill="#f6a5a1"/>
+  <path d="M150 96l1.8 4.6L157 102.4l-5.2 1.8L150 109l-1.8-4.8L143 102.4l5.2-1.8Z" fill="#f6a5a1"/>
+  <circle cx="160" cy="44" r="3" fill="#fbd5d2"/>
+  <circle cx="40" cy="96" r="2.5" fill="#fbd5d2"/>
+</svg>

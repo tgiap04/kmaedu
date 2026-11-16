@@ -9,6 +9,7 @@ import {
 import { getPDFHistoryApi, type PDFHistoryItem } from "@/apis/historyApi";
 import { storeCache, CacheTTL } from "@/lib/storeCache";
 import { useToast } from "@/components/antd/toast";
+import { downloadFile } from "@/lib/download-file";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -71,21 +72,6 @@ function formatTimeAgo(dateString: string): string {
   if (diffDays < 7) return `${diffDays} ngày trước`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
   return `${Math.floor(diffDays / 30)} tháng trước`;
-}
-
-async function downloadFile(url: string, filename: string): Promise<void> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Download failed");
-
-  const blob = await response.blob();
-  const downloadUrl = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = downloadUrl;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(downloadUrl);
 }
 
 export default function PDFHistoryPage() {

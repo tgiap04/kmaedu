@@ -1,103 +1,74 @@
-import { displayUserName } from "@/lib/user/display-user-name";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, User } from "lucide-react";
-import { Button } from "@/components/antd/button";
-import { Skeleton } from "@/components/antd/skeleton";
-import type { SharedQuizSetsResponse } from "@/apis/quizPracticeApi";
+import { FileText, History, Link2, Play } from "lucide-react";
+import { useToast } from "@/components/antd/toast";
 import { lastAttemptLabel } from "@/lib/quiz-practice/last-attempt-label";
+import { displayUserName } from "@/lib/user/display-user-name";
 import { useQuizPracticeStore } from "@/stores/useQuizPracticeStore";
+import { MaterialRow } from "../my-materials/material-row";
+import { MaterialMessage, MaterialRowsSkeleton, MaterialSectionCard, SectionPager, ViewAllButton } from "../my-materials/material-section-card";
+import { usePagedList } from "../my-materials/use-paged-list";
 
 const PAGE_SIZE = 6;
+const PREVIEW = 2;
 
 /** "Bộ câu hỏi được chia sẻ": the sets granted to me (whitelist or code), with a practice button. */
 export function SharedQuizSection() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const fetchSets = useQuizPracticeStore((s) => s.fetchSets);
-  const [page, setPage] = useState(1);
-  const [data, setData] = useState<SharedQuizSetsResponse | null>(null);
-  const [failed, setFailed] = useState(false);
+  const fetchPage = useCallback((page: number) => fetchSets(page, PAGE_SIZE), [fetchSets]);
+  const { page, setPage, data, failed, reload } = usePagedList(fetchPage);
+  const [expanded, setExpanded] = useState(false);
 
-  const load = useCallback(
-    async (target: number) => {
-      setFailed(false);
-      try {
-        setData(await fetchSets(target, PAGE_SIZE));
-      } catch {
-        setFailed(true);
-      }
-    },
-    [fetchSets],
-  );
+  const copyLink = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/k/practice-quiz/${id}`);
+      toast.success("Đã sao chép liên kết");
+    } catch {
+      toast.error("Không thể sao chép liên kết");
+    }
+  };
 
-  useEffect(() => {
-    void load(page);
-  }, [page, load]);
+  const sets = data ? (expanded ? data.sets : data.sets.slice(0, PREVIEW)) : [];
+  const canExpand = !!data && data.total > PREVIEW;
 
   return (
-    <section className="mt-12" aria-labelledby="shared-quiz-heading">
-      <h2 id="shared-quiz-heading" className="text-2xl tracking-tight text-ink">
-        Bộ câu hỏi được chia sẻ
-      </h2>
-      <p className="mt-1 text-sm text-muted-foreground">Các bộ câu hỏi giáo viên đã chia sẻ cho bạn luyện tập</p>
-
+    <MaterialSectionCard
+      icon={<FileText />}
+      title="Bộ câu hỏi được chia sẻ"
+      countLabel={data ? `${data.total} bộ câu hỏi` : undefined}
+      action={canExpand ? <ViewAllButton expanded={expanded} onToggle={() => { setExpanded(!expanded); setPage(1); }} /> : undefined}
+      illustration="/illustrations/materials-quiz.svg"
+    >
       {failed ? (
-        <div className="mt-6 space-y-3 rounded-lg border border-hairline-soft bg-surface-soft py-10 text-center">
-          <p className="text-sm text-destructive">Không thể tải bộ câu hỏi được chia sẻ</p>
-          <Button variant="outline" size="sm" onClick={() => load(page)}>
-            Thử lại
-          </Button>
-        </div>
+        <MaterialMessage title="Không thể tải bộ câu hỏi được chia sẻ" onRetry={reload} />
       ) : data === null ? (
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }, (_, i) => (
-            <Skeleton key={i} className="h-[140px] rounded-lg" />
-          ))}
-        </div>
+        <MaterialRowsSkeleton />
       ) : data.sets.length === 0 ? (
-        <div className="mt-6 flex flex-col items-center rounded-lg border border-hairline-soft bg-surface-soft py-12">
-          <ClipboardList className="h-8 w-8 text-muted-foreground" />
-          <p className="mt-3 text-sm font-medium text-ink">Chưa có bộ câu hỏi nào được chia sẻ</p>
-          <p className="mt-1 text-sm text-muted-foreground">Mở liên kết và nhập mã giáo viên gửi để thêm vào đây</p>
-        </div>
+        <MaterialMessage title="Chưa có bộ câu hỏi nào được chia sẻ" hint="Mở liên kết và nhập mã giáo viên gửi để thêm vào đây" />
       ) : (
         <>
-          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {data.sets.map((set) => (
-              <article key={set.id} className="flex flex-col justify-between rounded-lg border border-hairline bg-canvas p-5">
-                <div>
-                  <h3 className="line-clamp-2 text-[15px] font-medium text-ink">{set.title}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">{set.questionCount} câu hỏi</p>
-                  {set.description && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{set.description}</p>}
-                </div>
-                <div className="mt-4 flex items-center justify-between border-t border-hairline-soft pt-3">
-                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <User className="h-3 w-3" />
-                    {displayUserName(set.owner, "Ẩn danh")}
-                    {lastAttemptLabel(set.lastAttempt) && <span className="ml-2">· {lastAttemptLabel(set.lastAttempt)}</span>}
-                  </span>
-                  <Button size="sm" className="h-8 px-3 text-xs" onClick={() => navigate(`/k/practice-quiz/${set.id}`)}>
-                    Luyện tập
-                  </Button>
-                </div>
-              </article>
-            ))}
-          </div>
-          {data.totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-center gap-3 text-sm">
-              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                Trước
-              </Button>
-              <span className="text-muted-foreground">
-                {page}/{data.totalPages}
-              </span>
-              <Button variant="outline" size="sm" disabled={page >= data.totalPages} onClick={() => setPage(page + 1)}>
-                Sau
-              </Button>
-            </div>
-          )}
+          {sets.map((set, index) => (
+            <MaterialRow
+              key={set.id}
+              icon={<FileText />}
+              tone={index % 2 === 0 ? "cyan" : "amber"}
+              title={set.title}
+              meta={[`${set.questionCount} câu hỏi`, `Chia sẻ bởi ${displayUserName(set.owner, "Ẩn danh")}`]}
+              metric={
+                <>
+                  <History aria-hidden />
+                  {lastAttemptLabel(set.lastAttempt) ?? "Chưa luyện tập"}
+                </>
+              }
+              action={{ label: "Luyện tập", icon: Play, onClick: () => navigate(`/k/practice-quiz/${set.id}`) }}
+              menu={[{ label: "Sao chép liên kết", icon: Link2, onClick: () => void copyLink(set.id) }]}
+            />
+          ))}
+          {expanded && <SectionPager page={page} totalPages={data.totalPages} onChange={setPage} />}
         </>
       )}
-    </section>
+    </MaterialSectionCard>
   );
 }

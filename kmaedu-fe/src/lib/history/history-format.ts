@@ -27,3 +27,18 @@ export function scoreTone(percent: number): ScoreTone {
   if (percent >= 60) return "fair";
   return "poor";
 }
+
+/** "512 KB" below one MB (a non-empty file never shows 0 KB), "2.4 MB" from there. */
+export function formatFileSize(bytes: number): string {
+  if (!bytes) return "0 KB";
+  const mb = bytes / 1024 / 1024;
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+/** "999", "1.2k", "856k", "1.5M" (no trailing ".0"). */
+export function formatCompactCount(value: number): string {
+  const short = (n: number, unit: string) => `${Number(n.toFixed(1))}${unit}`;
+  if (value >= 1_000_000) return short(value / 1_000_000, "M");
+  if (value >= 1000) return short(value / 1000, "k");
+  return String(value);
+}
