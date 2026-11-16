@@ -47,7 +47,7 @@ export const OWNERSHIP: Readonly<Record<string, Service>> = {
     // admin
     AdminAudit: 'admin', PageFeatureFlag: 'admin',
     // document (phase 15)
-    UserStorage: 'document',
+    UserStorage: 'document', UploadStaging: 'document',
     // content (phase 14): quiz sets, flashcard sets, practice, study progress and generation jobs. The
     // vector / entity / graph tables are ai-service's (Python, schema `ai`), not part of any Prisma schema.
     GenerationJob: 'content',

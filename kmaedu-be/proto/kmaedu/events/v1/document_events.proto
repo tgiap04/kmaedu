@@ -24,3 +24,13 @@ message DocumentDeleted {
   repeated string storage_ids = 1;
   string user_id = 2;
 }
+
+// Payload (`data`) of `document.upload_failed`: the worker gave up storing an
+// UPLOADING document in R2 (the row is FAILED, the key queued for deletion).
+// Published by document-service; consumed by content-service, which fails the
+// generation jobs waiting for that upload.
+message DocumentUploadFailed {
+  string storage_id = 1;
+  string user_id = 2;
+  string reason = 3;
+}

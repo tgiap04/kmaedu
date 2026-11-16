@@ -3,6 +3,7 @@ import { UserStorage } from '../../prisma';
 import { DocumentStatus } from '../../config/document.constants';
 
 const STATUS_TO_PROTO: Record<string, documentV1.DocumentProcessingStatus> = {
+    [DocumentStatus.UPLOADING]: documentV1.DocumentProcessingStatus.DOCUMENT_PROCESSING_STATUS_UPLOADING,
     [DocumentStatus.PENDING]: documentV1.DocumentProcessingStatus.DOCUMENT_PROCESSING_STATUS_PENDING,
     [DocumentStatus.PROCESSING]: documentV1.DocumentProcessingStatus.DOCUMENT_PROCESSING_STATUS_PROCESSING,
     [DocumentStatus.COMPLETED]: documentV1.DocumentProcessingStatus.DOCUMENT_PROCESSING_STATUS_COMPLETED,

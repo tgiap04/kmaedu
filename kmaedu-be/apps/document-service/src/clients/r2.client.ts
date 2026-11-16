@@ -69,19 +69,20 @@ export class R2Client implements OnModuleInit {
         }
     }
 
-    /** Uploads a file and returns its R2 key. */
+    /** Uploads a file and returns its R2 key. `deadlineMs` bounds one attempt (default 60 s; the worker passes minutes). */
     async uploadFile(
         filename: string,
         data: Buffer,
         mimetype: string,
-        folder: string
+        folder: string,
+        deadlineMs = UPLOAD_DEADLINE_MS
     ): Promise<string> {
         const response = await this.call(
             'UploadFile',
             buildMetadata(),
             (options, md) =>
                 this.r2.uploadFile({ userId: '', filename, content: data, mimetype, folder }, md, options),
-            { deadlineMs: UPLOAD_DEADLINE_MS }
+            { deadlineMs }
         );
         const key = response.success ? response.keyR2 || response.fileId : '';
         if (!key) throw new Error(response.message || 'R2 returned no key');

@@ -37,7 +37,7 @@ service DocumentService {
 }
 
 // Mirrors the `UserStorage.processingStatus` column
-// (PENDING | PROCESSING | COMPLETED | FAILED).
+// (UPLOADING | PENDING | PROCESSING | COMPLETED | FAILED).
 enum DocumentProcessingStatus {
   // 1 was PENDING_CHARGE (row inserted, upload credit not debited yet); uploads
   // are no longer charged.
@@ -49,6 +49,9 @@ enum DocumentProcessingStatus {
   DOCUMENT_PROCESSING_STATUS_PROCESSING = 3;
   DOCUMENT_PROCESSING_STATUS_COMPLETED = 4;
   DOCUMENT_PROCESSING_STATUS_FAILED = 5;
+  // Row accepted by CreateUpload; the bytes wait in staging for the worker to
+  // store them in R2. `document.uploaded` follows (or `document.upload_failed`).
+  DOCUMENT_PROCESSING_STATUS_UPLOADING = 6;
 }
 
 // One uploaded file (`UserStorage`).

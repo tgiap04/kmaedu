@@ -10,6 +10,7 @@ import { DocumentQueueService } from './document-queue.service';
 import { DocumentRegisterService } from './document-register.service';
 import { DocumentUploadService } from './document-upload.service';
 import { DocumentRepository } from './document.repository';
+import { UploadStagingRepository } from './upload-staging.repository';
 
 /**
  * Outbox side only (no broker connection): the API role never needs RabbitMQ to accept an upload.
@@ -28,6 +29,7 @@ export const DOCUMENT_MESSAGING = MessagingModule.forRoot({ service: 'document' 
         R2DeleteTaskWriter,
         GenerateIdService,
         DocumentRepository,
+        UploadStagingRepository,
         DocumentQueryService,
         DocumentQueueService,
         DocumentProcessingService,
@@ -38,6 +40,7 @@ export const DOCUMENT_MESSAGING = MessagingModule.forRoot({ service: 'document' 
     exports: [
         R2Client,
         DocumentRepository,
+        UploadStagingRepository,
         DocumentQueryService,
         DocumentQueueService,
         DocumentProcessingService,

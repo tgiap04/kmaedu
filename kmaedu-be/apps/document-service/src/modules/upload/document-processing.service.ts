@@ -21,12 +21,14 @@ export class DocumentProcessingService {
      * Makes sure OCR is requested for an owned document: re-emits `document.uploaded` when it is
      * FAILED (retry, back to PENDING) or was never queued (quick-upload) or its event is stale.
      * PROCESSING and COMPLETED rows, and PENDING rows queued recently, are returned unchanged.
+     * So are UPLOADING rows (the worker has not stored the object in R2 yet) and FAILED rows that were
+     * never queued (their upload gave up, so there is nothing to download).
      */
     async ensureProcessed(userId: string, id: string): Promise<UserStorage> {
         const row = await this.query.getOwned(userId, id);
         const stale = Date.now() - REQUEUE_AFTER_MS;
         const needs =
-            row.processingStatus === DocumentStatus.FAILED ||
+            (row.processingStatus === DocumentStatus.FAILED && row.queuedAt !== null) ||
             (row.processingStatus === DocumentStatus.PENDING &&
                 (row.queuedAt === null || row.queuedAt.getTime() < stale));
         if (!needs) return row;
@@ -68,7 +70,7 @@ export class DocumentProcessingService {
      */
     async markFailed(tx: Prisma.TransactionClient, storageId: string, reason: string): Promise<void> {
         const { count } = await tx.userStorage.updateMany({
-            where: { id: storageId, processingStatus: { not: DocumentStatus.COMPLETED } },
+            where: { id: storageId, processingStatus: { notIn: [DocumentStatus.COMPLETED, DocumentStatus.UPLOADING] } },
             data: { processingStatus: DocumentStatus.FAILED },
         });
         if (count === 1) this.logger.log(`Document ${storageId} failed (${reason})`);

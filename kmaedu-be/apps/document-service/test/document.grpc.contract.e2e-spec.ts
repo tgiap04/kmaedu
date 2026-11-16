@@ -51,7 +51,8 @@ describe('DocumentService gRPC contract (e2e)', () => {
             expect(second.reused).toBe(true);
             expect(second.document?.id).toBe(first.document?.id);
             expect(t.r2.calls.filter((c) => c.rpc === 'UploadFile')).toHaveLength(uploads);
-            expect(await outboxFor(t.prisma, 'document.uploaded', first.document!.id)).toHaveLength(1);
+            expect(await outboxFor(t.prisma, 'document.uploaded', first.document!.id)).toHaveLength(0);
+            expect(await t.prisma.uploadStaging.count({ where: { storageId: first.document!.id } })).toBe(1);
         });
 
         it('reuse_duplicate matches on (userId, filename, size): another size or another user stores a new file', async () => {
@@ -64,8 +65,9 @@ describe('DocumentService gRPC contract (e2e)', () => {
             expect(new Set([first.document?.id, otherSize.document?.id, otherUser.document?.id]).size).toBe(3);
         });
 
-        it('stores the file as svc:document, commits the row PENDING with document.uploaded; the response carries no charge flag', async () => {
+        it('accepts the file without calling R2: the row is UPLOADING (key and url fixed, not queued) with its bytes staged and no document.uploaded; the response carries no charge flag', async () => {
             const user = t.teacher();
+            const calls = t.r2.calls.length;
             const res = await create(user);
             const id = res.document!.id;
 
@@ -77,16 +79,17 @@ describe('DocumentService gRPC contract (e2e)', () => {
                 size: '1024',
                 keyR2: expect.stringMatching(new RegExp(`^ai-uploads/${user.id}/`)),
                 url: expect.any(String),
-                processingStatus: Status.DOCUMENT_PROCESSING_STATUS_PENDING,
+                processingStatus: Status.DOCUMENT_PROCESSING_STATUS_UPLOADING,
                 pageCount: 0,
                 createdAt: expect.any(String),
                 updatedAt: expect.any(String),
             });
-            expect(await t.prisma.userStorage.findUniqueOrThrow({ where: { id } })).toMatchObject({ processingStatus: 'PENDING', queuedAt: expect.any(Date) });
-            expect(await outboxFor(t.prisma, 'document.uploaded', id)).toHaveLength(1);
-            expect(t.r2.calls.filter((c) => c.rpc === 'UploadFile' && c.keys[0].includes(`/${user.id}/`))).toEqual([
-                expect.objectContaining({ caller: 'svc:document' }),
-            ]);
+            expect(await t.prisma.userStorage.findUniqueOrThrow({ where: { id } })).toMatchObject({ processingStatus: 'UPLOADING', queuedAt: null });
+            const staged = await t.prisma.uploadStaging.findUniqueOrThrow({ where: { storageId: id } });
+            expect(Buffer.from(staged.data)).toHaveLength(1024);
+            expect(staged).toMatchObject({ attempts: 0, leaseUntil: null });
+            expect(await outboxFor(t.prisma, 'document.uploaded', id)).toHaveLength(0);
+            expect(t.r2.calls).toHaveLength(calls);
         });
 
         it('there is no monthly quota: many uploads in one month are all accepted', async () => {
@@ -105,12 +108,13 @@ describe('DocumentService gRPC contract (e2e)', () => {
             await expect(lastValueFrom(t.grpc.createUpload({ filename: 'a', mimetype: 'b', data: Buffer.from('x'), reuseDuplicate: false }, service))).rejects.toMatchObject({ code: 7 });
         });
 
-        it('r2 refusing the upload is UNAVAILABLE and leaves no row and no event', async () => {
+        it('r2 being down does not fail CreateUpload any more: the upload is accepted and left to the worker', async () => {
             const user = t.teacher();
             t.r2.failNextUpload.value = true;
-            await expect(create(user)).rejects.toMatchObject({ code: 14 });
-            expect(await t.prisma.userStorage.count({ where: { userId: user.id } })).toBe(0);
-            expect((await outbox(t.prisma, 'document.uploaded')).filter((e) => JSON.stringify(e.envelope).includes(user.id))).toHaveLength(0);
+            const res = await create(user);
+            t.r2.failNextUpload.value = false;
+            expect(res.document?.processingStatus).toBe(Status.DOCUMENT_PROCESSING_STATUS_UPLOADING);
+            expect(await t.prisma.userStorage.count({ where: { userId: user.id } })).toBe(1);
         });
     });
 

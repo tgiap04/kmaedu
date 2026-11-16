@@ -15,7 +15,10 @@ datasource db {
 }
 
 // One uploaded file. `processingStatus`:
-//   PENDING         accepted, waiting for ai-service (quick-upload: not processed yet)
+//   UPLOADING       accepted by CreateUpload; the bytes wait in `upload_staging` for the worker to
+//                   store them in R2 (queuedAt null). Final upload failure = FAILED with queuedAt
+//                   still null (an object that was never stored; nothing to re-queue).
+//   PENDING         stored, waiting for ai-service (quick-upload: not processed yet)
 //   PROCESSING | COMPLETED | FAILED
 model UserStorage {
     id               String    @id
@@ -33,10 +36,28 @@ model UserStorage {
     pageCount        Int       @default(0)
     createdAt        DateTime  @default(now())
     updatedAt        DateTime  @default(now()) @updatedAt
+    staging          UploadStaging?
 
     @@index([userId, createdAt])
     @@index([userId, filename, size])
     @@index([processingStatus, createdAt])
+}
+
+// Bytes of an UPLOADING document, inserted with the row; the worker role stores them in R2 and
+// deletes the row (leaseUntil = claim lease, nextAttemptAt = retry backoff). Deleting the document
+// drops its staging row (ON DELETE CASCADE). Raw SQL: `upload_staging`.
+model UploadStaging {
+    storageId     String      @id @map("storage_id")
+    data          Bytes
+    attempts      Int         @default(0)
+    nextAttemptAt DateTime    @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+    leaseUntil    DateTime?   @map("lease_until") @db.Timestamptz(6)
+    lastError     String?     @map("last_error")
+    createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+    storage       UserStorage @relation(fields: [storageId], references: [id], onDelete: Cascade)
+
+    @@index([nextAttemptAt])
+    @@map("upload_staging")
 }
 
 // R2 objects queued for deletion in the same tx as the row delete; the worker role

@@ -55,10 +55,13 @@ export class DocumentRepository {
         });
     }
 
-    /** The caller's newest upload with the same `(filename, size)`. */
+    /**
+     * The caller's newest upload with the same `(filename, size)`. A row whose upload gave up
+     * (FAILED, never queued) has no object in R2, so it is not a duplicate of anything.
+     */
     findDuplicate(userId: string, filename: string, size: number): Promise<UserStorage | null> {
         return this.prisma.userStorage.findFirst({
-            where: { userId, filename, size },
+            where: { userId, filename, size, NOT: { processingStatus: DocumentStatus.FAILED, queuedAt: null } },
             orderBy: { createdAt: 'desc' },
         });
     }
@@ -80,6 +83,24 @@ export class DocumentRepository {
         const { count } = await db.userStorage.updateMany({
             where: { id: row.id, processingStatus: row.processingStatus, queuedAt: row.queuedAt },
             data: { processingStatus: DocumentStatus.PENDING, queuedAt: new Date() },
+        });
+        return count === 1;
+    }
+
+    /** Upload worker: the object is in R2, so UPLOADING becomes PENDING (queued for OCR). False when the row moved on. */
+    async markUploaded(db: Db, id: string): Promise<boolean> {
+        const { count } = await db.userStorage.updateMany({
+            where: { id, processingStatus: DocumentStatus.UPLOADING },
+            data: { processingStatus: DocumentStatus.PENDING, queuedAt: new Date() },
+        });
+        return count === 1;
+    }
+
+    /** Upload worker gave up: UPLOADING becomes FAILED with `queuedAt` left null (no object was ever stored). */
+    async markUploadFailed(db: Db, id: string): Promise<boolean> {
+        const { count } = await db.userStorage.updateMany({
+            where: { id, processingStatus: DocumentStatus.UPLOADING },
+            data: { processingStatus: DocumentStatus.FAILED },
         });
         return count === 1;
     }

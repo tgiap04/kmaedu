@@ -20,6 +20,7 @@ const row = (over: Partial<UserStorage> = {}): UserStorage => ({
 
 describe('document mapper', () => {
     it.each([
+        ['UPLOADING', documentV1.DocumentProcessingStatus.DOCUMENT_PROCESSING_STATUS_UPLOADING],
         ['PENDING', documentV1.DocumentProcessingStatus.DOCUMENT_PROCESSING_STATUS_PENDING],
         ['PROCESSING', documentV1.DocumentProcessingStatus.DOCUMENT_PROCESSING_STATUS_PROCESSING],
         ['COMPLETED', documentV1.DocumentProcessingStatus.DOCUMENT_PROCESSING_STATUS_COMPLETED],
