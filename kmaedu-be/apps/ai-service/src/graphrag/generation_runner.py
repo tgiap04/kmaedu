@@ -3,13 +3,14 @@
 A READY index with communities is planned into concept slots (:mod:`generation_planner`),
 each call asks about different concepts, and the answers are mapped back to their slots,
 stripped of repeats and topped up once for the slots that stayed empty. Without a usable
-index the chunks are split into plain batches instead (``retrieval_mode='vector_fallback'``).
+index the chunks are split into plain batches instead (``retrieval_mode='vector_fallback'``);
+those answers are deduplicated by question similarity and topped up once from the other
+half of the document.
 The internal ``concept`` field never leaves this module.
 """
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -23,6 +24,7 @@ from src.backend.services.ocr_service import DocumentChunk, ocr_service
 from . import reads
 from .dedupe import Deduper
 from .embeddings import Embedder
+from .embeddings import default_embedder as gemini_embedder
 from .generation_fallback import fallback_batches
 from .generation_mapping import assign_slots
 from .generation_planner import plan_slots
@@ -36,7 +38,6 @@ RunBatch = Callable[[DocumentChunk, int, int, int], Awaitable[list[dict[str, Any
 # task dicts as ``ContentGenerationService._run_generation_tasks`` takes them -> its result dicts.
 RunTasks = Callable[[list[dict[str, Any]]], Awaitable[list[dict[str, Any]]]]
 
-EMBED_CONCURRENCY = 5
 KEYWORD_TOP_K = 20  # narrow mode without a graph: chunks kept around the keyword
 
 
@@ -48,23 +49,6 @@ class Outcome:
     results: list[dict[str, Any]] = field(default_factory=list)
     retrieval_mode: str = "graphrag"
     no_content: bool = False
-
-
-def gemini_embedder(task_type: str) -> Embedder:
-    """Return the Gemini embedder for ``task_type`` ("retrieval_query" / "retrieval_document"), run concurrently."""
-    from src.llm.gemini_embeddings import GeminiEmbeddings
-
-    client = GeminiEmbeddings()
-    gate = asyncio.Semaphore(EMBED_CONCURRENCY)
-
-    async def one(text: str) -> list[float]:
-        async with gate:
-            return await client.create_embedding(text, task_type)
-
-    async def embed(texts: list[str]) -> list[list[float]]:
-        return list(await asyncio.gather(*(one(t) for t in texts)))
-
-    return embed
 
 
 def _embedders() -> tuple[Embedder | None, Embedder | None]:
@@ -134,8 +118,24 @@ async def keyword_chunks(storage_id: str, keyword: str) -> list[DocumentChunk]:
     return await get_pg_vector_store().search_similar([storage_id], keyword, top_k=KEYWORD_TOP_K)
 
 
+async def _plain_round(
+    chunks: list[DocumentChunk], total: int, first_index: int, max_items: int, run_batch: RunBatch, run_tasks: RunTasks
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """One call per plain batch of ``chunks``; returns ``(items without internal fields, results)``."""
+    calls = fallback_batches(chunks, total, max_items)
+    count = first_index + len(calls)
+    tasks = [
+        {"chunk_index": first_index + n, "batch_index": 0, "runner": lambda c=chunk, s=size, i=first_index + n: run_batch(c, s, i, count)}
+        for n, (chunk, size) in enumerate(calls)
+    ]
+    results = await _run(tasks, run_tasks)
+    # Without slots a model-made ``concept`` means nothing: drop it so only question similarity dedupes.
+    return strip_internal([item for result in results for item in result["items"]]), results
+
+
 async def _fallback_generation(
-    storage_id: str, total: int, kind: str, max_items: int, run_batch: RunBatch, run_tasks: RunTasks, keyword: str | None
+    storage_id: str, total: int, kind: str, max_items: int, run_batch: RunBatch, run_tasks: RunTasks, keyword: str | None,
+    embedder: Embedder | None = None,
 ) -> Outcome:
     chunks = await ocr_service.get_document_chunks(storage_id)
     if not chunks:
@@ -146,15 +146,25 @@ async def _fallback_generation(
             chunks = matched
         else:
             logger.info("[GRAPHRAG_GEN] keyword %r matched no chunk of %s; using the whole document", keyword, storage_id)
-    calls = fallback_batches(chunks, total, max_items)
-    tasks = [
-        {"chunk_index": n, "batch_index": 0, "runner": lambda c=chunk, s=size, n=n: run_batch(c, s, n, len(calls))}
-        for n, (chunk, size) in enumerate(calls)
-    ]
-    results = await _run(tasks, run_tasks)
-    items = [item for result in results for item in result["items"]]
-    logger.info("[GRAPHRAG_GEN] kind=%s mode=vector_fallback chunks=%d calls=%d items=%d", kind, len(chunks), len(calls), len(items))
-    return Outcome(strip_internal(items), results, "vector_fallback")
+    deduper = Deduper(embedder)
+    raw, results = await _plain_round(chunks, total, 0, max_items, run_batch, run_tasks)
+    kept, dropped = await deduper.add(raw)
+    kept = kept[:total]
+    topup = 0
+    if raw and len(kept) < total:
+        topup = total - len(kept)
+        half = len(chunks) // 2
+        # The other half first, so the top-up is not asked about the same pages again.
+        more_raw, more_results = await _plain_round(chunks[half:] + chunks[:half], topup, len(results), max_items, run_batch, run_tasks)
+        more, more_dropped = await deduper.add(more_raw)
+        kept = (kept + more)[:total]
+        dropped += more_dropped
+        results += more_results
+    logger.info(
+        "[GRAPHRAG_GEN] kind=%s mode=vector_fallback chunks=%d dropped_dupes=%d topup=%d items=%d",
+        kind, len(chunks), dropped, topup, len(kept),
+    )
+    return Outcome(kept, results, "vector_fallback")
 
 
 async def run_generation(
@@ -172,7 +182,8 @@ async def run_generation(
             logger.exception("[GRAPHRAG_GEN] slot planning failed for %s; using plain batches", storage_id)
     if not batches:
         return await _fallback_generation(
-            storage_id, total, kind, max_items, run_batch, run_tasks, keyword.strip() if narrow and keyword else None
+            storage_id, total, kind, max_items, run_batch, run_tasks, keyword.strip() if narrow and keyword else None,
+            embedder=doc_embedder,
         )
     return await _graph_generation(
         batches, kind=kind, storage_id=storage_id, total=total, max_items=max_items, run_batch=run_batch,

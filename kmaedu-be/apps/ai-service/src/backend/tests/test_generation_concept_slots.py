@@ -302,3 +302,27 @@ async def test_narrow_fallback_without_keyword_hits_uses_the_whole_document(env,
     monkeypatch.setattr(generation_runner, "keyword_chunks", nothing)
     result = await quiz(2, keyword="zzz", is_narrow_search=True)
     assert result["count"] == 2 and "plain page 1" in env.llm.prompts[0] and "plain page 2" in env.llm.prompts[0]
+
+
+async def test_the_fallback_path_drops_a_repeated_question_and_tops_up_once(env, pool):
+    for n in range(1, 5):
+        await add_chunk(pool, SID, f"c{n}", str(n), f"plain page {n}")
+
+    def repeat_question(call, items):
+        if call == 1:
+            items[1]["question"] = items[0]["question"]  # identical text: cosine 1.0
+        return items
+
+    env.llm.hook = repeat_question
+    result = await quiz(5)
+    questions = [q["question"] for q in result["quizzes"]]
+    assert result["count"] == 5 and len(set(questions)) == 5
+    assert len(env.llm.prompts) == 2 and "Tạo đúng 1" in env.llm.prompts[1]  # one top-up for the one dropped
+    assert all(set(q) == QUIZ_KEYS for q in result["quizzes"])
+
+
+async def test_the_fallback_top_up_happens_once_even_if_it_repeats_again(env, pool):
+    await add_chunk(pool, SID, "c1", "1", "plain page 1")
+    env.llm.hook = lambda call, items: [{**i, "question": "same"} for i in items]
+    result = await quiz(3)
+    assert result["count"] == 1 and len(env.llm.prompts) == 2  # the first "same", then no endless top-ups
