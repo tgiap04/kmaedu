@@ -10,6 +10,15 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { r2Config } from './config/r2.config';
 
+/**
+ * Without these the SDK waits forever on a stalled link (and the caller's gRPC deadline fires while the
+ * object is still being written). Uploads of up to 50 MB over a slow link need minutes, so the request
+ * timeout is long; the connection timeout stays short so an unreachable endpoint fails fast.
+ */
+const S3_CONNECTION_TIMEOUT_MS = 10_000;
+const S3_REQUEST_TIMEOUT_MS = 4 * 60 * 1000;
+const S3_MAX_ATTEMPTS = 2; // with the 4 min request timeout this stays near the caller's 5 min gRPC deadline
+
 @Injectable()
 export class R2ServiceService {
     private readonly logger = new Logger(R2ServiceService.name);
@@ -19,6 +28,11 @@ export class R2ServiceService {
         this.s3 = new S3Client({
             region: r2Config.region,
             endpoint: r2Config.endpoint,
+            maxAttempts: S3_MAX_ATTEMPTS,
+            requestHandler: {
+                connectionTimeout: S3_CONNECTION_TIMEOUT_MS,
+                requestTimeout: S3_REQUEST_TIMEOUT_MS,
+            },
             credentials: {
                 accessKeyId: r2Config.credentials.accessKeyId ?? '',
                 secretAccessKey: r2Config.credentials.secretAccessKey ?? '',
