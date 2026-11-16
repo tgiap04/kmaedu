@@ -111,7 +111,7 @@ class GraphData:
 class GraphragSettings:
     """Runtime knobs, read from the environment."""
 
-    concurrency: int = 5
+    concurrency: int = 16  # parallel LLM calls per index build (the AI2 router takes the load)
     max_tokens: int = 8192  # reasoning models (Faye-AI) spend most of it before the JSON
     llm_model: str | None = None
     merge_threshold: float = 0.92  # cosine at which two same-type entities become one

@@ -152,11 +152,21 @@ def parse_extraction(raw: str) -> tuple[list[ExtractedEntity], list[ExtractedRel
     return entities, _relationships(rels if isinstance(rels, list) else [], entities)
 
 
+EXTRACTION_ATTEMPTS = 2  # reasoning models now and then answer empty or cut the JSON: ask once more
+
+
 async def extract_chunk(chunk_id: str, content: str, page_range: str, llm: LLMComplete, max_tokens: int) -> ChunkExtraction:
-    """Run the LLM on one chunk and return its validated extraction."""
-    raw = await llm(build_prompt(content, page_range), max_tokens)
-    entities, relationships = parse_extraction(raw)
-    return ChunkExtraction(chunk_id, entities, relationships)
+    """Run the LLM on one chunk (one retry on an error or an unusable answer) and return its validated extraction."""
+    prompt = build_prompt(content, page_range)
+    for attempt in range(1, EXTRACTION_ATTEMPTS + 1):
+        try:
+            entities, relationships = parse_extraction(await llm(prompt, max_tokens))
+            return ChunkExtraction(chunk_id, entities, relationships)
+        except Exception as exc:
+            if attempt == EXTRACTION_ATTEMPTS:
+                raise
+            logger.info("[GRAPHRAG] retrying extraction chunk=%s after: %s", chunk_id, exc)
+    raise AssertionError("unreachable")  # the loop returns or raises
 
 
 async def extract_all(

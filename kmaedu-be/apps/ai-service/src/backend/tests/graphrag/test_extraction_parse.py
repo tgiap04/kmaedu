@@ -162,3 +162,36 @@ def test_graphrag_build_timeout_defaults_to_40_minutes_and_reads_the_env(monkeyp
     assert GraphragSettings.from_env().build_timeout_minutes == 25
     monkeypatch.setenv("GRAPHRAG_BUILD_TIMEOUT_MINUTES", "zero")
     assert GraphragSettings.from_env().build_timeout_minutes == 40
+
+
+def test_graphrag_concurrency_default_matches_a_router_that_takes_load(monkeypatch):
+    from src.graphrag.types import GraphragSettings
+
+    monkeypatch.delenv("GRAPHRAG_CONCURRENCY", raising=False)
+    assert GraphragSettings.from_env().concurrency == 16
+
+
+async def test_a_chunk_whose_first_answer_is_unusable_is_asked_once_more():
+    from dataclasses import dataclass
+
+    from src.graphrag.extraction import extract_all
+
+    @dataclass
+    class C:
+        id: str
+        content: str
+        page_range: str = "1"
+
+    calls: dict[str, int] = {}
+    good = '{"entities": [{"name": "AES", "type": "concept"}], "relationships": []}'
+
+    async def flaky(prompt, max_tokens):
+        key = "a" if "chunk a" in prompt else "b"
+        calls[key] = calls.get(key, 0) + 1
+        if key == "a":
+            return "" if calls[key] == 1 else good  # empty answer, then a good one
+        return "not json"  # always unusable
+
+    done, failed = await extract_all([C("a", "chunk a"), C("b", "chunk b")], flaky, concurrency=2, max_tokens=64)
+    assert [d.chunk_id for d in done] == ["a"] and failed == 1
+    assert calls == {"a": 2, "b": 2}  # one retry each, never more
