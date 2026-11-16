@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Link } from "react-router-dom";
+import { HistoryListCardHeader } from "@/components/molecules/HistoryListCardHeader";
 import {
   PDFHistoryListItem,
   type PDFHistoryListItemData,
@@ -21,22 +21,14 @@ const PDFHistoryListSectionComponent = ({
   const displayItems = items.slice(0, maxItems);
 
   return (
-    <div className="h-full rounded-lg border border-hairline bg-canvas p-4">
-      <div className="mb-4 flex items-start justify-between gap-4 border-b border-hairline pb-4">
-        <div>
-          <h2 className="text-lg font-medium text-ink">Lịch sử xử lý PDF</h2>
-          <p className="text-sm text-muted-foreground">
-            Các file PDF tải lên gần đây
-          </p>
-        </div>
-        <Link
-          to="/k/history/pdf"
-          className="text-sm font-medium text-coral transition-colors hover:text-coral/80">
-          Xem tất cả
-        </Link>
-      </div>
+    <div className="h-full rounded-2xl border border-hairline bg-canvas p-5 shadow-soft">
+      <HistoryListCardHeader
+        title="Tài liệu học tập"
+        subtitle="Các file PDF tài liệu gần đây"
+        viewAllTo="/k/history/pdf"
+      />
 
-      <div className="divide-y divide-hairline">
+      <div className="divide-y divide-hairline-soft">
         {displayItems.length > 0 ? (
           displayItems.map((item) => (
             <PDFHistoryListItem

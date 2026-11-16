@@ -1,6 +1,7 @@
 import { memo } from "react";
+import { BookOpen, ClipboardList, Clock, FileText } from "lucide-react";
 import { HistoryStatCard } from "@/components/molecules/HistoryStatCard";
-import { FileText, ClipboardList, BookOpen, Clock } from "lucide-react";
+import { useCan } from "@/hooks/useCan";
 
 interface HistoryStats {
   totalPDFs: number;
@@ -14,31 +15,39 @@ interface HistoryStatsGridProps {
 }
 
 const HistoryStatsGridComponent = ({ stats }: HistoryStatsGridProps) => {
+  // An arrow only points at a page the viewer may open.
+  const canPdf = useCan("ai:generate");
+  const canManageExam = useCan("quizset:manage");
+  const canStudyFlashcards = useCan("flashcard:study");
+
   return (
-    <div className="grid grid-cols-1 gap-2 mb-8 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <HistoryStatCard
         title="Tổng PDF đã xử lý"
         value={stats.totalPDFs}
         icon={FileText}
-        iconClassName="bg-coral/10 text-brand-strong"
+        tone="red"
+        to={canPdf ? "/k/history/pdf" : undefined}
       />
       <HistoryStatCard
         title="Đề thi đã tạo"
         value={stats.examsCreated}
         icon={ClipboardList}
-        iconClassName="bg-accent-amber/10 text-accent-amber"
+        tone="amber"
+        to={canManageExam ? "/k/manage-exam" : undefined}
       />
       <HistoryStatCard
         title="Bộ Flashcard"
         value={stats.flashcardSets}
         icon={BookOpen}
-        iconClassName="bg-success/10 text-success"
+        tone="green"
+        to={canStudyFlashcards ? "/k/my-materials" : undefined}
       />
       <HistoryStatCard
         title="Giờ học tổng cộng"
         value={stats.totalStudyHours}
         icon={Clock}
-        iconClassName="bg-accent-teal/10 text-accent-teal"
+        tone="blue"
       />
     </div>
   );

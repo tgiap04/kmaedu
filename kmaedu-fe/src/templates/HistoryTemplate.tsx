@@ -38,38 +38,43 @@ export function HistoryTemplate({
   showExamHistory = true,
   showStats = true,
 }: HistoryTemplateProps) {
+  const twoColumns = showPdfHistory && showExamHistory;
+
   return (
-    <div>
-      <div>
-        <div className="mb-8 mt-4">
-          <h1 className="font-display text-2xl tracking-tight text-ink">Quản lý lịch sử</h1>
-          <p className="text-xs text-muted-foreground md:text-sm">
+    <div className="space-y-6">
+      <header className="mt-2 flex items-center gap-4">
+        <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-soft shadow-soft">
+          <img src="/illustrations/learning-books-cap.svg" alt="" aria-hidden width={40} height={40} className="size-10" />
+        </span>
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Quản lý học tập</h1>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
             Theo dõi tiến độ và hoạt động học tập của bạn
           </p>
         </div>
+      </header>
 
-        {/* Stats Grid */}
-        {showStats && <HistoryStatsGrid stats={stats} />}
+      {showStats && <HistoryStatsGrid stats={stats} />}
 
-        {/* Recent Activity Section */}
-        <RecentActivitySection activities={activities} />
+      <RecentActivitySection
+        activities={activities}
+        viewAllTo={showExamHistory ? "/k/history/exam" : showPdfHistory ? "/k/history/pdf" : undefined}
+      />
 
-        {/* Two Column Layout: PDF History + Exam History */}
-        <div className={`mt-6 grid gap-6 ${showPdfHistory && showExamHistory ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>
-          {showPdfHistory && (
-            <PDFHistoryListSection
-              items={pdfItems}
-              onDownload={onPdfDownload}
-              onDelete={onPdfDelete}
-            />
-          )}
-          {showExamHistory && (
-            <ExamHistoryListSection
-              items={examItems}
-              onClick={onExamClick}
-            />
-          )}
-        </div>
+      <div className={`grid gap-6 ${twoColumns ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>
+        {showPdfHistory && (
+          <PDFHistoryListSection
+            items={pdfItems}
+            onDownload={onPdfDownload}
+            onDelete={onPdfDelete}
+          />
+        )}
+        {showExamHistory && (
+          <ExamHistoryListSection
+            items={examItems}
+            onClick={onExamClick}
+          />
+        )}
       </div>
     </div>
   );

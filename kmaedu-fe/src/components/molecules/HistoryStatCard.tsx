@@ -1,33 +1,57 @@
-import { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+
+export type HistoryStatTone = "red" | "amber" | "green" | "blue";
 
 interface HistoryStatCardProps {
   title: string;
   value: number | string;
   icon: LucideIcon;
-  iconClassName?: string;
+  tone: HistoryStatTone;
+  /** Where the arrow button leads; no arrow when the viewer cannot open that page. */
+  to?: string;
 }
 
-export function HistoryStatCard({
-  title,
-  value,
-  icon: Icon,
-  iconClassName,
-}: HistoryStatCardProps) {
+const toneClass: Record<HistoryStatTone, { tile: string; arrow: string; mark: string }> = {
+  red: { tile: "bg-brand-soft text-brand", arrow: "text-brand", mark: "text-brand" },
+  amber: { tile: "bg-amber-50 text-amber-500", arrow: "text-amber-500", mark: "text-amber-400" },
+  green: { tile: "bg-emerald-50 text-emerald-600", arrow: "text-emerald-600", mark: "text-emerald-500" },
+  blue: { tile: "bg-blue-50 text-blue-600", arrow: "text-blue-600", mark: "text-blue-500" },
+};
+
+export function HistoryStatCard({ title, value, icon: Icon, tone, to }: HistoryStatCardProps) {
+  const colors = toneClass[tone];
+
   return (
-    <div className="rounded-lg border border-hairline bg-canvas p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-ink">{value}</p>
-        </div>
-        <div
-          className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-lg",
-            iconClassName || "bg-coral/10 text-brand-strong",
-          )}>
-          <Icon className="h-5 w-5" />
-        </div>
+    <div className="relative overflow-hidden rounded-2xl border border-hairline bg-canvas p-5 shadow-soft">
+      {/* Faded watermark of the same icon, as in the brand mock */}
+      <Icon
+        className={cn("pointer-events-none absolute -right-2 top-1/2 size-24 -translate-y-1/2 opacity-[0.07]", colors.mark)}
+        strokeWidth={1.5}
+        aria-hidden
+      />
+      <div className="relative flex items-center gap-3">
+        <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", colors.tile)}>
+          <Icon className="size-[18px]" aria-hidden />
+        </span>
+        <p className="truncate text-sm font-medium text-body">{title}</p>
+      </div>
+      <div className="relative mt-3 flex items-end justify-between gap-3">
+        <p className="text-3xl font-bold leading-none text-ink">{value}</p>
+        {to && (
+          <Link
+            to={to}
+            aria-label={`Xem ${title.toLowerCase()}`}
+            className={cn(
+              "flex size-9 items-center justify-center rounded-full bg-canvas shadow-raised transition-transform hover:translate-x-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
+              colors.arrow,
+            )}
+          >
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        )}
       </div>
     </div>
   );

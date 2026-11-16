@@ -17,6 +17,8 @@ import {
 import { storeCache, CacheTTL } from "@/lib/storeCache";
 import { useToast } from "@/components/antd/toast";
 import { useCan } from "@/hooks/useCan";
+import { formatTimeAgo } from "@/lib/history/history-format";
+import { useNavigate } from "react-router-dom";
 
 function transformPDFHistory(items: PDFHistoryItem[]): PDFHistoryListItemData[] {
   return items.map((item) => {
@@ -102,29 +104,14 @@ function generateRecentActivities(
         id: `pdf-${item.id}`,
         type: "pdf_processed" as ActivityType,
         title: "PDF đã xử lý thành công!",
-        description: `${item.filename} đã được chuyển đổi thành tài liệu học tập.`,
+        highlight: item.filename,
+        description: "đã được chuyển đổi thành tài liệu học tập.",
         timestamp: formatTimeAgo(item.createdAt),
       });
     }
   });
 
   return activities.slice(0, 5);
-}
-
-function formatTimeAgo(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 1) return "Vừa xong";
-  if (diffMins < 60) return `${diffMins} phút trước`;
-  if (diffHours < 24) return `${diffHours} giờ trước`;
-  if (diffDays < 7) return `${diffDays} ngày trước`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
-  return `${Math.floor(diffDays / 30)} tháng trước`;
 }
 
 async function downloadFile(url: string, filename: string): Promise<void> {
@@ -161,6 +148,7 @@ export default function HistoryPage() {
 
   const pdfDataMapRef = useRef<Map<string, PDFHistoryItem>>(new Map());
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
     try {
@@ -244,13 +232,8 @@ export default function HistoryPage() {
     [toast],
   );
 
-  const handlePdfDelete = (id: string) => {
-    console.log("Delete PDF:", id);
-  };
-
-  const handleExamClick = (id: string) => {
-    console.log("View exam:", id);
-  };
+  // No per-attempt page exists yet: a row opens the full exam history.
+  const handleExamClick = useCallback(() => navigate("/k/history/exam"), [navigate]);
 
   if (isLoading) {
     return (
@@ -267,7 +250,6 @@ export default function HistoryPage() {
       examItems={examItems}
       activities={activities}
       onPdfDownload={handlePdfDownload}
-      onPdfDelete={handlePdfDelete}
       onExamClick={handleExamClick}
       showPdfHistory={canPdf}
       showExamHistory={canExam}

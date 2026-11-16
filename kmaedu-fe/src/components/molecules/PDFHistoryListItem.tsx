@@ -1,7 +1,5 @@
-import { FileText, Loader2, Check, MoreVertical, Download, Trash2 } from "lucide-react";
+import { AlertCircle, Check, Download, FileText, Loader2, MoreVertical, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/antd/badge";
-import { Button } from "@/components/antd/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +18,7 @@ export interface PDFHistoryListItemData {
 interface PDFHistoryListItemProps {
   item: PDFHistoryListItemData;
   onDownload?: (id: string) => void;
+  /** The "Xóa" menu entry only shows when a handler is given. */
   onDelete?: (id: string) => void;
 }
 
@@ -27,81 +26,71 @@ const statusConfig = {
   completed: {
     label: "Hoàn thành",
     icon: Check,
-    className: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100",
+    className: "bg-brand-soft text-coral",
   },
   processing: {
     label: "Đang xử lý",
     icon: Loader2,
-    className: "bg-yellow-100 text-amber-700 hover:bg-yellow-100",
+    className: "bg-amber-50 text-amber-700",
   },
   failed: {
     label: "Thất bại",
-    icon: FileText,
-    className: "bg-red-100 text-red-700 hover:bg-red-100",
+    icon: AlertCircle,
+    className: "bg-surface-card text-body",
   },
 };
 
-export function PDFHistoryListItem({
-  item,
-  onDownload,
-  onDelete,
-}: PDFHistoryListItemProps) {
+export function PDFHistoryListItem({ item, onDownload, onDelete }: PDFHistoryListItemProps) {
   const config = statusConfig[item.status];
   const StatusIcon = config.icon;
+  const meta = [item.description, item.createdAt].filter(Boolean);
 
   return (
-    <div className="flex items-start gap-3 p-3 border-b border-border/50 last:border-b-0">
-      {/* PDF Icon */}
-      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center">
-        <FileText className="h-5 w-5 text-yellow-600" />
-      </div>
+    <div className="flex items-center gap-3 py-3.5">
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-soft">
+        <span className="flex size-7 items-center justify-center rounded-md bg-brand text-white shadow-soft">
+          <FileText className="size-4" aria-hidden />
+        </span>
+      </span>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <h4 className="text-sm font-semibold text-foreground truncate">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[15px] font-semibold text-ink" title={item.fileName}>
           {item.fileName}
-        </h4>
-        <p className="text-xs text-muted-foreground mt-0.5 truncate">
-          {item.description}
         </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          {item.createdAt}
-        </p>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{meta.join("  ·  ")}</p>
       </div>
 
-      {/* Status Badge */}
-      <Badge
-        variant="secondary"
-        className={cn("flex items-center gap-1 border-0 text-xs", config.className)}
+      <span
+        className={cn(
+          "inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
+          config.className,
+        )}
       >
-        <div className="flex items-center gap-1">
-          <StatusIcon className={cn("h-3 w-3", item.status === "processing" && "animate-spin")} />
-          {config.label}
-        </div>
-      </Badge>
+        <StatusIcon className={cn("size-3", item.status === "processing" && "animate-spin")} aria-hidden />
+        {config.label}
+      </span>
 
-      {/* Menu */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
+          <button
+            type="button"
+            aria-label={`Tùy chọn cho ${item.fileName}`}
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+          >
+            <MoreVertical className="size-4" aria-hidden />
+          </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            onClick={() => onDownload?.(item.id)}
-            className="cursor-pointer"
-          >
-            <Download className="mr-2 h-4 w-4" />
+          <DropdownMenuItem onClick={() => onDownload?.(item.id)} className="cursor-pointer">
+            <Download className="mr-2 size-4" />
             Tải xuống
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onDelete?.(item.id)}
-            className="cursor-pointer text-red-600"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Xóa
-          </DropdownMenuItem>
+          {onDelete && (
+            <DropdownMenuItem onClick={() => onDelete(item.id)} className="cursor-pointer text-red-600">
+              <Trash2 className="mr-2 size-4" />
+              Xóa
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
