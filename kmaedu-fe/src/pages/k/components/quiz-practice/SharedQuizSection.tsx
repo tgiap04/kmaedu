@@ -4,16 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { ClipboardList, User } from "lucide-react";
 import { Button } from "@/components/antd/button";
 import { Skeleton } from "@/components/antd/skeleton";
-import type { SharedQuizSet, SharedQuizSetsResponse } from "@/apis/quizPracticeApi";
+import type { SharedQuizSetsResponse } from "@/apis/quizPracticeApi";
+import { lastAttemptLabel } from "@/lib/quiz-practice/last-attempt-label";
 import { useQuizPracticeStore } from "@/stores/useQuizPracticeStore";
 
 const PAGE_SIZE = 6;
-
-function lastAttemptLabel(set: SharedQuizSet): string | null {
-  const last = set.lastAttempt;
-  if (!last) return null;
-  return last.isSubmitted ? `Lần gần nhất: ${last.score ?? 0}/10` : "Đang làm dở";
-}
 
 /** "Bộ câu hỏi được chia sẻ": the sets granted to me (whitelist or code), with a practice button. */
 export function SharedQuizSection() {
@@ -79,7 +74,7 @@ export function SharedQuizSection() {
                   <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <User className="h-3 w-3" />
                     {displayUserName(set.owner, "Ẩn danh")}
-                    {lastAttemptLabel(set) && <span className="ml-2">· {lastAttemptLabel(set)}</span>}
+                    {lastAttemptLabel(set.lastAttempt) && <span className="ml-2">· {lastAttemptLabel(set.lastAttempt)}</span>}
                   </span>
                   <Button size="sm" className="h-8 px-3 text-xs" onClick={() => navigate(`/k/practice-quiz/${set.id}`)}>
                     Luyện tập
