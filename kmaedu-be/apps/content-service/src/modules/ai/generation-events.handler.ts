@@ -37,6 +37,18 @@ const completedSchema = z.object({
 /** `kmaedu.events.v1.AiGenerationFailed`. */
 const failedSchema = z.object({ jobId: z.string().min(1), reason: z.string().default('GENERATION_FAILED') });
 
+/** `kmaedu.events.v1.AiGenerationProgress` (unknown fields are dropped: only these reach the FE). */
+const counter = z.number().int().nonnegative().optional();
+const progressSchema = z.object({
+    jobId: z.string().min(1),
+    stage: z.string().min(1).max(64),
+    at: z.number().int().nonnegative(),
+    done: counter,
+    total: counter,
+    waited: counter,
+    maxWaits: counter,
+});
+
 /** `kmaedu.events.v1.DocumentDeleted`. */
 const deletedSchema = z.object({ storageIds: z.array(z.string()).default([]), userId: z.string().min(1) });
 
@@ -110,6 +122,16 @@ export class GenerationEventsHandler {
     async onFailed(envelope: Envelope): Promise<void> {
         const data = parse(failedSchema, envelope);
         await this.fail(data.jobId, data.reason);
+    }
+
+    /**
+     * Newest stage of an in-flight job for `GET job/:id`. Idempotent and order-safe on its own: the
+     * conditional write ignores settled jobs and reports older than the stored one, so no dedupe tx.
+     */
+    @EventHandler('ai.generation.progress', { dedupe: false })
+    async onProgress(envelope: Envelope): Promise<void> {
+        const { jobId, ...progress } = parse(progressSchema, envelope);
+        await this.jobs.recordProgress(this.prisma, jobId, progress);
     }
 
     /** The documents are gone: generated history keeps its rows but loses the link (ai-chat removes its own links). */

@@ -346,6 +346,8 @@ model GenerationJob {
     error      String?
     // The HistoryGeneratedQuizz / HistoryGeneratedFlashcard row of a COMPLETED job.
     historyId  String?
+    // Newest `ai.generation.progress` of an in-flight job: { stage, at, done?, total?, waited?, maxWaits? }.
+    progress   Json?
     createdAt  DateTime @default(now())
     updatedAt  DateTime @default(now()) @updatedAt
 

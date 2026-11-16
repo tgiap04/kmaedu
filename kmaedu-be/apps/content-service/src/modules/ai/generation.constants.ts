@@ -17,6 +17,19 @@ export const OPEN_STATUSES: readonly JobStatusValue[] = IN_FLIGHT_STATUSES;
 
 export type GenerationType = 'quiz' | 'flashcard';
 
+/**
+ * `GenerationJob.progress`: the newest `ai.generation.progress` (stage + ai-service epoch ms; counters
+ * for `generating` and `waiting_graph`). A type alias, not an interface, so it is a Prisma JSON value.
+ */
+export type JobProgress = {
+    stage: string;
+    at: number;
+    done?: number;
+    total?: number;
+    waited?: number;
+    maxWaits?: number;
+};
+
 /** Files over this are refused before anything is stored (the multer cap is the transport limit). */
 export const MAX_GENERATE_FILE_BYTES = 5 * 1024 * 1024;
 export const MAX_MULTER_FILE_BYTES = 50 * 1024 * 1024;

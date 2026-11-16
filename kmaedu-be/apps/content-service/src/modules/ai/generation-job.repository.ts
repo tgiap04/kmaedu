@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GenerationJob, Prisma, PrismaService } from '../../prisma';
-import { IN_FLIGHT_STATUSES, JobStatus, JobStatusValue, OPEN_STATUSES } from './generation.constants';
+import { IN_FLIGHT_STATUSES, JobProgress, JobStatus, JobStatusValue, OPEN_STATUSES } from './generation.constants';
 
 type Db = PrismaService | Prisma.TransactionClient;
 
@@ -80,6 +80,24 @@ export class GenerationJobRepository {
         const { count } = await db.generationJob.updateMany({
             where: { id, status: { in: [...from] } },
             data: { status: to, ...extra },
+        });
+        return count === 1;
+    }
+
+    /**
+     * Stores the newest progress report of an in-flight job and marks it PROCESSING. A report older than
+     * the stored one (`at`, same-ms ties win), or one for a settled job, changes nothing; `updatedAt` moves, so a job that
+     * keeps reporting is alive for the watchdog.
+     */
+    async recordProgress(db: Db, id: string, progress: JobProgress): Promise<boolean> {
+        const { count } = await db.generationJob.updateMany({
+            where: {
+                id,
+                status: { in: [...IN_FLIGHT_STATUSES] },
+                // lte: two reports in the same millisecond (concurrent calls finishing) must both land
+                OR: [{ progress: { equals: Prisma.DbNull } }, { progress: { path: ['at'], lte: progress.at } }],
+            },
+            data: { progress, status: JobStatus.PROCESSING },
         });
         return count === 1;
     }

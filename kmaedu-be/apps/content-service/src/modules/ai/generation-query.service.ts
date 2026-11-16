@@ -110,7 +110,8 @@ export class GenerationQueryService {
             case JobStatus.CANCELLED:
                 return { ...base, status: 'failed', error: JOB_CANCELLED_MESSAGE };
             default:
-                return { ...base, status: 'processing' };
+                // the newest stage ai-service reported (absent until the first report)
+                return job.progress ? { ...base, status: 'processing', progress: job.progress } : { ...base, status: 'processing' };
         }
     }
 
