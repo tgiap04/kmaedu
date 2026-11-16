@@ -14,6 +14,7 @@ describe("describeGenerationSteps", () => {
     const steps = describeGenerationSteps({ stage: "planning", at: 1 }, "câu hỏi");
     expect(states(steps)).toEqual([
       "queued:done",
+      "uploading:done",
       "processing_document:done",
       "waiting_graph:done",
       "planning:active",
@@ -42,5 +43,11 @@ describe("describeGenerationSteps", () => {
   it("keeps the request step active for a stage it does not know", () => {
     const steps = describeGenerationSteps({ stage: "something_new", at: 1 }, "câu hỏi");
     expect(states(steps)[0]).toBe("queued:active");
+  });
+
+  it("shows the upload to storage as its own step right after the request", () => {
+    const steps = describeGenerationSteps({ stage: "uploading", at: 1 }, "câu hỏi");
+    expect(states(steps).slice(0, 3)).toEqual(["queued:done", "uploading:active", "processing_document:pending"]);
+    expect(steps[1].label).toBe("Tải tài liệu lên kho lưu trữ");
   });
 });

@@ -23,6 +23,7 @@ const WAIT_HOP_MINUTES = 0.5;
 /** In the order ai-service runs them; a step it skips (already OCR'd, graph ready) shows as done. */
 const STEPS: Array<{ key: string; label: (itemWord: string) => string }> = [
   { key: "queued", label: () => "Gửi yêu cầu" },
+  { key: "uploading", label: () => "Tải tài liệu lên kho lưu trữ" },
   { key: "processing_document", label: () => "Đọc và tách nội dung tài liệu" },
   { key: "waiting_graph", label: () => "Phân tích tài liệu, dựng đồ thị kiến thức" },
   { key: "planning", label: () => "Lập kế hoạch theo chủ đề" },
