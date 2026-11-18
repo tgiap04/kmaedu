@@ -1,4 +1,4 @@
-import { ArgumentsHost, BadRequestException, HttpException } from '@nestjs/common';
+import { ArgumentsHost, BadRequestException, ConflictException, HttpException } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { firstValueFrom, Observable } from 'rxjs';
 import { HttpErrorEnvelopeFilter } from './http-error-envelope.filter';
@@ -58,6 +58,52 @@ describe('HttpErrorEnvelopeFilter', () => {
                 message: 'a must be x; b must be y',
             })
         );
+    });
+
+    it('adds the field problems of a zod validation error, keeping the message', () => {
+        const { h, json } = host({ 'x-request-id': 'r3' });
+        filter.catch(
+            new BadRequestException({
+                statusCode: 400,
+                message: 'Validation failed',
+                errors: [
+                    { code: 'too_small', path: ['password'], message: 'Password must be at least 8 characters long' },
+                    { code: 'invalid_type', path: ['items', 0, 'name'], message: 'Required' },
+                ],
+            }),
+            h
+        );
+        expect(json).toHaveBeenCalledWith({
+            statusCode: 400,
+            code: 'BAD_REQUEST',
+            message: 'Validation failed',
+            requestId: 'r3',
+            details: [
+                { path: 'password', message: 'Password must be at least 8 characters long' },
+                { path: 'items.0.name', message: 'Required' },
+            ],
+        });
+    });
+
+    it('sends no details when the error carries none, and caps a long list', () => {
+        const plain = host({ 'x-request-id': 'r4' });
+        filter.catch(new BadRequestException('bad'), plain.h);
+        expect(plain.json.mock.calls[0][0]).not.toHaveProperty('details');
+
+        const many = host({ 'x-request-id': 'r5' });
+        const errors = Array.from({ length: 50 }, (_, i) => ({ path: [`f${i}`], message: 'x' }));
+        filter.catch(new BadRequestException({ message: 'Validation failed', errors: [...errors, 'junk', null] }), many.h);
+        expect(many.json.mock.calls[0][0].details).toHaveLength(20);
+    });
+
+    it('forwards field problems only for a validation failure, never for other errors carrying `errors`', () => {
+        const other = host({ 'x-request-id': 'r6' });
+        filter.catch(new BadRequestException({ message: 'Import failed', errors: [{ path: ['row'], message: 'internal note' }] }), other.h);
+        expect(other.json.mock.calls[0][0]).not.toHaveProperty('details');
+
+        const conflict = host({ 'x-request-id': 'r7' });
+        filter.catch(new ConflictException({ message: 'Validation failed', errors: [{ path: ['x'], message: 'y' }] }), conflict.h);
+        expect(conflict.json.mock.calls[0][0]).not.toHaveProperty('details');
     });
 
     it('maps unknown errors to 500 INTERNAL_SERVER_ERROR without leaking details', () => {

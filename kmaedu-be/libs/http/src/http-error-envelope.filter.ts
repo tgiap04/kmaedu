@@ -10,11 +10,37 @@ import type { Request, Response } from 'express';
 import { BaseRpcExceptionFilter } from '@nestjs/microservices';
 import type { Observable } from 'rxjs';
 
+export interface ErrorDetail {
+    /** Dotted field path, e.g. `password` or `items.0.name`. */
+    path: string;
+    message: string;
+}
+
 export interface ErrorEnvelope {
     statusCode: number;
     code: string;
     message: string;
     requestId: string;
+    /** Field problems of a validation error (zod issues); absent otherwise. Additive: clients may ignore it. */
+    details?: ErrorDetail[];
+}
+
+const MAX_DETAILS = 20;
+
+/** `{ path, message }` of each zod issue in `errors` (as nestjs-zod puts them), at most MAX_DETAILS. */
+function detailsOf(errors: unknown): ErrorDetail[] | undefined {
+    if (!Array.isArray(errors)) return undefined;
+    const details = errors
+        .filter(
+            (e): e is { path?: unknown; message: string } =>
+                typeof e === 'object' && e !== null && typeof (e as { message?: unknown }).message === 'string'
+        )
+        .slice(0, MAX_DETAILS)
+        .map((e) => ({
+            path: Array.isArray(e.path) ? e.path.map(String).join('.') : '',
+            message: e.message,
+        }));
+    return details.length > 0 ? details : undefined;
 }
 
 const UPPER_SNAKE = /^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$/;
@@ -79,6 +105,10 @@ export class HttpErrorEnvelopeFilter implements ExceptionFilter {
             typeof response === 'string' ? response : obj.message,
             exception.message
         );
-        return { statusCode, code, message, requestId };
+        // Only a request validation failure (nestjs-zod's 400) lists field problems; any other
+        // exception that happens to carry `errors` keeps them server-side.
+        const details =
+            statusCode === 400 && obj.message === 'Validation failed' ? detailsOf(obj.errors) : undefined;
+        return details ? { statusCode, code, message, requestId, details } : { statusCode, code, message, requestId };
     }
 }

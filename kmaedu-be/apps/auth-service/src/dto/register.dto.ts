@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { ApiProperty } from '@nestjs/swagger';
+import { NewPasswordSchema } from './password.dto';
 
 export const RegisterSchema = z
     .object({
@@ -12,10 +13,7 @@ export const RegisterSchema = z
             .string()
             .email({ message: 'Invalid email address' })
             .max(50, { message: 'Email must not exceed 50 characters' }),
-        password: z
-            .string()
-            .min(8, { message: 'Password must be at least 8 characters long' })
-            .max(100, { message: 'Password must not exceed 100 characters' }),
+        password: NewPasswordSchema,
         utmSource: z
             .string()
             .trim()

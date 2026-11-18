@@ -16,6 +16,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { AuthService, DeviceInfo } from './auth.service';
 import { RedisService } from '@kmaedu/redis';
 import { RegisterDto } from './dto/register.dto';
+import { ChangePasswordDto, ResetPasswordDto } from './dto/password.dto';
 import { LoginDto, LoginResponse } from './dto/login.dto';
 import {
     ApiTags,
@@ -416,6 +417,7 @@ export class AuthController {
 
     @Post('reset-password')
     @Public()
+    @UsePipes(ZodValidationPipe)
     @StrictThrottle()
     @ApiOperation({ summary: 'Reset user password' })
     @ApiResponse({
@@ -423,12 +425,8 @@ export class AuthController {
         description: 'Password reset successfully',
         type: AuthMessageResponseDto,
     })
-    async resetPassword(
-        @Body('email') email: string,
-        @Body('code') code: string,
-        @Body('newPassword') newPassword: string
-    ) {
-        return this.authService.resetPassword(email, code, newPassword);
+    async resetPassword(@Body() body: ResetPasswordDto) {
+        return this.authService.resetPassword(body.email, body.code, body.newPassword);
     }
 
     @Post('send-code-change-password')
@@ -455,19 +453,18 @@ export class AuthController {
     })
     @Authenticated()
     @AllowUnverified()
+    @UsePipes(ZodValidationPipe)
     @StrictThrottle()
     @ApiCookieAuth('cookie-auth')
     async changePassword(
-        @Body('code') code: string,
-        @Body('currentPassword') currentPassword: string,
-        @Body('newPassword') newPassword: string,
+        @Body() body: ChangePasswordDto,
         @Req() req: AuthenticatedRequest
     ) {
         return this.authService.changePassword(
             req.user.id,
-            code,
-            currentPassword,
-            newPassword
+            body.code,
+            body.currentPassword,
+            body.newPassword
         );
     }
 
