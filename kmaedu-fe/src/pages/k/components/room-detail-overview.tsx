@@ -14,7 +14,7 @@ interface Stats {
 
 export function RoomDetailStats({ stats }: { stats: Stats }) {
   return (
-    <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <HistoryStatCard icon={CalendarBlankIcon} title="Tổng phiên thi" value={stats.total} tone="red" />
       <HistoryStatCard icon={PlayCircleIcon} title="Đang diễn ra" value={stats.ongoing} tone="green" />
       <HistoryStatCard icon={UsersThreeIcon} title="Thí sinh tham gia" value={stats.totalParticipants} tone="blue" />
@@ -37,7 +37,7 @@ function InfoCell({ icon, label, children }: { icon: React.ReactNode; label: str
 
 export function RoomInfoCard({ room }: { room: ExamRoom }) {
   return (
-    <div className="mb-6">
+    <div className="mb-4">
       <SectionCard icon={<InfoIcon />} title="Thông tin phòng thi" plain>
         <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-3 md:p-5">
           <InfoCell icon={<ExamIcon />} label="Bộ đề">

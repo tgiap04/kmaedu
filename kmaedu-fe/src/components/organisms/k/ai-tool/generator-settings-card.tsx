@@ -21,7 +21,7 @@ interface GeneratorSettingsCardProps {
   disabled: boolean;
 }
 
-const rowClass = "flex min-h-[44px] items-center gap-3 text-[15px] text-body-strong [&>svg]:h-5 [&>svg]:w-5 [&>svg]:shrink-0 [&>svg]:stroke-[1.75] [&>svg]:text-body";
+const rowClass = "flex min-h-[40px] items-center gap-3 text-[15px] text-body-strong [&>svg]:h-5 [&>svg]:w-5 [&>svg]:shrink-0 [&>svg]:stroke-[1.75] [&>svg]:text-body";
 
 /** Item count stepper and the keyword-focus toggle. */
 export function GeneratorSettingsCard(props: GeneratorSettingsCardProps) {
@@ -30,11 +30,11 @@ export function GeneratorSettingsCard(props: GeneratorSettingsCardProps) {
   const narrowId = `${idPrefix}-narrow`;
 
   return (
-    <section className={cn(aiPanelClass, "space-y-2 p-4 md:p-5")}>
+    <section className={cn(aiPanelClass, "space-y-2 p-4")}>
       <div className={rowClass} data-tour="ai-tool-count">
         <FileTextIcon />
         <label htmlFor={countId} className="flex-1">{countLabel}</label>
-        <div className="flex h-11 items-center rounded-lg border border-hairline bg-canvas pl-4 pr-1.5 focus-within:border-brand">
+        <div className="flex h-10 items-center rounded-lg border border-hairline bg-canvas pl-4 pr-1.5 focus-within:border-brand">
           <input
             id={countId}
             type="number"
@@ -81,7 +81,7 @@ export function GeneratorSettingsCard(props: GeneratorSettingsCardProps) {
           value={keyword}
           disabled={disabled}
           onChange={(event) => onKeywordChange(event.target.value)}
-          className="h-11 w-full rounded-lg border border-hairline bg-surface-soft px-4 text-[14px] text-ink outline-none animate-in slide-in-from-top-2 duration-200 placeholder:text-muted-foreground focus:border-brand"
+          className="h-10 w-full rounded-lg border border-hairline bg-surface-soft px-4 text-[14px] text-ink outline-none animate-in slide-in-from-top-2 duration-200 placeholder:text-muted-foreground focus:border-brand"
         />
       )}
     </section>

@@ -43,14 +43,14 @@ export default function IntegrationsMarquee() {
             </div>
 
             {/* Full-width marquees outside container */}
-            <div className="w-full mb-6">
-                <div className="flex gap-6 marquee">
+            <div className="w-full mb-4">
+                <div className="flex gap-4 marquee">
                     {[0, 1].map((setIdx) => (
-                        <div key={setIdx} className="flex gap-6 shrink-0">
+                        <div key={setIdx} className="flex gap-4 shrink-0">
                             {integrations.map((integration) => (
                                 <div
                                     key={`${integration.name}-${setIdx}`}
-                                    className="shrink-0 px-8 py-6 border border-foreground/10 hover:border-foreground/30 hover:bg-foreground/[0.02] transition-all duration-300 group"
+                                    className="shrink-0 px-5 py-4 border border-foreground/10 hover:border-foreground/30 hover:bg-foreground/[0.02] transition-all duration-300 group"
                                 >
                                     <div className="text-lg font-medium group-hover:translate-x-1 transition-transform text-ink">
                                         {integration.name}
@@ -65,13 +65,13 @@ export default function IntegrationsMarquee() {
 
             {/* Reverse marquee */}
             <div className="w-full">
-                <div className="flex gap-6 marquee-reverse">
+                <div className="flex gap-4 marquee-reverse">
                     {[0, 1].map((setIdx) => (
-                        <div key={setIdx} className="flex gap-6 shrink-0">
+                        <div key={setIdx} className="flex gap-4 shrink-0">
                             {[...integrations].reverse().map((integration) => (
                                 <div
                                     key={`${integration.name}-reverse-${setIdx}`}
-                                    className="shrink-0 px-8 py-6 border border-foreground/10 hover:border-foreground/30 hover:bg-foreground/[0.02] transition-all duration-300 group"
+                                    className="shrink-0 px-5 py-4 border border-foreground/10 hover:border-foreground/30 hover:bg-foreground/[0.02] transition-all duration-300 group"
                                 >
                                     <div className="text-lg font-medium group-hover:translate-x-1 transition-transform text-ink">
                                         {integration.name}

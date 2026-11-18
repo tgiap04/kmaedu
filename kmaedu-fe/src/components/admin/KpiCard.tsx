@@ -39,19 +39,19 @@ export function KpiCard({ label, value, format = "number", icon, className, load
   return (
     <div
       className={cn(
-        "rounded-lg bg-surface-card p-6 transition-colors",
+        "rounded-lg bg-surface-card p-4 transition-colors",
         className,
       )}
     >
-      <div className="mb-2 flex items-center justify-between text-sm text-ink/60">
+      <div className="mb-1 flex items-center justify-between text-sm text-ink/60">
         <span>{label}</span>
         {icon ? <span className="text-ink/40">{icon}</span> : null}
       </div>
       {loading ? (
-        <div className="h-9 w-24 animate-pulse rounded-lg bg-hairline/60" aria-hidden="true" />
+        <div className="h-8 w-24 animate-pulse rounded-lg bg-hairline/60" aria-hidden="true" />
       ) : (
         <div
-          className="font-display text-[36px] font-normal leading-tight tracking-tight text-ink"
+          className="font-display text-[28px] font-normal leading-tight tracking-tight text-ink"
           style={{ fontFamily: "var(--font-display, 'Copernicus', 'Tiempos Headline', Garamond, 'Times New Roman', serif)" }}
         >
           {formatValue(value, format)}

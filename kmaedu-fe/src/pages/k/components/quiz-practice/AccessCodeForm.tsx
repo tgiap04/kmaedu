@@ -19,7 +19,7 @@ export function AccessCodeForm({ title, submitting, error, locked, onSubmit }: A
 
   return (
     <form
-      className="mx-auto w-full max-w-sm space-y-4 p-6 rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]"
+      className="mx-auto w-full max-w-sm space-y-4 p-5 rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]"
       onSubmit={(e) => {
         e.preventDefault();
         if (ready) onSubmit(code);

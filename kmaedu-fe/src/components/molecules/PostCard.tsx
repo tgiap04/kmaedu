@@ -48,7 +48,7 @@ export function PostCard({ post, onPostClick }: PostCardProps) {
 
         {/* Content */}
         <div className="mt-4 cursor-pointer space-y-2" onClick={onPostClick}>
-          <h2 className="text-lg font-semibold text-foreground hover:text-primary">
+          <h2 className="text-base font-semibold text-foreground hover:text-primary">
             {post.title}
           </h2>
           <p className="text-sm text-muted-foreground line-clamp-2">

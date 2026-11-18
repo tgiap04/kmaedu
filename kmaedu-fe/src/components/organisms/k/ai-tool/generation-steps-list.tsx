@@ -65,7 +65,7 @@ export function GenerationStepsList({ itemWord }: { itemWord: string }) {
               aria-current={step.state === "active" ? "step" : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 transition-colors duration-200 @4xl:gap-4 @4xl:px-4",
-                step.state === "active" ? "bg-brand-soft py-3.5" : "py-2.5",
+                step.state === "active" ? "bg-brand-soft py-3" : "py-2.5",
               )}
             >
               <span aria-hidden="true" className="flex items-center gap-3 @4xl:gap-4">

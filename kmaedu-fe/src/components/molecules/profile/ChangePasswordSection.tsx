@@ -88,7 +88,7 @@ export function ChangePasswordSection() {
   return (
     <Card className="!rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader className="pb-0">
-        <CardTitle className="flex items-center gap-3 text-xl">
+        <CardTitle className="flex items-center gap-3 text-lg">
           <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
             <LockSimpleIcon className="size-[18px] text-brand" />
           </div>
@@ -98,7 +98,7 @@ export function ChangePasswordSection() {
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="pt-4">
         {step === "initial" && (
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -270,9 +270,9 @@ export function ChangePasswordSection() {
         )}
 
         {step === "success" && (
-          <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success/10">
-              <CheckIcon className="h-7 w-7 text-success" />
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
+              <CheckIcon className="h-6 w-6 text-success" />
             </div>
             <div>
               <h3 className="text-[16px] font-bold text-ink">Đổi mật khẩu thành công!</h3>

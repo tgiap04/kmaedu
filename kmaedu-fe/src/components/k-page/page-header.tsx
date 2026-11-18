@@ -15,15 +15,15 @@ interface PageHeaderProps {
 /** The /k page title: pink gradient icon tile, large title and a one-line description (as on /k/my-materials). */
 export function PageHeader({ icon, title, subtitle, actions, eyebrow }: PageHeaderProps) {
   return (
-    <header className="mb-6">
+    <header className="mb-5">
       {eyebrow && <div className="mb-3">{eyebrow}</div>}
-      <div className="flex flex-wrap items-center gap-4">
-        <span className="grid size-16 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[#fde4e2] to-[#fef3f2] text-brand shadow-[0_8px_20px_rgba(238,47,43,0.12)] [&_svg]:size-7">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[#fde4e2] to-[#fef3f2] text-brand shadow-[0_6px_16px_rgba(238,47,43,0.12)] [&_svg]:size-6">
           <DecorativeIcons>{icon}</DecorativeIcons>
         </span>
         <div className="min-w-0 flex-1">
-          <h1 className="break-words text-3xl font-bold tracking-tight text-ink lg:text-4xl">{title}</h1>
-          {subtitle && <p className="mt-1.5 text-base text-body">{subtitle}</p>}
+          <h1 className="break-words text-2xl font-bold tracking-tight text-ink lg:text-[28px] lg:leading-9">{title}</h1>
+          {subtitle && <p className="mt-0.5 text-sm text-body">{subtitle}</p>}
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>

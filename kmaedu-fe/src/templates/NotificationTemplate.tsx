@@ -52,7 +52,7 @@ export function NotificationTemplate({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Thông báo</h1>
@@ -62,7 +62,7 @@ export function NotificationTemplate({
       </div>
 
       {/* Main Content */}
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
         {/* Sidebar - Hidden on mobile, visible on lg+ */}
         <aside className="hidden lg:block">
           <NotificationFilterSidebar

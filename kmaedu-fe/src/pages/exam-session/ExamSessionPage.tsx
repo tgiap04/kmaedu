@@ -160,13 +160,13 @@ export default function ExamSessionPage() {
     return (
       <div className="bg-background">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="space-y-6 lg:col-span-2">
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="space-y-4 lg:col-span-2">
               <Skeleton className="h-40 w-full" />
               <Skeleton className="h-60 w-full" />
               <Skeleton className="h-40 w-full" />
             </div>
-            <div className="space-y-6 lg:col-span-1">
+            <div className="space-y-4 lg:col-span-1">
               <Skeleton className="h-32 w-full" />
               <Skeleton className="h-48 w-full" />
             </div>
@@ -180,8 +180,8 @@ export default function ExamSessionPage() {
     return (
       <div className="flex flex-1 items-center justify-center p-4">
         <Card className="max-w-md">
-          <CardContent className="flex flex-col items-center py-12 text-center">
-            <XCircleIcon className="h-16 w-16 text-red-500 mb-4" />
+          <CardContent className="flex flex-col items-center py-8 text-center">
+            <XCircleIcon className="h-12 w-12 text-red-500 mb-4" />
             <h2 className="text-xl font-semibold mb-2">Không tìm thấy phiên thi</h2>
             <p className="text-muted-foreground mb-4">
               Phiên thi này có thể đã bị xóa hoặc không tồn tại.
@@ -269,8 +269,8 @@ export default function ExamSessionPage() {
     return (
       <div className="flex flex-1 items-center justify-center p-4">
         <Card className="max-w-md w-full">
-          <CardContent className="flex flex-col items-center py-12 text-center">
-            <LockSimpleIcon className="h-16 w-16 text-orange-500 mb-4" />
+          <CardContent className="flex flex-col items-center py-8 text-center">
+            <LockSimpleIcon className="h-12 w-12 text-orange-500 mb-4" />
             <h2 className="text-xl font-semibold mb-2">Phiên thi riêng tư</h2>
             <p className="text-muted-foreground mb-6">Bạn không có quyền truy cập phiên thi này.</p>
             <Button onClick={handleGoHome}>Về trang chủ</Button>
@@ -284,8 +284,8 @@ export default function ExamSessionPage() {
     return (
       <div className="flex flex-1 items-center justify-center p-4">
         <Card className="max-w-md">
-          <CardContent className="flex flex-col items-center py-12 text-center">
-            <XCircleIcon className="h-16 w-16 text-red-500 mb-4" />
+          <CardContent className="flex flex-col items-center py-8 text-center">
+            <XCircleIcon className="h-12 w-12 text-red-500 mb-4" />
             <p className="text-muted-foreground mb-4">{loadError}</p>
             <Button variant="outline" onClick={handleGoHome}>
               Về trang chủ

@@ -458,7 +458,7 @@ export default function ExamQuizPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <XCircleIcon className="h-16 w-16 text-destructive mx-auto mb-4" />
+          <XCircleIcon className="h-12 w-12 text-destructive mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">Không thể tải bài thi</h1>
           <p className="text-muted-foreground mb-4">{error}</p>
           <Button onClick={() => navigate(`/exam-session/${examSessionId}`)}>Quay lại</Button>
@@ -471,7 +471,7 @@ export default function ExamQuizPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <XCircleIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <XCircleIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">Không có câu hỏi</h1>
           <p className="text-muted-foreground mb-4">Bài thi này chưa có câu hỏi nào</p>
           <Button onClick={handleExit}>Quay lại</Button>
@@ -525,10 +525,10 @@ export default function ExamQuizPage() {
               <Progress value={percentage} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2 space-y-4">
                 <Card className={cn("border-2", isCorrect ? "border-success" : "border-destructive")}>
-                  <CardContent className="pt-6">
+                  <CardContent>
                     <div className="mb-4 flex justify-between items-start">
                       <h2 className="text-lg font-semibold">
                         Câu {reviewQuestionIndex + 1}/{totalQuestions}
@@ -567,13 +567,13 @@ export default function ExamQuizPage() {
 
               <div className="lg:col-span-1">
                 <Card className="sticky !p-0">
-                  <CardContent className="pt-6 !pb-0 !px-0 flex flex-col" style={{ maxHeight: "calc(100vh - 24rem)" }}>
-                    <h3 className="font-semibold mb-4 flex items-center px-4">
+                  <CardContent className="p-4 flex flex-col" style={{ maxHeight: "calc(100vh - 24rem)" }}>
+                    <h3 className="font-semibold mb-4 flex items-center">
                       <ChartBarIcon className="h-4 w-4 mr-2" />
                       Danh sách câu hỏi
                     </h3>
 
-                    <div className="grid grid-cols-5 gap-2 overflow-y-auto flex-1 min-h-0 p-1 px-3">
+                    <div className="grid grid-cols-5 gap-2 overflow-y-auto flex-1 min-h-0 p-1">
                       {resultData.questions.map((q, index) => {
                         const qUserAnswer = q.userAnswer;
                         const qIsCorrect = qUserAnswer === q.answer;
@@ -615,7 +615,7 @@ export default function ExamQuizPage() {
                       </div>
                     </div>
 
-                    <Button className="w-full !mt-3 mx-3 !py-2" size="lg" onClick={() => setShowDetailedResults(false)} variant="outline">
+                    <Button className="w-full !mt-3 !py-2" onClick={() => setShowDetailedResults(false)} variant="outline">
                       Xem tổng quan
                     </Button>
                   </CardContent>
@@ -651,36 +651,36 @@ export default function ExamQuizPage() {
     return (
       <div className="container max-w-4xl mx-auto py-8 px-4">
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-center space-y-6">
+          <CardContent>
+            <div className="text-center space-y-4">
               <div className="flex justify-center">
-                {passed ? <CheckCircleIcon className="h-20 w-20 text-success" /> : <XCircleIcon className="h-20 w-20 text-destructive" />}
+                {passed ? <CheckCircleIcon className="h-14 w-14 text-success" /> : <XCircleIcon className="h-14 w-14 text-destructive" />}
               </div>
 
               <div>
-                <h1 className="text-3xl font-bold mb-2">{passed ? "Chúc mừng!" : "Chưa đạt"}</h1>
+                <h1 className="text-2xl font-bold mb-2">{passed ? "Chúc mừng!" : "Chưa đạt"}</h1>
                 <p className="text-muted-foreground">{passed ? "Bạn đã hoàn thành bài thi" : "Hãy cố gắng hơn lần sau"}</p>
               </div>
 
               <div className="grid grid-cols-5 gap-4 max-w-2xl mx-auto">
                 <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold text-success">{correctAnswersCount}</div>
+                  <div className="text-xl font-bold text-success">{correctAnswersCount}</div>
                   <div className="text-sm text-muted-foreground">Đúng</div>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold text-destructive">{totalQuestions - correctAnswersCount}</div>
+                  <div className="text-xl font-bold text-destructive">{totalQuestions - correctAnswersCount}</div>
                   <div className="text-sm text-muted-foreground">Sai</div>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold">{percentage.toFixed(0)}%</div>
+                  <div className="text-xl font-bold">{percentage.toFixed(0)}%</div>
                   <div className="text-sm text-muted-foreground">Điểm</div>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold">{formatTimeLabel(timeSpentSeconds)}</div>
+                  <div className="text-xl font-bold">{formatTimeLabel(timeSpentSeconds)}</div>
                   <div className="text-sm text-muted-foreground">Thời gian</div>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className={`text-2xl font-bold ${(resultData.violationCount ?? 0) > 0 ? "text-warning" : "text-success"}`}>
+                  <div className={`text-xl font-bold ${(resultData.violationCount ?? 0) > 0 ? "text-warning" : "text-success"}`}>
                     {resultData.violationCount ?? 0}
                   </div>
                   <div className="text-sm text-muted-foreground">Vi phạm</div>
@@ -775,11 +775,11 @@ export default function ExamQuizPage() {
             <Progress value={progressPercentage} />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 space-y-4">
               {currentQuestion && (
                 <Card>
-                  <CardContent className="pt-6">
+                  <CardContent>
                     <div className="mb-4 flex justify-between items-start">
                       <h2 className="text-lg font-semibold">
                         Câu {currentQuestionIndex + 1}/{totalQuestions}
@@ -820,7 +820,7 @@ export default function ExamQuizPage() {
 
             <div className="lg:col-span-1">
               <Card className="sticky !p-0">
-                <CardContent className="pt-6 !pb-0 !px-0 flex flex-col" style={{ maxHeight: "calc(100vh - 24rem)" }}>
+                <CardContent className="p-4 flex flex-col" style={{ maxHeight: "calc(100vh - 24rem)" }}>
                   <h3 className="font-semibold mb-4 flex items-center">
                     <ChartBarIcon className="h-4 w-4 mr-2" />
                     Danh sách câu hỏi
@@ -877,7 +877,7 @@ export default function ExamQuizPage() {
                     </div>
                   )}
 
-                  <Button className="w-full !mt-3" size="lg" onClick={() => setShowSubmitConfirm(true)} variant="default">
+                  <Button className="w-full !mt-3" onClick={() => setShowSubmitConfirm(true)} variant="default">
                     Nộp bài
                   </Button>
                 </CardContent>

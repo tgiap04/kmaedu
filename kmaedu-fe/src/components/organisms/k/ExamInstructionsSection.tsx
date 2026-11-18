@@ -37,8 +37,8 @@ export function ExamInstructionsSection({
   instructions = defaultInstructions,
 }: ExamInstructionsSectionProps) {
   return (
-    <Card className="p-6">
-      <div className="mb-4 flex items-center gap-2">
+    <Card className="p-4">
+      <div className="mb-3 flex items-center gap-2">
         <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
           i
         </div>

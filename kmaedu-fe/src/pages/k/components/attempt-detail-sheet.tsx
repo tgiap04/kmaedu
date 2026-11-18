@@ -26,10 +26,10 @@ export function AttemptDetailSheet({ open, onOpenChange, loadingDetail, selected
       {loadingDetail ? (
         <div className="space-y-4 mt-6"><Skeleton className="h-20 w-full" /><Skeleton className="h-40 w-full" /></div>
       ) : selectedAttempt ? (
-        <div className="space-y-6 mt-6">
+        <div className="space-y-4 mt-6">
           <div className="rounded-lg border border-hairline bg-surface-soft p-4">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-brand-soft text-brand flex items-center justify-center"><span className="text-lg font-bold">{displayUserInitial(selectedAttempt.user)}</span></div>
+              <div className="h-10 w-10 rounded-full bg-brand-soft text-brand flex items-center justify-center"><span className="text-lg font-bold">{displayUserInitial(selectedAttempt.user)}</span></div>
               <div><p className="font-semibold">{displayUserName(selectedAttempt.user)}</p></div>
             </div>
           </div>
@@ -37,8 +37,8 @@ export function AttemptDetailSheet({ open, onOpenChange, loadingDetail, selected
           <div className="space-y-3">
             <h4 className="font-semibold flex items-center gap-2"><TrophyIcon className="h-4 w-4 text-yellow-500" />Điểm cao nhất</h4>
             <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg border border-hairline p-4 text-center"><p className="text-3xl font-bold text-brand">{selectedAttempt.score.toFixed(1)}%</p><p className="text-sm text-muted-foreground">Điểm số</p></div>
-              <div className="rounded-lg border border-hairline p-4 text-center"><p className="text-3xl font-bold">{formatDuration(selectedAttempt.timeSpentSeconds)}</p><p className="text-sm text-muted-foreground">Thời gian</p></div>
+              <div className="rounded-lg border border-hairline p-4 text-center"><p className="text-2xl font-bold text-brand">{selectedAttempt.score.toFixed(1)}%</p><p className="text-sm text-muted-foreground">Điểm số</p></div>
+              <div className="rounded-lg border border-hairline p-4 text-center"><p className="text-2xl font-bold">{formatDuration(selectedAttempt.timeSpentSeconds)}</p><p className="text-sm text-muted-foreground">Thời gian</p></div>
             </div>
           </div>
 

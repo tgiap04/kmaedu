@@ -59,8 +59,8 @@ export function ProfileForm({
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent className="pt-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email Verification warning */}
           {!profile.isVerified && (
             <div className="flex items-start gap-4 rounded-lg border border-warning/30 bg-warning/5 p-4 transition-all animate-in fade-in duration-300">

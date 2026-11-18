@@ -21,7 +21,7 @@ export const ResultPanel = forwardRef<HTMLElement, ResultPanelProps>(({ icon, ti
   const saveButton = (
     <button
       type="button"
-      className="inline-flex h-11 items-center gap-2 rounded-lg border border-hairline bg-canvas px-5 text-[14px] font-semibold text-ink transition-colors hover:bg-surface-soft"
+      className="inline-flex h-10 items-center gap-2 rounded-lg border border-hairline bg-canvas px-5 text-[14px] font-semibold text-ink transition-colors hover:bg-surface-soft"
     >
       <FloppyDiskBackIcon className="h-[18px] w-[18px]" />
       Lưu
@@ -29,14 +29,14 @@ export const ResultPanel = forwardRef<HTMLElement, ResultPanelProps>(({ icon, ti
   );
 
   return (
-    <section ref={ref} className={cn(aiPanelClass, "flex min-h-[600px] flex-col p-4 md:p-6")}>
+    <section ref={ref} className={cn(aiPanelClass, "flex min-h-[480px] flex-col p-4 md:p-5")}>
       <div data-tour="ai-tool-preview" className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="flex items-center gap-2.5 text-[20px] font-bold text-ink [&_svg]:h-6 [&_svg]:w-6 [&_svg]:text-brand">
+          <h2 className="flex items-center gap-2.5 text-[18px] font-bold text-ink [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-brand">
             {icon}
             {title}
           </h2>
-          <p className="mt-1.5 text-[14px] text-body">Xem trước nội dung AI tạo từ tài liệu trước khi lưu.</p>
+          <p className="mt-1 text-[14px] text-body">Xem trước nội dung AI tạo từ tài liệu trước khi lưu.</p>
         </div>
         {renderSave?.(saveButton)}
       </div>
@@ -59,20 +59,20 @@ export function ResultLoading({ itemWord }: { itemWord: string }) {
   const subject = itemWord === "flashcard" ? "bộ flashcard" : "đề thi";
   return (
     <div className="@container flex flex-1">
-      <div className="grid w-full gap-8 rounded-lg border border-hairline-soft bg-white p-4 shadow-[0_20px_50px_rgba(15,23,42,0.06)] @xl:grid-cols-[minmax(0,0.8fr)_1px_minmax(0,1.55fr)] @xl:gap-6 @xl:p-6 @4xl:gap-8 @4xl:p-8">
+      <div className="grid w-full gap-5 rounded-lg border border-hairline-soft bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.06)] @xl:grid-cols-[minmax(0,0.8fr)_1px_minmax(0,1.55fr)] @xl:gap-4 @xl:p-4 @4xl:gap-5 @4xl:p-5">
         <div className="flex flex-col items-center justify-center text-center">
           <GenerationProgressIllustration className="w-full max-w-[240px] @xl:max-w-[200px] @4xl:max-w-[240px]" />
-          <h3 className="mt-4 text-[26px] leading-tight font-bold text-ink @xl:text-[22px] @4xl:text-[30px]">{`Đang tạo ${subject} của bạn`}</h3>
+          <h3 className="mt-4 text-[22px] leading-tight font-bold text-ink @xl:text-[19px] @4xl:text-[24px]">{`Đang tạo ${subject} của bạn`}</h3>
           <p className="mt-3 max-w-xs text-[15px] leading-relaxed text-body @xl:text-[14px] @4xl:text-[15px]">Hệ thống làm lần lượt từng bước, bước nào xong sẽ được đánh dấu.</p>
-          <div className="mt-6 flex gap-2" aria-hidden="true">
+          <div className="mt-4 flex gap-2" aria-hidden="true">
             <span className="h-1.5 w-16 rounded-lg bg-brand" />
             <span className="h-1.5 w-16 rounded-lg bg-brand-soft" />
           </div>
         </div>
         <div className="hidden bg-hairline-soft @xl:block" aria-hidden="true" />
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           <GenerationStepsList itemWord={itemWord} />
-          <div className="flex items-start gap-4 rounded-lg bg-brand-soft px-5 py-4">
+          <div className="flex items-start gap-3 rounded-lg bg-brand-soft px-4 py-3">
             <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand text-white" aria-hidden="true">
               <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
                 <circle cx="12" cy="7" r="1.6" fill="currentColor" />

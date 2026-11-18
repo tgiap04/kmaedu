@@ -46,7 +46,7 @@ export function LeaderboardPanel({ roomId }: Props) {
 
   return (
     <Card className="flex h-full flex-col">
-      <CardHeader className="flex shrink-0 items-center justify-between">
+      <CardHeader className="flex shrink-0 items-center justify-between px-4 pt-4 pb-3">
         <CardTitle className="flex items-center gap-2 !text-base">
           <TrophyIcon className="h-4 w-4 text-warning" /> Bảng tập trung
         </CardTitle>
@@ -54,7 +54,7 @@ export function LeaderboardPanel({ roomId }: Props) {
           <ArrowsClockwiseIcon className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent className="min-h-0 flex-1 space-y-2 overflow-y-auto pb-4">
+      <CardContent className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4 pt-0">
         {rows.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">
             Chưa có dữ liệu tập trung

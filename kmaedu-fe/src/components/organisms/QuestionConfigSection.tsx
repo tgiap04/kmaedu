@@ -206,7 +206,7 @@ export function QuestionConfigSection({
           Cấu hình câu hỏi
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-5 pt-3">
         {/* Selection Mode */}
         <div className="space-y-3">
           <Label className="text-base font-medium">Chế độ chọn câu hỏi</Label>

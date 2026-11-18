@@ -18,7 +18,7 @@ interface QuestionPanelProps {
 export function QuestionPanel({ question, index, total, selected, marked, onSelect, onToggleMark }: QuestionPanelProps) {
   return (
     <div className="rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
-      <div className="p-5 md:p-6">
+      <div className="p-4 md:p-5">
         <div className="mb-4 flex items-start justify-between">
           <h2 className="text-lg font-bold text-ink">
             Câu {index + 1}/{total}

@@ -59,7 +59,7 @@ export default function AdminStatsPage() {
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <h1 className="font-display text-3xl font-normal tracking-tight text-ink">
+          <h1 className="font-display text-2xl font-normal tracking-tight text-ink">
             {t("pages.stats.title")}
           </h1>
           <p className="mt-1 text-sm text-ink/60">

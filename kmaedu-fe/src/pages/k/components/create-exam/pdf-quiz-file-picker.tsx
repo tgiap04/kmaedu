@@ -31,11 +31,11 @@ export function PdfQuizFilePicker({ files, loading, failed, hasMore, onLoadMore,
   const firstLoad = loading && files.length === 0;
 
   return (
-    <section className={cn(createCardClass, "p-5 md:p-6")} aria-labelledby="files-title">
+    <section className={cn(createCardClass, "p-4 md:p-5")} aria-labelledby="files-title">
       <div className="flex flex-wrap items-center gap-3">
-        <FileTextIcon className="size-6 text-brand" aria-hidden />
+        <FileTextIcon className="size-5 text-brand" aria-hidden />
         <div className="flex-1">
-          <h2 id="files-title" className="text-[18px] font-bold text-ink">
+          <h2 id="files-title" className="text-base font-bold text-ink">
             File đã tạo Quiz {files.length > 0 && <span className="text-[15px] font-normal text-muted-foreground">({files.length} file)</span>}
           </h2>
           <p className="mt-0.5 text-[13px] text-body">Chọn file để xem các câu Quiz AI đã tạo. Có thể chọn câu từ nhiều file.</p>
@@ -73,7 +73,7 @@ export function PdfQuizFilePicker({ files, loading, failed, hasMore, onLoadMore,
           {visible.length === 0 ? (
             <p className="py-8 text-center text-[14px] text-body">{search ? "Không có file nào khớp." : "Chưa thấy file có Quiz trong các file đã tải."}</p>
           ) : (
-            <div role="radiogroup" aria-labelledby="files-title" className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div role="radiogroup" aria-labelledby="files-title" className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {visible.map((f) => {
                 const active = f.id === selectedId;
                 const picked = pickedByFile.get(f.id) ?? 0;
@@ -85,7 +85,7 @@ export function PdfQuizFilePicker({ files, loading, failed, hasMore, onLoadMore,
                     aria-checked={active}
                     onClick={() => onSelect(f.id)}
                     className={cn(
-                      "flex items-start gap-3 rounded-lg border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
+                      "flex items-start gap-3 rounded-lg border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
                       active ? "border-brand bg-brand-soft/60" : "border-hairline bg-canvas hover:border-brand-border",
                     )}
                   >

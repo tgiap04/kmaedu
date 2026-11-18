@@ -102,17 +102,17 @@ export default function ContactSection() {
 
       <section className="bg-canvas landing-dot-paper py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
+          <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
             <div className="lg:col-span-7">
-              <div className="rounded-lg border border-hairline bg-surface-card p-8 sm:p-10">
-                <h2 className="font-display text-[28px] font-medium leading-[1.15] tracking-[-0.015em] text-ink">
+              <div className="rounded-lg border border-hairline bg-surface-card p-5 sm:p-6">
+                <h2 className="font-display text-[24px] font-medium leading-[1.15] tracking-[-0.015em] text-ink">
                   {t("contact.form.heading")}
                 </h2>
                 <p className="mt-2 text-[14px] text-body">
                   {t("contact.form.description")}
                 </p>
 
-                <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div>
                       <label className="text-[13px] font-medium text-ink">
@@ -184,7 +184,7 @@ export default function ContactSection() {
             </div>
 
             <div className="lg:col-span-5">
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <ContactCard
                   icon={EnvelopeSimpleIcon}
                   title={t("contact.card.email")}
@@ -204,11 +204,11 @@ export default function ContactSection() {
                 />
               </div>
 
-              <div className="mt-8 rounded-lg border border-hairline bg-surface-card p-6">
+              <div className="mt-4 rounded-lg border border-hairline bg-surface-card p-4">
                 <p className="text-[12px] font-medium uppercase tracking-[1.5px] text-coral">
                   {t("contact.partnership.badge")}
                 </p>
-                <h3 className="font-display mt-2 text-[22px] font-medium leading-[1.3] tracking-[-0.01em] text-ink">
+                <h3 className="font-display mt-2 text-[18px] font-medium leading-[1.3] tracking-[-0.01em] text-ink">
                   {t("contact.partnership.headline")}
                 </h3>
                 <p className="mt-2 text-[14px] leading-[1.6] text-body">
@@ -242,7 +242,7 @@ function ContactCard({
   href?: string;
 }) {
   const content = (
-    <div className="flex items-start gap-4 rounded-lg border border-hairline bg-canvas p-5 transition-colors hover:border-coral/40">
+    <div className="flex items-start gap-4 rounded-lg border border-hairline bg-canvas p-4 transition-colors hover:border-coral/40">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-card text-coral">
         <Icon className="h-5 w-5" />
       </div>

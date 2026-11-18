@@ -196,14 +196,14 @@ export default function ManageFlashcardSetDetailPage() {
 
   if (loading || !currentFlashcardSet) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-16 w-72 rounded-lg" />
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-72 rounded-lg" />
         <div className="grid gap-4 md:grid-cols-3">
-          <Skeleton className="h-28 rounded-lg" />
-          <Skeleton className="h-28 rounded-lg" />
-          <Skeleton className="h-28 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
         </div>
-        <Skeleton className="h-96 rounded-lg" />
+        <Skeleton className="h-80 rounded-lg" />
       </div>
     );
   }
@@ -274,7 +274,7 @@ export default function ManageFlashcardSetDetailPage() {
           }
         />
 
-        <div className="mb-6 grid gap-4 md:grid-cols-3">
+        <div className="mb-4 grid gap-4 md:grid-cols-3">
           <HistoryStatCard icon={CreditCardIcon} title="Tổng số thẻ" value={totalFlashcards} tone="red" />
           <HistoryStatCard icon={EyeIcon} title="Lượt xem" value={currentFlashcardSet.viewCount} tone="green" />
           <HistoryStatCard icon={CalendarDotsIcon} title="Ngày tạo" value={new Date(currentFlashcardSet.createdAt).toLocaleDateString("vi-VN")} tone="blue" />
@@ -310,7 +310,7 @@ export default function ManageFlashcardSetDetailPage() {
           {flashcardsLoading ? (
             <div className="grid gap-4 border-t border-hairline-soft p-4 md:grid-cols-2 md:p-5 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-40 w-full rounded-lg" />
+                <Skeleton key={i} className="h-32 w-full rounded-lg" />
               ))}
             </div>
           ) : paginatedFlashcards.length > 0 ? (

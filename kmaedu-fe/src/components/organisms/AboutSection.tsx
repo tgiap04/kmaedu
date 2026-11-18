@@ -98,13 +98,13 @@ export default function AboutSection() {
           <div className="grid gap-8 md:grid-cols-3">
             {stats.map(({ icon: Icon, value, label }) => (
               <div key={label} className="text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-canvas text-coral">
-                  <Icon className="h-6 w-6" />
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-canvas text-coral">
+                  <Icon className="h-5 w-5" />
                 </div>
-                <p className="font-display !mt-4 text-[36px] font-medium tracking-[-0.02em] text-ink">
+                <p className="font-display !mt-3 text-[30px] font-medium leading-none tracking-[-0.02em] text-ink">
                   {value}
                 </p>
-                <p className="!-mt-4 text-[14px] text-body">{label}</p>
+                <p className="!mt-1.5 text-[14px] text-body">{label}</p>
               </div>
             ))}
           </div>
@@ -113,12 +113,12 @@ export default function AboutSection() {
 
       <section className="bg-canvas landing-dot-paper py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-6 md:grid-cols-2">
-            <article className="rounded-lg bg-surface-card p-8 sm:p-10">
+          <div className="grid gap-4 md:grid-cols-2">
+            <article className="rounded-lg bg-surface-card p-5">
               <p className="text-[12px] font-medium uppercase tracking-[1.5px] text-coral">
                 {t("about.mission.badge")}
               </p>
-              <h2 className="font-display mt-3 text-[28px] font-medium leading-[1.15] tracking-[-0.015em] text-ink sm:text-[32px]">
+              <h2 className="font-display mt-3 text-[24px] font-medium leading-[1.15] tracking-[-0.015em] text-ink sm:text-[26px]">
                 {t("about.mission.headline")}
               </h2>
               <p className="mt-4 text-[15px] leading-[1.6] text-body">
@@ -126,11 +126,11 @@ export default function AboutSection() {
               </p>
             </article>
 
-            <article className="rounded-lg bg-surface-card p-8 sm:p-10">
+            <article className="rounded-lg bg-surface-card p-5">
               <p className="text-[12px] font-medium uppercase tracking-[1.5px] text-coral">
                 {t("about.vision.badge")}
               </p>
-              <h2 className="font-display mt-3 text-[28px] font-medium leading-[1.15] tracking-[-0.015em] text-ink sm:text-[32px]">
+              <h2 className="font-display mt-3 text-[24px] font-medium leading-[1.15] tracking-[-0.015em] text-ink sm:text-[26px]">
                 {t("about.vision.headline")}
               </h2>
               <p className="mt-4 text-[15px] leading-[1.6] text-body">
@@ -152,16 +152,16 @@ export default function AboutSection() {
             </h2>
           </div>
 
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
+          <div className="mt-12 grid gap-4 md:grid-cols-3">
             {values.map(({ icon: Icon, key }) => (
               <article
                 key={key}
-                className="flex flex-col rounded-lg border border-hairline bg-canvas p-8 transition-colors hover:border-coral/40"
+                className="flex flex-col rounded-lg border border-hairline bg-canvas p-5 transition-colors hover:border-coral/40"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-card text-coral">
                   <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="font-display !mt-6 text-[22px] font-medium leading-[1.3] tracking-[-0.01em] text-ink">
+                <h3 className="font-display !mt-4 text-[18px] font-medium leading-[1.3] tracking-[-0.01em] text-ink">
                   {t(`about.values.${key}.title`)}
                 </h3>
                 <p className="flex-1 text-[15px] leading-[1.6] text-body">
@@ -175,7 +175,7 @@ export default function AboutSection() {
 
       <section className="bg-canvas landing-dot-paper py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-lg bg-coral px-8 py-14 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
+          <div className="overflow-hidden rounded-lg bg-coral px-6 py-10 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="font-display text-[36px] font-medium leading-[1.1] tracking-[-0.02em] text-white sm:text-[44px]">
                 {t("about.cta.headline")}
@@ -185,7 +185,7 @@ export default function AboutSection() {
               </p>
               <Link
                 to="/register"
-                className="mt-8 inline-flex h-12 items-center gap-2 rounded-lg bg-canvas px-6 text-[14px] font-medium text-ink transition-colors hover:bg-on-dark"
+                className="mt-6 inline-flex h-10 items-center gap-2 rounded-lg bg-canvas px-6 text-[14px] font-medium text-ink transition-colors hover:bg-on-dark"
               >
                 {t("about.cta.button")}
                 <ArrowCircleRightIcon className="h-4 w-4" />

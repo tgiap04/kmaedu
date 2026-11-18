@@ -64,8 +64,8 @@ export function QuizSetUsagePanel({ quizSetId }: Props) {
       <ul className="divide-y divide-hairline-soft">
       {rooms.map((r) => (
         <li key={r.id}>
-          <Link to={`/k/manage-exam-room/${r.id}`} className="flex items-center gap-4 px-1 py-4 transition-colors hover:bg-surface-soft/60">
-            <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><DoorOpenIcon className="size-5" aria-hidden /></span>
+          <Link to={`/k/manage-exam-room/${r.id}`} className="flex items-center gap-4 px-1 py-3 transition-colors hover:bg-surface-soft/60">
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><DoorOpenIcon className="size-5" aria-hidden /></span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[15px] font-semibold text-ink">{r.title}</span>
               <span className="mt-0.5 block text-[13px] text-body">

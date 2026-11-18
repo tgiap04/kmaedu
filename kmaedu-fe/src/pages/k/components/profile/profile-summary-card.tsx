@@ -12,15 +12,15 @@ export function ProfileSummaryCard({ profile }: { profile: UserProfile }) {
 
   return (
     <div className="overflow-hidden rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
-      <div className="h-24 w-full bg-gradient-to-br from-[#fde4e2] via-[#fff6f5] to-[#fef3f2]" />
-      <div className="relative px-5 pb-5">
-        <div className="absolute -top-10 left-5 grid size-20 place-items-center rounded-full border-4 border-canvas bg-brand-soft shadow-md">
-          <span className="select-none text-xl font-bold uppercase text-brand">{initials}</span>
+      <div className="h-16 w-full bg-gradient-to-br from-[#fde4e2] via-[#fff6f5] to-[#fef3f2]" />
+      <div className="relative px-4 pb-4">
+        <div className="absolute -top-7 left-4 grid size-14 place-items-center rounded-full border-4 border-canvas bg-brand-soft shadow-md">
+          <span className="select-none text-lg font-bold uppercase text-brand">{initials}</span>
         </div>
 
-        <div className="space-y-4 pt-12">
+        <div className="space-y-4 pt-9">
           <div className="space-y-2">
-            <h2 className="break-words text-xl font-bold leading-tight text-ink">{profile.name || profile.username}</h2>
+            <h2 className="break-words text-lg font-bold leading-tight text-ink">{profile.name || profile.username}</h2>
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <span>@{profile.username}</span>
               <span className="select-none">·</span>

@@ -107,13 +107,13 @@ export function StatChart({
   error,
   onRetry,
   className,
-  height = 320,
+  height = 260,
 }: StatChartProps) {
   const hasData = Array.isArray(data) && data.length > 0;
 
   return (
-    <div className={cn("rounded-lg bg-surface-card p-6", className)}>
-      <div className="mb-4 flex items-center justify-between">
+    <div className={cn("rounded-lg bg-surface-card p-4", className)}>
+      <div className="mb-3 flex items-center justify-between">
         <h3 className="font-display text-lg font-normal tracking-tight text-ink">{title}</h3>
       </div>
       <div className="w-full" style={{ height }}>

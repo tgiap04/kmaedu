@@ -121,10 +121,10 @@ export default function ExamRoomSessionAnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-16 w-72 rounded-lg" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-28 rounded-lg" />)}</div>
-        <Skeleton className="h-96 rounded-lg" />
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-72 rounded-lg" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24 rounded-lg" />)}</div>
+        <Skeleton className="h-80 rounded-lg" />
       </div>
     );
   }
@@ -147,10 +147,10 @@ export default function ExamRoomSessionAnalyticsPage() {
           </Breadcrumb>
         }
       />
-      <div className="space-y-6">
+      <div className="space-y-4">
         <AnalyticsStats completed={sortedAttempts.length} avgScore={avgScore} passed={passedCount} violations={totalViolations} />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <ScoreDistributionCard data={scoreDistribution} />
           {cheatingStats.length > 0 && <ViolationsCard data={violationPieData} />}
         </div>

@@ -13,12 +13,12 @@ interface PracticeResultProps {
 export function PracticeResult({ result, onPracticeAgain }: PracticeResultProps) {
   const { attempt, questions } = result;
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
-        <div className="flex flex-wrap items-center justify-between gap-4 p-5 md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 md:p-5">
           <div>
             <p className="text-sm text-muted-foreground">Điểm</p>
-            <p className="text-4xl font-bold text-brand">{attempt.score ?? 0}/10</p>
+            <p className="text-3xl font-bold text-brand">{attempt.score ?? 0}/10</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Đúng {attempt.correctAnswers ?? 0}/{attempt.totalQuestions} câu · {formatDuration(attempt.timeSpentSeconds)}
             </p>
@@ -29,7 +29,7 @@ export function PracticeResult({ result, onPracticeAgain }: PracticeResultProps)
 
       {questions.map((q, index) => (
         <div key={q.id} className="rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
-          <div className="p-5 md:p-6">
+          <div className="p-4 md:p-5">
             <h3 className="mb-3 font-semibold">Câu {index + 1}</h3>
             <StandardMarkdownRenderer content={q.question} className="mb-4" fontSize={15} />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

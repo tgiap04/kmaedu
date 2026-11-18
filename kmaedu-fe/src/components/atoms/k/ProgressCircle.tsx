@@ -15,8 +15,8 @@ export function ProgressCircle({
 }: ProgressCircleProps) {
   return (
     <div className={cn("text-center", className)}>
-      <div className="relative inline-flex h-20 w-20 items-center justify-center">
-        <svg className="h-20 w-20 -rotate-90 transform">
+      <div className="relative inline-flex h-16 w-16 items-center justify-center">
+        <svg viewBox="0 0 80 80" className="h-16 w-16 -rotate-90 transform">
           <circle
             className="text-muted"
             strokeWidth="6"
@@ -38,7 +38,7 @@ export function ProgressCircle({
             strokeDasharray={`${(value / total) * 201} 201`}
           />
         </svg>
-        <span className="absolute text-xl font-bold text-foreground">
+        <span className="absolute text-lg font-bold text-foreground">
           {value}
         </span>
       </div>

@@ -47,11 +47,11 @@ export function SourceQuestionList({ filename, questions, loading, failed, onRet
   useEffect(() => setPage(1), [visible.length]);
 
   return (
-    <section className={cn(createCardClass, "p-5 md:p-6")} aria-labelledby="questions-title">
+    <section className={cn(createCardClass, "p-4 md:p-5")} aria-labelledby="questions-title">
       <div className="flex flex-wrap items-center gap-3 border-b border-hairline-soft pb-4">
-        <ListChecksIcon className="size-6 text-brand" aria-hidden />
+        <ListChecksIcon className="size-5 text-brand" aria-hidden />
         <div className="min-w-0 flex-1">
-          <h2 id="questions-title" className="text-[18px] font-bold text-ink">
+          <h2 id="questions-title" className="text-base font-bold text-ink">
             Danh sách câu hỏi <span className="text-[15px] font-normal text-muted-foreground">({questions.length} câu)</span>
           </h2>
           <p className="mt-0.5 truncate text-[13px] text-body">Từ file: {filename}</p>

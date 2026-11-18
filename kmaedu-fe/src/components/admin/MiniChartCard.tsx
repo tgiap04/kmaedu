@@ -108,13 +108,13 @@ export function MiniChartCard({
   const hasData = Array.isArray(data) && data.length > 0;
 
   return (
-    <div className={cn("rounded-lg bg-surface-card p-6", className)}>
+    <div className={cn("rounded-lg bg-surface-card p-4", className)}>
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-medium text-ink">{title}</h3>
       </div>
-      <div className="h-[200px] w-full">
+      <div className="h-[160px] w-full">
         {loading ? (
-          <ChartSkeleton height={200} />
+          <ChartSkeleton height={160} />
         ) : error ? (
           <ErrorState message={error} onRetry={onRetry} />
         ) : !hasData ? (

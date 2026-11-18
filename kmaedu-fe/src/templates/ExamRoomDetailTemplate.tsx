@@ -126,7 +126,7 @@ export function ExamRoomDetailTemplate({
   return (
     <div className="bg-background">
       <div>
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3">
           {/* Main Content - Left Side (2 columns) */}
           <div className="!space-y-3 lg:col-span-2">
             {/* Exam Header */}
@@ -139,7 +139,7 @@ export function ExamRoomDetailTemplate({
             <SystemCheckSection />
 
             {/* Terms Agreement */}
-            <Card className="p-6">
+            <Card className="p-4">
               <div className="flex items-start gap-3">
                 <Checkbox
                   id="terms"
@@ -160,14 +160,13 @@ export function ExamRoomDetailTemplate({
             </Card>
 
             {/* Exam Start Info & Button */}
-            <Card className="p-6">
+            <Card className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <div className="h-2 w-2 rounded-full bg-primary" />
                   <span>Bài thi bắt đầu: {examStartTime}</span>
                 </div>
                 <Button
-                  size="lg"
                   disabled={!agreedToTerms}
                   onClick={onStartExam}
                   className="bg-gradient-to-r from-primary to-purple-500 hover:opacity-90">
@@ -178,10 +177,10 @@ export function ExamRoomDetailTemplate({
           </div>
 
           {/* Sidebar - Right Side (1 column) */}
-          <div className="space-y-6 lg:col-span-1">
+          <div className="space-y-4 lg:col-span-1">
             {/* Countdown Timer - only show if timeRemaining exists */}
             {timeRemaining && (
-              <Card className="p-6">
+              <Card className="p-4">
                 <CountdownTimer
                   hours={timeRemaining.hours}
                   minutes={timeRemaining.minutes}
@@ -196,7 +195,7 @@ export function ExamRoomDetailTemplate({
             <ExamProgressSection progress={progress} />
 
             {/* Attempt History */}
-            <Card className="p-6 !mt-3">
+            <Card className="p-4 !mt-3">
               <h3 className="mb-4 font-semibold text-foreground flex items-center gap-2">
                 <ArrowCounterClockwiseIcon className="h-4 w-4" />
                 Lịch sử làm bài

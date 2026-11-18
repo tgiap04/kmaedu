@@ -38,12 +38,12 @@ export function ExamRoomManagementTemplate({
     <div>
       <div>
         {/* Stats Section */}
-        <div className="mb-8">
+        <div className="mb-4">
           <RoomStatsSection stats={stats} />
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3">
           {/* Exam Rooms - Takes 2 columns */}
           <div className="lg:col-span-2">
             <ExamRoomList

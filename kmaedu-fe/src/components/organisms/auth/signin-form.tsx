@@ -38,12 +38,12 @@ export function SigninForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas landing-dot-paper p-4">
       <div className="w-full max-w-md">
-        <div className="rounded-lg border border-hairline bg-canvas p-8 shadow-[0_18px_48px_rgba(20,20,19,0.08)]">
-          <div className="mb-8 text-center">
+        <div className="rounded-lg border border-hairline bg-canvas p-5 shadow-[0_18px_48px_rgba(20,20,19,0.08)]">
+          <div className="mb-6 text-center">
             <div className="mx-auto mb-5 flex justify-center">
               <Logo sizeLogo={36} sizeText={22} />
             </div>
-            <h1 className="font-display text-[28px] font-medium tracking-[-0.015em] text-ink">
+            <h1 className="font-display text-[24px] font-medium tracking-[-0.015em] text-ink">
               {t("login.welcome")}
             </h1>
             <p className="mt-2 text-[14px] text-body">

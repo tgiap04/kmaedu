@@ -61,10 +61,10 @@ export default function StatsSection() {
                         </p>
 
                         {/* Stats */}
-                        <div className="grid grid-cols-3 gap-8">
+                        <div className="grid grid-cols-3 gap-4">
                             {stats.map((stat) => (
                                 <div key={stat.label}>
-                                    <div className="text-4xl lg:text-5xl font-display mb-2 text-ink">{stat.value}</div>
+                                    <div className="text-3xl lg:text-4xl font-display mb-2 text-ink">{stat.value}</div>
                                     <div className="text-sm text-muted-foreground">{stat.label}</div>
                                 </div>
                             ))}
@@ -75,7 +75,7 @@ export default function StatsSection() {
                     <div className={`transition-all duration-700 delay-200 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"}`}>
                         <div className="border border-foreground/10">
                             {/* Header */}
-                            <div className="px-6 py-4 border-b border-foreground/10 flex items-center justify-between">
+                            <div className="px-5 py-3 border-b border-foreground/10 flex items-center justify-between">
                                 <span className="text-sm font-mono text-muted-foreground">{t("stats.location.network")}</span>
                                 <span className="flex items-center gap-2 text-xs font-mono text-success">
                                     <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
@@ -88,7 +88,7 @@ export default function StatsSection() {
                                 {locations.map((location, index) => (
                                     <div
                                         key={location.city}
-                                        className={`px-6 py-5 border-b border-foreground/5 last:border-b-0 flex items-center justify-between transition-all duration-300 ${activeLocation === index ? "bg-foreground/[0.02]" : ""}`}
+                                        className={`px-5 py-3.5 border-b border-foreground/5 last:border-b-0 flex items-center justify-between transition-all duration-300 ${activeLocation === index ? "bg-foreground/[0.02]" : ""}`}
                                     >
                                         <div className="flex items-center gap-4">
                                             <span className={`w-2 h-2 rounded-full transition-colors duration-300 ${activeLocation === index ? "bg-coral" : "bg-foreground/20"}`} />

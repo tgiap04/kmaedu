@@ -35,7 +35,7 @@ export default function WordFamilyPage() {
         {loadingCategories && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="space-y-3 rounded-lg border border-hairline bg-canvas p-5">
+              <div key={i} className="space-y-3 rounded-lg border border-hairline bg-canvas p-4">
                 <Skeleton className="size-9 rounded-lg" />
                 <Skeleton className="h-4 w-1/2" />
                 <Skeleton className="h-3 w-3/4" />

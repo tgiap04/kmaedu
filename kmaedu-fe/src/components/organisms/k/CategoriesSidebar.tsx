@@ -17,8 +17,8 @@ export function CategoriesSidebar({
 }: CategoriesSidebarProps) {
   return (
     <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-foreground">
+      <CardHeader className="px-4 pb-3">
+        <CardTitle className="text-base font-semibold text-foreground">
           Danh mục
         </CardTitle>
       </CardHeader>

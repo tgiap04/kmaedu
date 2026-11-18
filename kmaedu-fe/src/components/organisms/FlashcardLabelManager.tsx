@@ -256,15 +256,15 @@ export function FlashcardLabelManager({
 
   if (loading) {
     return (
-      <Card className="!mb-6 overflow-hidden !rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+      <Card className="!mb-4 overflow-hidden !rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
         <CardHeader>
           <CardTitle className="!text-[16px] !font-bold text-ink flex items-center gap-2">
             <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><TagIcon className="size-[18px]" aria-hidden /></span>
             Quản lý nhãn
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
+        <CardContent className="pt-3">
+          <div className="text-center py-6 text-muted-foreground">
             Đang tải...
           </div>
         </CardContent>
@@ -273,7 +273,7 @@ export function FlashcardLabelManager({
   }
 
   return (
-    <Card className="!mb-6 overflow-hidden !rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+    <Card className="!mb-4 overflow-hidden !rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader>
         <CardTitle className="!text-[16px] !font-bold text-ink flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -350,7 +350,7 @@ export function FlashcardLabelManager({
           </Dialog>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-3">
         <Tabs
           value={selectedLabelId || "overview"}
           onValueChange={(value) => {
@@ -366,8 +366,8 @@ export function FlashcardLabelManager({
 
           <TabsContent value="overview" className="mt-4">
             {labels.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <TagIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <div className="text-center py-6 text-muted-foreground">
+                <TagIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p>Chưa có nhãn nào</p>
                 <p className="text-sm mt-2">
                   Tạo nhãn để tổ chức thẻ ghi nhớ theo chủ đề
@@ -431,8 +431,8 @@ export function FlashcardLabelManager({
           </TabsContent>
 
           <TabsContent value="unlabeled" className="mt-4">
-            <div className="text-center py-8 text-muted-foreground">
-              <TagIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <div className="text-center py-6 text-muted-foreground">
+              <TagIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>Thẻ ghi nhớ chưa gán nhãn</p>
               <p className="text-sm mt-2">
                 Chọn một nhãn từ danh sách để xem thẻ ghi nhớ
@@ -450,15 +450,15 @@ export function FlashcardLabelManager({
         )}
         {/* Flashcards by label */}
         {selectedLabelId && (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-4">
+          <div className="mt-4">
+            <h3 className="text-base font-semibold mb-3">
               Thẻ ghi nhớ trong nhãn:{" "}
               {labels.find((l) => l.id === selectedLabelId)?.name}
             </h3>
             {loadingFlashcards ? (
               <div className="text-center py-4">Đang tải...</div>
             ) : !labelFlashcards || labelFlashcards.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-6 text-muted-foreground">
                 <p>Không có thẻ ghi nhớ nào trong nhãn này</p>
               </div>
             ) : (

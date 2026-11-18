@@ -101,9 +101,9 @@ export function QuestionInlineForm({
   const optionLabels = ["A", "B", "C", "D"];
 
   return (
-    <Card className="p-6 border-2 border-primary/20 bg-muted/30 animate-in fade-in slide-in-from-top-4 duration-300">
+    <Card className="p-5 border-2 border-primary/20 bg-muted/30 animate-in fade-in slide-in-from-top-4 duration-300">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">
+        <h3 className="text-base font-semibold">
           {question ? "Chỉnh sửa câu hỏi" : "Thêm câu hỏi mới"}
         </h3>
         <Button

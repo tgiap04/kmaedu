@@ -14,8 +14,8 @@ export function NeedHelpSection({
   onTechnicalSupport,
 }: NeedHelpSectionProps) {
   return (
-    <Card className="p-6">
-      <div className="mb-4 flex items-center gap-2">
+    <Card className="p-4">
+      <div className="mb-3 flex items-center gap-2">
         <QuestionIcon className="h-5 w-5 text-primary" />
         <h3 className="font-semibold text-foreground">Cần hỗ trợ?</h3>
       </div>

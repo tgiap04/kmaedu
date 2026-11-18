@@ -29,7 +29,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 /** "Thông tin đề thi": the set's details and its chapters (labels). */
 export function QuizSetInfoPanel({ quizSet, questionCount, onEditInfo, onShare, onChaptersChange, onOpenChapter }: Props) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="rounded-lg border border-hairline-soft p-4 md:p-5">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-[16px] font-bold text-ink">Thông tin chung</h3>

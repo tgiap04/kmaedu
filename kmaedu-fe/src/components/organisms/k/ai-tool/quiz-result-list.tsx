@@ -26,7 +26,7 @@ export function QuizResultList({ questions }: { questions: Quizz[] }) {
     <div className="flex flex-1 flex-col gap-3">
       <ResultPager current={current} total={questions.length} unit="Câu" onPrev={() => goTo(current - 1)} onNext={() => goTo(current + 1)} />
 
-      <div ref={listRef} className="relative max-h-[620px] min-h-[360px] flex-1 overflow-y-auto rounded-lg border border-hairline-soft px-3 py-2 md:px-6">
+      <div ref={listRef} className="relative max-h-[520px] min-h-[300px] flex-1 overflow-y-auto rounded-lg border border-hairline-soft px-3 py-1 md:px-5">
         {questions.map((question, index) => {
           const answerIndex = resolveAnswerIndex(question.answer, question.options);
           return (
@@ -35,7 +35,7 @@ export function QuizResultList({ questions }: { questions: Quizz[] }) {
               ref={(node) => {
                 itemRefs.current[index] = node;
               }}
-              className={cn("flex gap-4 py-5", index > 0 && "border-t border-hairline-soft")}
+              className={cn("flex gap-3 py-4", index > 0 && "border-t border-hairline-soft")}
             >
               <span
                 className={cn(

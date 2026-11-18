@@ -60,7 +60,7 @@ export default function WaysToStudy() {
                         </p>
 
                         {/* Features */}
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-2 gap-4">
                             {features.map((feature, index) => (
                                 <div
                                     key={feature.title}
@@ -84,7 +84,7 @@ export default function WaysToStudy() {
                                         key={example.label}
                                         type="button"
                                         onClick={() => setActiveTab(idx)}
-                                        className={`px-6 py-4 text-sm font-mono transition-colors relative ${activeTab === idx ? "text-ink" : "text-muted-foreground hover:text-ink"}`}
+                                        className={`px-5 py-3 text-sm font-mono transition-colors relative ${activeTab === idx ? "text-ink" : "text-muted-foreground hover:text-ink"}`}
                                     >
                                         {example.label}
                                         {activeTab === idx && (
@@ -96,7 +96,7 @@ export default function WaysToStudy() {
                                 <button
                                     type="button"
                                     onClick={handleCopy}
-                                    className="px-4 py-4 text-muted-foreground hover:text-ink transition-colors"
+                                    className="px-4 py-3 text-muted-foreground hover:text-ink transition-colors"
                                     aria-label={t("devs.copy")}
                                 >
                                     {copied ? (
@@ -108,7 +108,7 @@ export default function WaysToStudy() {
                             </div>
 
                             {/* Code content */}
-                            <div className="p-8 font-mono text-sm bg-foreground/[0.01] min-h-[220px]">
+                            <div className="p-5 font-mono text-sm bg-foreground/[0.01] min-h-[180px]">
                                 <pre className="text-foreground/80">
                                     {codeExamples[activeTab].code.split("\n").map((line, lineIndex) => (
                                         <div

@@ -86,14 +86,14 @@ export function RecentFilesModal({
   const content = (
     <div className="space-y-4">
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-12">
+        <div className="flex flex-col items-center justify-center py-8">
           <CircleNotchIcon className="w-8 h-8 animate-spin text-primary mb-3" />
           <p className="text-sm text-muted-foreground">Đang tải...</p>
         </div>
       ) : recentUploads.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center mb-4 border border-border">
-            <FolderOpenIcon className="w-8 h-8 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="w-12 h-12 rounded-full bg-black/5 flex items-center justify-center mb-3 border border-border">
+            <FolderOpenIcon className="w-6 h-6 text-muted-foreground" />
           </div>
           <p className="text-muted-foreground">Chưa có file nào được tải lên</p>
           <p className="text-xs text-muted-foreground/60 mt-1">

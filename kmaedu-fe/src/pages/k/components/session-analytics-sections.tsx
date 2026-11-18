@@ -38,7 +38,7 @@ export function AnalyticsStats({ completed, avgScore, passed, violations }: { co
 export function ScoreDistributionCard({ data }: { data: Array<{ range: string; label: string; count: number }> }) {
   return (
     <SectionCard icon={<ChartBarIcon />} title="Phân bố điểm số" plain>
-      <div className="h-64 p-4 md:p-5">
+      <div className="h-52 p-4 md:p-5">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" opacity={0.3} />

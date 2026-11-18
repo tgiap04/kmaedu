@@ -51,7 +51,7 @@ export function RoomSessionsSection(p: Props) {
         <div className="divide-y divide-hairline-soft"><RowsSkeleton rows={4} /></div>
       ) : p.sessions.length === 0 ? (
         <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-          <span className="grid size-12 place-items-center rounded-lg bg-brand-soft text-brand"><CalendarBlankIcon className="size-6" /></span>
+          <span className="grid size-10 place-items-center rounded-lg bg-brand-soft text-brand"><CalendarBlankIcon className="size-5" /></span>
           <div>
             <p className="text-sm font-semibold text-ink">Chưa có phiên thi nào</p>
             <p className="mt-1 text-sm text-muted-foreground">Tạo phiên thi đầu tiên để bắt đầu tổ chức bài kiểm tra</p>

@@ -205,7 +205,7 @@ export default function AdminWordFamilyPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl font-normal tracking-tight text-ink">
+          <h1 className="font-display text-2xl font-normal tracking-tight text-ink">
             {t("pages.wordFamily.title", "Word Family Categories")}
           </h1>
           <p className="text-sm text-ink/60">

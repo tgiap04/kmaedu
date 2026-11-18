@@ -53,8 +53,8 @@ export default function TestimonialsSection() {
 
                         {/* Author */}
                         <div className={`mt-12 flex items-center gap-6 transition-all duration-300 delay-100 ${isAnimating ? "opacity-0" : "opacity-100"}`}>
-                            <div className="w-16 h-16 rounded-full bg-foreground/5 border border-foreground/10 flex items-center justify-center">
-                                <span className="font-display text-2xl text-coral">
+                            <div className="w-12 h-12 rounded-full bg-foreground/5 border border-foreground/10 flex items-center justify-center">
+                                <span className="font-display text-xl text-coral">
                                     {activeTestimonial.author.charAt(0)}
                                 </span>
                             </div>
@@ -69,7 +69,7 @@ export default function TestimonialsSection() {
 
                     {/* Metric Highlight */}
                     <div className="lg:col-span-4 flex flex-col justify-center">
-                        <div className={`p-8 border border-foreground/10 transition-all duration-300 ${isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
+                        <div className={`p-5 border border-foreground/10 transition-all duration-300 ${isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
                             <span className="font-mono text-xs tracking-widest text-muted-foreground uppercase block mb-4">
                                 {t("testimonials.keyResult")}
                             </span>

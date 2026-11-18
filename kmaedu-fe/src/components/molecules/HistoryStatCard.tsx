@@ -24,27 +24,27 @@ export function HistoryStatCard({ title, value, icon: Icon, tone, to }: HistoryS
   const colors = toneClass[tone];
 
   return (
-    <div className="relative overflow-hidden rounded-lg border border-hairline bg-canvas p-5 shadow-soft">
+    <div className="relative overflow-hidden rounded-lg border border-hairline bg-canvas p-4 shadow-soft">
       {/* Faded watermark of the same icon, as in the brand mock */}
       <Icon
-        className={cn("pointer-events-none absolute -right-2 top-1/2 size-24 -translate-y-1/2 opacity-[0.07]", colors.mark)}
+        className={cn("pointer-events-none absolute -right-2 top-1/2 size-20 -translate-y-1/2 opacity-[0.07]", colors.mark)}
         weight="duotone"
         aria-hidden
       />
       <div className="relative flex items-center gap-3">
-        <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", colors.tile)}>
-          <Icon className="size-[18px]" weight="duotone" aria-hidden />
+        <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg", colors.tile)}>
+          <Icon className="size-4" weight="duotone" aria-hidden />
         </span>
         <p className="truncate text-sm font-medium text-body">{title}</p>
       </div>
-      <div className="relative mt-3 flex items-end justify-between gap-3">
-        <p className="text-3xl font-bold leading-none text-ink">{value}</p>
+      <div className="relative mt-2 flex items-end justify-between gap-3">
+        <p className="text-2xl font-bold leading-none text-ink">{value}</p>
         {to && (
           <Link
             to={to}
             aria-label={`Xem ${title.toLowerCase()}`}
             className={cn(
-              "flex size-9 items-center justify-center rounded-full bg-canvas shadow-raised transition-transform hover:translate-x-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
+              "flex size-8 items-center justify-center rounded-full bg-canvas shadow-raised transition-transform hover:translate-x-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
               colors.arrow,
             )}
           >

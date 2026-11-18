@@ -37,7 +37,7 @@ export default function QuizPracticePage() {
   const current = s.questions[s.progress.currentIndex];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         icon={<BarbellIcon />}
         title={title}
@@ -73,7 +73,7 @@ export default function QuizPracticePage() {
             <TabsTrigger value="history">Lịch sử</TabsTrigger>
           </TabsList>
           <TabsContent value="practice">
-            <div className="space-y-3 py-6">
+            <div className="space-y-3 py-4">
               <p className="text-muted-foreground">{s.access?.questionCount ?? 0} câu hỏi. Đáp án chỉ hiện sau khi bạn nộp bài.</p>
               <p className="text-sm text-muted-foreground">Nếu bạn đang làm dở, bài sẽ được tiếp tục từ chỗ dừng.</p>
               {s.problem && <p className="text-sm text-destructive">{s.problem}</p>}
@@ -91,7 +91,7 @@ export default function QuizPracticePage() {
       )}
 
       {s.phase === "practice" && current && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-2">
             <QuestionPanel
               question={current}
@@ -130,7 +130,7 @@ export default function QuizPracticePage() {
       )}
 
       {s.phase === "result" && s.result && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <PracticeResult result={s.result} onPracticeAgain={s.backToIntro} />
           <PracticeHistory attempts={history} error={historyError} onOpen={s.openAttempt} onRetry={loadHistory} />
         </div>

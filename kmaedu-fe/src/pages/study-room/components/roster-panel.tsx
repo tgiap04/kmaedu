@@ -25,11 +25,11 @@ function RosterPanelBase({ actions, myRole }: Props) {
 
   return (
     <Card className="flex h-full flex-col">
-      <CardHeader className="flex shrink-0 items-center justify-between">
+      <CardHeader className="flex shrink-0 items-center justify-between px-4 pt-4 pb-3">
         <CardTitle className="!text-base">Thành viên</CardTitle>
         <Badge variant="secondary">{online} trực tuyến</Badge>
       </CardHeader>
-      <CardContent className="min-h-0 flex-1 divide-y divide-hairline overflow-y-auto pb-4">
+      <CardContent className="min-h-0 flex-1 divide-y divide-hairline overflow-y-auto p-4 pt-0">
         {roster.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">
             Chưa có thành viên

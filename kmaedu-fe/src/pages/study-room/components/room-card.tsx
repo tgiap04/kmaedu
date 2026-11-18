@@ -43,14 +43,14 @@ function RoomCardBase({ room, isHost, onEnter, onConfig }: Props) {
         }
       }}
       className={cn(
-        "group relative flex cursor-pointer flex-col rounded-lg border border-hairline bg-canvas p-5 transition-all duration-200",
+        "group relative flex cursor-pointer flex-col rounded-lg border border-hairline bg-canvas p-4 transition-all duration-200",
         "hover:-translate-y-0.5 hover:border-brand-border hover:shadow-md",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
         closed && "opacity-60",
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-lg font-bold text-brand">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-lg font-bold text-brand">
           {initials}
         </div>
         <div className="min-w-0 flex-1">
@@ -76,7 +76,7 @@ function RoomCardBase({ room, isHost, onEnter, onConfig }: Props) {
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-1.5">
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <Badge variant={access.variant}>
           <AccessIcon className="mr-1 h-3 w-3" />
           {access.label}
@@ -85,7 +85,7 @@ function RoomCardBase({ room, isHost, onEnter, onConfig }: Props) {
         {closed && <Badge variant="secondary">Đã đóng</Badge>}
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-hairline-soft pt-3">
+      <div className="mt-3 flex items-center justify-between border-t border-hairline-soft pt-3">
         <div className="flex min-w-0 items-center gap-2">
           <Avatar size="small">
             <AvatarFallback>

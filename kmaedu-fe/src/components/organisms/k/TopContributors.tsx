@@ -17,11 +17,11 @@ export function TopContributors({ contributors }: TopContributorsProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-foreground">
+        <CardTitle className="text-base font-semibold text-foreground">
           Người đóng góp hàng đầu
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2 pt-3">
         {contributors.map((contributor) => (
           <div
             key={contributor.id}

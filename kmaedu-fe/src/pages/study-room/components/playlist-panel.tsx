@@ -79,7 +79,7 @@ function PlaylistPanelBase({ actions, myRole }: Props) {
 
   return (
     <Card>
-      <CardHeader className="flex items-center justify-between">
+      <CardHeader className="flex items-center justify-between px-4 pt-4 pb-3">
         <CardTitle className="flex items-center gap-2 !text-base">
           <PlaylistIcon className="h-4 w-4" /> Danh sách phát
         </CardTitle>
@@ -104,7 +104,7 @@ function PlaylistPanelBase({ actions, myRole }: Props) {
           </div>
         )}
       </CardHeader>
-      <CardContent className="flex flex-col gap-2 pb-4">
+      <CardContent className="flex flex-col gap-2 p-4 pt-0">
         <div className="max-h-56 divide-y divide-hairline overflow-y-auto">
           {playlist.items.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">

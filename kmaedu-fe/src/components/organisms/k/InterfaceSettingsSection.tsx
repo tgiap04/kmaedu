@@ -32,7 +32,7 @@ export function InterfaceSettingsSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl font-semibold text-foreground">
+        <CardTitle className="text-lg font-semibold text-foreground">
           Cài đặt giao diện
         </CardTitle>
         <p className="text-sm text-muted-foreground mt-1">
@@ -40,7 +40,7 @@ export function InterfaceSettingsSection({
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 pt-3">
         {/* Compact Mode */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">

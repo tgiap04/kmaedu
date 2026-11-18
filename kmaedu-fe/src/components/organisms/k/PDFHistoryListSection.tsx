@@ -21,7 +21,7 @@ const PDFHistoryListSectionComponent = ({
   const displayItems = items.slice(0, maxItems);
 
   return (
-    <div className="h-full rounded-lg border border-hairline bg-canvas p-5 shadow-soft">
+    <div className="h-full rounded-lg border border-hairline bg-canvas p-4 shadow-soft">
       <HistoryListCardHeader
         title="Tài liệu học tập"
         subtitle="Các file PDF tài liệu gần đây"
@@ -39,7 +39,7 @@ const PDFHistoryListSectionComponent = ({
             />
           ))
         ) : (
-          <div className="py-8 text-center">
+          <div className="py-6 text-center">
             <p className="text-sm text-muted-foreground">
               Chưa có lịch sử PDF
             </p>

@@ -16,9 +16,9 @@ interface ExamSearchFilterBarProps {
   onViewModeChange: (mode: ExamViewMode) => void;
 }
 
-const cardClass = "rounded-lg border border-hairline-soft bg-canvas p-2.5 shadow-soft";
+const cardClass = "rounded-lg border border-hairline-soft bg-canvas p-2 shadow-soft";
 const controlClass =
-  "h-12 rounded-lg border border-hairline bg-canvas text-[15px] text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40";
+  "h-10 rounded-lg border border-hairline bg-canvas text-[15px] text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40";
 
 const ExamSearchFilterBarComponent = ({
   searchQuery,
@@ -40,13 +40,13 @@ const ExamSearchFilterBarComponent = ({
       <div className={cn(cardClass, "flex min-w-0 flex-1 flex-col gap-2.5 sm:flex-row")}>
         <label className="relative min-w-0 flex-1">
           <span className="sr-only">Tìm kiếm theo tên đề thi</span>
-          <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-soft" aria-hidden />
+          <MagnifyingGlassIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-soft" aria-hidden />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Tìm kiếm theo tên đề thi..."
-            className={cn(controlClass, "w-full pl-12 pr-4 placeholder:text-muted-soft focus-visible:border-brand-border")}
+            className={cn(controlClass, "w-full pl-10 pr-4 placeholder:text-muted-soft focus-visible:border-brand-border")}
           />
         </label>
         <DropdownMenu>

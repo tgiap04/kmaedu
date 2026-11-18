@@ -84,7 +84,7 @@ export function DeviceList() {
     return (
       <Card className="!rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
         <CardHeader className="pb-0">
-          <CardTitle className="flex items-center gap-3 text-xl">
+          <CardTitle className="flex items-center gap-3 text-lg">
             <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
               <MonitorIcon className="size-[18px] text-brand" />
             </div>
@@ -94,7 +94,7 @@ export function DeviceList() {
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-center py-12">
+        <CardContent className="flex items-center justify-center py-8">
           <CircleNotchIcon className="h-6 w-6 animate-spin text-muted-text" />
         </CardContent>
       </Card>
@@ -105,7 +105,7 @@ export function DeviceList() {
     <Card className="!rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader className="pb-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="flex items-center gap-3 text-xl">
+          <CardTitle className="flex items-center gap-3 text-lg">
             <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
               <MonitorIcon className="size-[18px] text-brand" />
             </div>
@@ -157,9 +157,9 @@ export function DeviceList() {
         </div>
       </CardHeader>
 
-      <CardContent className="pt-6">
+      <CardContent className="pt-4">
         {devices.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <div className="flex flex-col items-center gap-3 py-8 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-soft">
               <MonitorIcon className="h-6 w-6 text-muted-text" />
             </div>
@@ -169,8 +169,8 @@ export function DeviceList() {
           <div className="space-y-3">
             {/* Current device */}
             {currentDevice && (
-              <div className="flex items-start gap-4 rounded-lg border-2 border-coral/30 bg-coral/5 p-4 transition-all">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-coral/10 text-brand-strong">
+              <div className="flex items-start gap-3 rounded-lg border-2 border-coral/30 bg-coral/5 p-4 transition-all">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-coral/10 text-brand-strong">
                   {getDeviceIcon(currentDevice.deviceName, currentDevice.os)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -202,8 +202,8 @@ export function DeviceList() {
 
             {/* Other devices */}
             {otherDevices.map((device) => (
-              <div key={device.id} className="flex items-start gap-4 rounded-lg border border-hairline bg-surface-soft p-4 transition-all hover:border-hairline/80">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-surface-card text-muted-text">
+              <div key={device.id} className="flex items-start gap-3 rounded-lg border border-hairline bg-surface-soft p-4 transition-all hover:border-hairline/80">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-card text-muted-text">
                   {getDeviceIcon(device.deviceName, device.os)}
                 </div>
                 <div className="flex flex-1 min-w-0 items-start justify-between gap-3">

@@ -33,25 +33,25 @@ export function RecentFilesCard({ disabled }: { disabled: boolean }) {
   };
 
   return (
-    <section data-tour="ai-tool-recents" className={cn(aiPanelClass, "p-4 md:p-5")}>
+    <section data-tour="ai-tool-recents" className={cn(aiPanelClass, "p-4")}>
       <div className="flex items-center gap-3.5">
         <IconTile>
           <FileTextIcon />
         </IconTile>
         <div className="min-w-0 flex-1">
-          <h3 className="text-[17px] font-semibold text-ink">File gần đây</h3>
+          <h3 className="text-base font-semibold text-ink">File gần đây</h3>
           <p className="text-[13px] text-body">Tiếp tục với tài liệu đã tải lên</p>
         </div>
         <Link
           to="/k/history/pdf"
-          className="inline-flex h-11 shrink-0 items-center gap-1 rounded-lg px-3 text-[13px] font-semibold text-brand transition-colors hover:bg-brand-soft"
+          className="inline-flex h-10 shrink-0 items-center gap-1 rounded-lg px-3 text-[13px] font-semibold text-brand transition-colors hover:bg-brand-soft"
         >
           Xem tất cả
           <CaretCircleRightIcon className="h-4 w-4" />
         </Link>
       </div>
 
-      <div className="scrollbar-hairline -mr-2 mt-4 flex max-h-[160px] flex-col gap-2 overflow-y-auto pr-2">
+      <div className="scrollbar-hairline -mr-2 mt-3 flex max-h-[160px] flex-col gap-2 overflow-y-auto pr-2">
         {isLoading ? (
           <span className="inline-flex items-center gap-2 py-2 text-sm text-body">
             <CircleNotchIcon className="h-4 w-4 animate-spin" />
@@ -66,7 +66,7 @@ export function RecentFilesCard({ disabled }: { disabled: boolean }) {
             <div
               key={upload.id}
               className={cn(
-                "flex min-h-[48px] items-center gap-1 rounded-lg border pl-3 pr-1.5 text-sm transition-colors",
+                "flex min-h-[44px] items-center gap-1 rounded-lg border pl-3 pr-1.5 text-sm transition-colors",
                 selectedUpload?.id === upload.id ? "border-brand-border bg-brand-soft" : "border-hairline bg-canvas hover:border-brand-border",
               )}
             >

@@ -19,7 +19,7 @@ const ExamHistoryListSectionComponent = ({
   const displayItems = items.slice(0, maxItems);
 
   return (
-    <div className="h-full rounded-lg border border-hairline bg-canvas p-5 shadow-soft">
+    <div className="h-full rounded-lg border border-hairline bg-canvas p-4 shadow-soft">
       <HistoryListCardHeader
         title="Lịch sử làm bài"
         subtitle="Kết quả các bài thi đã làm"
@@ -36,7 +36,7 @@ const ExamHistoryListSectionComponent = ({
             />
           ))
         ) : (
-          <div className="py-8 text-center">
+          <div className="py-6 text-center">
             <p className="text-sm text-muted-foreground">
               Chưa có lịch sử bài thi
             </p>

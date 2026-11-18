@@ -19,7 +19,7 @@ export function ProfileTemplate({
   isSubmitting = false,
 }: ProfileTemplateProps) {
   return (
-    <div className="space-y-6 max-w-2xl mx-auto px-4 pt-8 pb-6">
+    <div className="space-y-4 max-w-2xl mx-auto px-4 pt-8 pb-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Hồ sơ của bạn</h1>

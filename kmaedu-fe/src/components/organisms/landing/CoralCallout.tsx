@@ -44,7 +44,7 @@ export default function CoralCallout() {
                         }}
                     />
 
-                    <div className="relative z-10 px-8 lg:px-16 py-16 lg:py-24">
+                    <div className="relative z-10 px-6 lg:px-10 py-10 lg:py-14">
                         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
                             {/* Left content */}
                             <div className="flex-1">

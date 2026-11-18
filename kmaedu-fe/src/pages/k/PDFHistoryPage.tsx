@@ -161,7 +161,7 @@ export default function PDFHistoryPage() {
 
         <div className="rounded-lg border border-hairline bg-canvas">
           <div className="border-b border-hairline p-4">
-            <h2 className="text-lg font-medium text-ink">Danh sách PDF ({items.length})</h2>
+            <h2 className="text-base font-medium text-ink">Danh sách PDF ({items.length})</h2>
           </div>
           <div className="divide-y divide-hairline">
             {paginatedItems.length > 0 ? (
@@ -181,7 +181,7 @@ export default function PDFHistoryPage() {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-hairline px-4 py-4">
+            <div className="flex items-center justify-between border-t border-hairline px-4 py-3">
               <span className="text-sm text-muted-foreground">
                 Trang {page} / {totalPages}
               </span>

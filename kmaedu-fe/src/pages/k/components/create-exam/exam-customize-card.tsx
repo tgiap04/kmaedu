@@ -18,16 +18,16 @@ const hint = "mt-1.5 text-[13px] text-body";
 /** "Tùy chỉnh đề thi": the exam's name and question order. */
 export function ExamCustomizeCard(p: Props) {
   return (
-    <section className={cn(createCardClass, "p-5 md:p-6")} aria-labelledby="customize-title">
+    <section className={cn(createCardClass, "p-4 md:p-5")} aria-labelledby="customize-title">
       <div className="flex items-start gap-3 border-b border-hairline-soft pb-4">
-        <GearSixIcon className="mt-0.5 size-6 text-brand" aria-hidden />
+        <GearSixIcon className="mt-0.5 size-5 text-brand" aria-hidden />
         <div>
-          <h2 id="customize-title" className="text-[18px] font-bold text-ink">Tùy chỉnh đề thi</h2>
+          <h2 id="customize-title" className="text-base font-bold text-ink">Tùy chỉnh đề thi</h2>
           <p className="mt-0.5 text-[13px] text-body">Điều chỉnh các thiết lập theo nhu cầu của bạn</p>
         </div>
       </div>
 
-      <div className="mt-5 grid gap-6 md:grid-cols-2 md:gap-0 md:divide-x md:divide-hairline-soft">
+      <div className="mt-4 grid gap-4 md:grid-cols-2 md:gap-0 md:divide-x md:divide-hairline-soft">
         <div className="md:pr-8">
           <label htmlFor="exam-title" className={fieldLabel}>Tên đề thi</label>
           <input

@@ -232,7 +232,7 @@ export default function FlashcardStudyPage() {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-canvas">
         <div className="max-w-sm px-6 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-card">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-card">
             <LockSimpleIcon className="h-6 w-6 text-muted-foreground" />
           </div>
           <h1 className="font-display text-2xl tracking-tight text-ink">Không có quyền truy cập</h1>
@@ -321,7 +321,7 @@ export default function FlashcardStudyPage() {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-canvas">
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-card">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-card">
             <XIcon className="h-6 w-6 text-muted-foreground" />
           </div>
           <h1 className="font-display text-2xl tracking-tight text-ink">Không có thẻ</h1>
@@ -439,7 +439,7 @@ export default function FlashcardStudyPage() {
             >
               {/* Front — cream card */}
               <div
-                className="flex min-h-[340px] flex-col items-center justify-center rounded-lg border border-hairline bg-surface-card p-10 sm:min-h-[400px] sm:p-14"
+                className="flex min-h-[320px] flex-col items-center justify-center rounded-lg border border-hairline bg-surface-card p-6 sm:min-h-[380px] sm:p-8"
                 style={{ backfaceVisibility: "hidden" }}
               >
                 <span className="mb-6 inline-flex items-center gap-1.5 rounded-lg bg-canvas px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -457,7 +457,7 @@ export default function FlashcardStudyPage() {
 
               {/* Back — warm soft surface with coral accent */}
               <div
-                className="absolute inset-0 flex min-h-[340px] flex-col items-center justify-center rounded-lg border border-coral/20 bg-surface-soft p-10 sm:min-h-[400px] sm:p-14"
+                className="absolute inset-0 flex min-h-[320px] flex-col items-center justify-center rounded-lg border border-coral/20 bg-surface-soft p-6 sm:min-h-[380px] sm:p-8"
                 style={{
                   backfaceVisibility: "hidden",
                   transform: "rotateY(180deg)",

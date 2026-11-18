@@ -82,12 +82,12 @@ export default function ProfilePage() {
         subtitle="Quản lý thông tin tài khoản, bảo mật và thiết bị đã đăng nhập của bạn."
       />
 
-      <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
+      <div className="grid grid-cols-12 items-start gap-4 lg:gap-5">
         <div className="col-span-12 lg:sticky lg:top-24 lg:col-span-4">
           <ProfileSummaryCard profile={profile} />
         </div>
 
-        <div className="col-span-12 flex min-w-0 flex-col gap-5 lg:col-span-8">
+        <div className="col-span-12 flex min-w-0 flex-col gap-4 lg:col-span-8">
           <ProfileTabs active={activeTab} onChange={setActiveTab} />
           {activeTab === "profile" && (
             <ProfileForm profile={profile} onSubmit={handleProfileUpdate} isSubmitting={isSubmitting} />

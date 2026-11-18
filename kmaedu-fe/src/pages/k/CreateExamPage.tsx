@@ -75,13 +75,13 @@ export default function CreateExamPage() {
             <ArrowCircleLeftIcon className="size-4" aria-hidden />
             Quay lại
           </Link>
-          <div className="mt-5 flex items-center gap-5">
-            <span className="grid size-20 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[#fde4e2] to-[#fef3f2] shadow-[0_8px_20px_rgba(238,47,43,0.12)]">
-              <span className="grid size-11 place-items-center rounded-lg bg-brand text-white"><ExamIcon className="size-6" aria-hidden /></span>
+          <div className="mt-4 flex items-center gap-4">
+            <span className="grid size-14 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[#fde4e2] to-[#fef3f2] shadow-[0_8px_20px_rgba(238,47,43,0.12)]">
+              <span className="grid size-9 place-items-center rounded-lg bg-brand text-white"><ExamIcon className="size-5" aria-hidden /></span>
             </span>
             <div className="min-w-0">
-              <h1 className="text-3xl font-bold tracking-tight text-ink lg:text-[34px]">Tạo đề thi</h1>
-              <p className="mt-2 text-base text-body">Chọn câu hỏi từ Quiz AI đã tạo cho các file PDF của bạn</p>
+              <h1 className="text-2xl font-bold tracking-tight text-ink lg:text-[28px]">Tạo đề thi</h1>
+              <p className="mt-1 text-sm text-body">Chọn câu hỏi từ Quiz AI đã tạo cho các file PDF của bạn</p>
             </div>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function CreateExamPage() {
           type="button"
           onClick={reset}
           disabled={submitting}
-          className="inline-flex h-12 items-center gap-2 rounded-lg border border-hairline bg-canvas px-6 text-[15px] font-semibold text-ink transition-colors hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-50"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-hairline bg-canvas px-5 text-[14px] font-semibold text-ink transition-colors hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-50"
         >
           <ArrowCounterClockwiseIcon className="size-[18px]" aria-hidden />
           Đặt lại
@@ -163,7 +163,7 @@ export default function CreateExamPage() {
             type="button"
             onClick={handleSubmit}
             disabled={submitting || picked.size === 0}
-            className="inline-flex h-12 items-center gap-2.5 rounded-lg bg-brand px-7 text-[15px] font-semibold text-white shadow-[0_8px_20px_rgba(238,47,43,0.25)] transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 disabled:opacity-60"
+            className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-5 text-[14px] font-semibold text-white shadow-[0_8px_20px_rgba(238,47,43,0.25)] transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 disabled:opacity-60"
           >
             {submitting ? <CircleNotchIcon className="size-5 animate-spin" aria-hidden /> : <CheckCircleIcon className="size-5" aria-hidden />}
             Tạo đề thi

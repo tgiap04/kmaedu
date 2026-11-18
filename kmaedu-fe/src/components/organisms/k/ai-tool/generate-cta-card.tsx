@@ -17,7 +17,7 @@ export function GenerateCtaCard({ title, loadingTitle, subtitle, disabled, isLoa
       onClick={onClick}
       disabled={disabled}
       aria-busy={isLoading}
-      className="group relative flex w-full items-center gap-4 overflow-hidden rounded-lg bg-gradient-to-br from-[#fde4e2] via-[#fdeceb] to-[#fef6f5] px-5 py-5 text-left transition-shadow duration-200 hover:shadow-[0_10px_24px_rgba(238,47,43,0.16)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:shadow-none"
+      className="group relative flex w-full items-center gap-4 overflow-hidden rounded-lg bg-gradient-to-br from-[#fde4e2] via-[#fdeceb] to-[#fef6f5] px-4 py-4 text-left transition-shadow duration-200 hover:shadow-[0_10px_24px_rgba(238,47,43,0.16)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:shadow-none"
     >
       <span aria-hidden className="pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full bg-canvas/40 blur-xl" />
       <span className="relative grid h-10 w-10 shrink-0 place-items-center text-brand">

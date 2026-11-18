@@ -39,7 +39,7 @@ export function NotificationList({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-xl font-semibold text-foreground">
+            <CardTitle className="text-lg font-semibold text-foreground">
               {title}
             </CardTitle>
             {unreadCount > 0 && (
@@ -74,7 +74,7 @@ export function NotificationList({
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="pt-3">
         <ScrollArea className="h-[calc(100vh-280px)]">
           <div className="space-y-3 pr-3">
             {notifications.length > 0 ? (
@@ -107,7 +107,7 @@ export function NotificationList({
                 )}
               </>
             ) : (
-              <div className="py-12 text-center">
+              <div className="py-8 text-center">
                 <p className="text-muted-foreground">Không có thông báo nào</p>
               </div>
             )}

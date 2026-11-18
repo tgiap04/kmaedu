@@ -17,11 +17,11 @@ export function ExamStructureCard({ chapters, picked, filenameOf, onOpen }: Prop
   const hasMerge = rows.some((r) => r.merged);
 
   return (
-    <section className={cn(createCardClass, "p-5 md:p-6")} aria-labelledby="structure-title">
+    <section className={cn(createCardClass, "p-4 md:p-5")} aria-labelledby="structure-title">
       <div className="flex items-start gap-3 border-b border-hairline-soft pb-4">
-        <StackIcon className="mt-0.5 size-6 text-brand" aria-hidden />
+        <StackIcon className="mt-0.5 size-5 text-brand" aria-hidden />
         <div>
-          <h2 id="structure-title" className="text-[18px] font-bold text-ink">Cấu trúc đề</h2>
+          <h2 id="structure-title" className="text-base font-bold text-ink">Cấu trúc đề</h2>
           <p className="mt-0.5 text-[13px] text-body">Mỗi chương thành một nhãn của đề thi, để phòng thi bốc câu theo chương.</p>
         </div>
       </div>

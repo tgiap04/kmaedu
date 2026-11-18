@@ -28,7 +28,7 @@ const EMPTY_SOURCES = {
 
 function ErrorBlock({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-lg bg-surface-card p-8 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-lg bg-surface-card p-5 text-center">
       <p className="text-sm text-ink/70">{message}</p>
       <button
         type="button"
@@ -75,7 +75,7 @@ export default function AdminOverviewPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-3xl font-normal tracking-tight text-ink">
+        <h1 className="font-display text-2xl font-normal tracking-tight text-ink">
           {t("pages.overview.title")}
         </h1>
         <p className="mt-1 text-sm text-ink/60">
@@ -130,7 +130,7 @@ export default function AdminOverviewPage() {
         loading={sources.loading}
         error={sources.error}
         onRetry={handleRetrySources}
-        height={260}
+        height={220}
       />
     </div>
   );

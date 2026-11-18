@@ -18,9 +18,9 @@ export function PostsList({
 }: PostsListProps) {
   return (
     <Card className="h-full">
-      <CardHeader className="pb-4">
+      <CardHeader className="px-4 pb-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">
+          <h2 className="text-lg font-semibold text-foreground">
             Bài viết mới nhất
           </h2>
           <Tabs
@@ -47,7 +47,7 @@ export function PostsList({
                 />
               ))
             ) : (
-              <div className="py-12 text-center">
+              <div className="py-8 text-center">
                 <p className="text-muted-foreground">Không có bài viết nào</p>
               </div>
             )}

@@ -41,13 +41,13 @@ export function HistoryTemplate({
   const twoColumns = showPdfHistory && showExamHistory;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <header className="mt-2 flex items-center gap-4">
-        <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-soft shadow-soft">
-          <img src="/illustrations/learning-books-cap.svg" alt="" aria-hidden width={40} height={40} className="size-10" />
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-soft shadow-soft">
+          <img src="/illustrations/learning-books-cap.svg" alt="" aria-hidden width={32} height={32} className="size-8" />
         </span>
         <div className="min-w-0">
-          <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Quản lý học tập</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-[28px]">Quản lý học tập</h1>
           <p className="mt-1 text-sm text-muted-foreground sm:text-base">
             Theo dõi tiến độ và hoạt động học tập của bạn
           </p>
@@ -61,7 +61,7 @@ export function HistoryTemplate({
         viewAllTo={showExamHistory ? "/k/history/exam" : showPdfHistory ? "/k/history/pdf" : undefined}
       />
 
-      <div className={`grid gap-6 ${twoColumns ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>
+      <div className={`grid gap-4 ${twoColumns ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>
         {showPdfHistory && (
           <PDFHistoryListSection
             items={pdfItems}

@@ -10,12 +10,12 @@ interface HistoryListCardHeaderProps {
 /** Header of a /k/history list card: round icon, title + subtitle, red "Xem tất cả →". */
 export function HistoryListCardHeader({ title, subtitle, viewAllTo }: HistoryListCardHeaderProps) {
   return (
-    <div className="flex items-center gap-3 border-b border-hairline-soft pb-4">
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
+    <div className="flex items-center gap-3 border-b border-hairline-soft pb-3">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
         <FileTextIcon className="size-5" aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
-        <h2 className="truncate text-lg font-semibold text-ink">{title}</h2>
+        <h2 className="truncate text-base font-semibold text-ink">{title}</h2>
         <p className="truncate text-xs text-muted-foreground sm:text-sm">{subtitle}</p>
       </div>
       <Link

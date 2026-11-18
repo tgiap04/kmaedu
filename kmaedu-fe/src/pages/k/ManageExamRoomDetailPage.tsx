@@ -149,10 +149,10 @@ export default function ManageExamRoomDetailPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-16 w-72 rounded-lg" />
-        <Skeleton className="h-28 w-full rounded-lg" />
-        <Skeleton className="h-[320px] w-full rounded-lg" />
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-72 rounded-lg" />
+        <Skeleton className="h-24 w-full rounded-lg" />
+        <Skeleton className="h-[256px] w-full rounded-lg" />
       </div>
     );
   }

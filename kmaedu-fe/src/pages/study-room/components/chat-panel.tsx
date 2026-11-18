@@ -58,10 +58,10 @@ function ChatPanelBase({ actions }: Props) {
 
   return (
     <Card className="flex h-full flex-col">
-      <CardHeader className="pb-3">
+      <CardHeader className="px-4 pt-4 pb-3">
         <CardTitle className="!text-base">Trò chuyện</CardTitle>
       </CardHeader>
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-2 pb-4">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-2 p-4 pt-0">
         <div
           ref={scrollRef}
           onScroll={onScroll}

@@ -66,7 +66,7 @@ export function RecentFilesList({
 
   return (
     <>
-      <div className={cn("flex min-h-[320px] min-w-0 flex-col", className)}>
+      <div className={cn("flex min-h-[280px] min-w-0 flex-col", className)}>
         <div className="space-y-3 border-b border-border/50 pb-4">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-gradient-to-br from-primary/20 to-primary/5">
@@ -90,14 +90,14 @@ export function RecentFilesList({
         </div>
 
         {isLoading ? (
-          <div className="flex flex-1 flex-col items-center justify-center py-12 text-muted-foreground">
+          <div className="flex flex-1 flex-col items-center justify-center py-8 text-muted-foreground">
             <CircleNotchIcon className="mb-3 h-8 w-8 animate-spin" />
             <p className="text-sm">Đang tải...</p>
           </div>
         ) : recentUploads.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-border bg-black/5">
-              <FolderOpenIcon className="h-8 w-8 text-muted-foreground" />
+          <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-black/5">
+              <FolderOpenIcon className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-sm text-muted-foreground">Chưa có file nào</p>
             <p className="mt-1 text-xs text-muted-foreground/60">

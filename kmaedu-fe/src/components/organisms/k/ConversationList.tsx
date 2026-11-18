@@ -33,9 +33,9 @@ export function ConversationList({
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="space-y-4 pb-4">
+      <CardHeader className="space-y-3 px-4 pb-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">Trò chuyện</h2>
+          <h2 className="text-lg font-semibold text-foreground">Trò chuyện</h2>
           <Button size="icon" variant="ghost">
             <PlusCircleIcon className="h-5 w-5" />
           </Button>

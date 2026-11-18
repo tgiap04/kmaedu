@@ -112,7 +112,7 @@ export default function ProductShowcase() {
                     <div className="lg:sticky lg:top-32 self-start">
                         <div className="border border-background/10 overflow-hidden">
                             {/* Window header */}
-                            <div className="px-6 py-4 border-b border-background/10 flex items-center justify-between">
+                            <div className="px-5 py-3 border-b border-background/10 flex items-center justify-between">
                                 <div className="flex gap-2">
                                     <div className="w-3 h-3 rounded-full bg-background/20" />
                                     <div className="w-3 h-3 rounded-full bg-background/20" />
@@ -122,7 +122,7 @@ export default function ProductShowcase() {
                             </div>
 
                             {/* Code content */}
-                            <div className="p-8 font-mono text-sm min-h-[280px]">
+                            <div className="p-5 font-mono text-sm min-h-[220px]">
                                 <pre className="text-background/70">
                                     {stepData[activeStep].code.split("\n").map((line, lineIndex) => (
                                         <div
@@ -150,7 +150,7 @@ export default function ProductShowcase() {
                             </div>
 
                             {/* Status */}
-                            <div className="px-6 py-4 border-t border-background/10 flex items-center gap-3">
+                            <div className="px-5 py-3 border-t border-background/10 flex items-center gap-3">
                                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                                 <span className="text-xs font-mono text-background/40">{t("showcase.codeReady")}</span>
                             </div>

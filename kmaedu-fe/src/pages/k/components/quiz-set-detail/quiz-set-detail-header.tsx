@@ -13,7 +13,7 @@ interface Props {
 }
 
 const actionBtn =
-  "grid size-11 place-items-center rounded-lg border bg-canvas shadow-[0_1px_3px_rgba(15,23,42,0.05)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-60";
+  "grid size-10 place-items-center rounded-lg border bg-canvas shadow-[0_1px_3px_rgba(15,23,42,0.05)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-60";
 
 /** Breadcrumb, file tile, title (+ edit), visibility pill (opens sharing), description, copy / delete icons. */
 export function QuizSetDetailHeader({ quizSet, copying, onEditInfo, onShare, onCopy, onDelete }: Props) {
@@ -27,8 +27,8 @@ export function QuizSetDetailHeader({ quizSet, copying, onEditInfo, onShare, onC
 
       <div className="mt-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex min-w-0 items-center gap-4">
-          <span className="grid size-[72px] shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[#fde4e2] to-[#fef3f2] text-brand shadow-[0_8px_20px_rgba(238,47,43,0.10)]">
-            <ExamIcon className="size-8" weight="duotone" aria-hidden />
+          <span className="grid size-14 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[#fde4e2] to-[#fef3f2] text-brand shadow-[0_8px_20px_rgba(238,47,43,0.10)]">
+            <ExamIcon className="size-6" weight="duotone" aria-hidden />
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">

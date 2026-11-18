@@ -15,8 +15,8 @@ interface UpcomingExamsSectionProps {
 
 export function UpcomingExamsSection({ exams }: UpcomingExamsSectionProps) {
   return (
-    <Card className="p-6">
-      <h2 className="mb-4 text-xl font-semibold text-foreground">
+    <Card className="p-4">
+      <h2 className="mb-3 text-lg font-semibold text-foreground">
         Kỳ thi sắp tới
       </h2>
 
@@ -33,7 +33,7 @@ export function UpcomingExamsSection({ exams }: UpcomingExamsSectionProps) {
       </div>
 
       {exams.length === 0 && (
-        <div className="py-12 text-center">
+        <div className="py-8 text-center">
           <p className="text-muted-foreground">Không có kỳ thi sắp tới</p>
         </div>
       )}

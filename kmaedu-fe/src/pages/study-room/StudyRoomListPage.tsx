@@ -59,7 +59,7 @@ export default function StudyRoomListPage() {
         {loading && myRooms.length === 0 ? (
           <div className="grid gap-4 p-4 sm:grid-cols-2 md:p-5 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-44 animate-pulse rounded-lg border border-hairline bg-surface-soft" />
+              <div key={i} className="h-40 animate-pulse rounded-lg border border-hairline bg-surface-soft" />
             ))}
           </div>
         ) : myRooms.length === 0 ? (

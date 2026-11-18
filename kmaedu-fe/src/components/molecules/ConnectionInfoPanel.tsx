@@ -38,8 +38,8 @@ export function ConnectionInfoPanel({
 }: ConnectionInfoPanelProps) {
   return (
     <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-lg font-semibold">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-base font-semibold">
           Thông tin kết nối
         </CardTitle>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -47,7 +47,7 @@ export function ConnectionInfoPanel({
         </Button>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 pt-3">
         {/* Socket Status */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-foreground">

@@ -31,16 +31,16 @@ export function GeneratorUploadCard({ icon, title, subtitle, hasFile, fileName, 
   };
 
   return (
-    <section className={cn(aiPanelClass, "p-4 md:p-5")}>
+    <section className={cn(aiPanelClass, "p-4")}>
       <div className="flex items-center gap-3.5">
         <IconTile>{icon}</IconTile>
         <div className="min-w-0">
-          <h2 className="text-[19px] font-bold leading-tight text-ink">{title}</h2>
+          <h2 className="text-[17px] font-bold leading-tight text-ink">{title}</h2>
           <p className="mt-1 text-[13px] text-body">{subtitle}</p>
         </div>
       </div>
 
-      <div data-tour="ai-tool-upload" className="mt-5">
+      <div data-tour="ai-tool-upload" className="mt-4">
         {hasFile ? (
           <ItemFileDetail fileName={fileName || "Unknown file"} fileSize={fileSize || 0} onRemove={onRemove} disabled={disabled} />
         ) : (
@@ -52,19 +52,19 @@ export function GeneratorUploadCard({ icon, title, subtitle, hasFile, fileName, 
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
             className={cn(
-              "flex flex-col items-center rounded-lg border-2 border-dashed px-4 pb-6 pt-7 text-center transition-colors",
+              "flex flex-col items-center rounded-lg border-2 border-dashed px-4 pb-5 pt-5 text-center transition-colors",
               isDragging ? "border-brand bg-brand-soft" : "border-hairline bg-surface-soft/60",
               disabled && "pointer-events-none opacity-50",
             )}
           >
-            <PdfUploadIllustration className="h-24 w-32" />
-            <p className="mt-3 text-[18px] font-semibold text-ink">Kéo thả file vào đây</p>
+            <PdfUploadIllustration className="h-20 w-28" />
+            <p className="mt-2 text-base font-semibold text-ink">Kéo thả file vào đây</p>
             <p className="mt-1 text-[14px] text-body">hoặc chọn file từ máy tính</p>
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={disabled}
-              className="mt-5 inline-flex h-11 min-w-[200px] items-center justify-center gap-2 rounded-lg bg-brand px-6 text-[15px] font-semibold text-white shadow-[0_8px_18px_rgba(238,47,43,0.28)] transition-colors hover:bg-brand-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              className="mt-4 inline-flex h-10 min-w-[200px] items-center justify-center gap-2 rounded-lg bg-brand px-6 text-[15px] font-semibold text-white shadow-[0_6px_14px_rgba(238,47,43,0.25)] transition-colors hover:bg-brand-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               <CloudArrowUpIcon className="h-[18px] w-[18px]" />
               Chọn file

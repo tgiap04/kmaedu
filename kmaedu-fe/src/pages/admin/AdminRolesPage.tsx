@@ -116,7 +116,7 @@ export default function AdminRolesPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="font-display text-3xl font-normal tracking-tight text-ink">{t("pages.roles.title")}</h1>
+        <h1 className="font-display text-2xl font-normal tracking-tight text-ink">{t("pages.roles.title")}</h1>
         <p className="text-sm text-ink/60">{t("pages.roles.subtitle")}</p>
       </div>
 

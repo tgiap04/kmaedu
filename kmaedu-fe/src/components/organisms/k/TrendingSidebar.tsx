@@ -22,15 +22,15 @@ export function TrendingSidebar({
   onSessionJoin,
 }: TrendingSidebarProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Trending Topics */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-foreground">
+          <CardTitle className="text-base font-semibold text-foreground">
             Chủ đề xu hướng
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-1">
+        <CardContent className="space-y-1 pt-3">
           {trendingTopics.map((topic) => (
             <TrendingTopicItem
               key={topic.id}
@@ -44,11 +44,11 @@ export function TrendingSidebar({
       {/* Upcoming Study Sessions */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-foreground">
+          <CardTitle className="text-base font-semibold text-foreground">
             Buổi học sắp tới
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-3 pt-3">
           {upcomingSessions.map((session) => (
             <UpcomingSessionCard
               key={session.id}

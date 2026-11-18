@@ -13,9 +13,9 @@ interface ExamProgressSectionProps {
 
 export function ExamProgressSection({ progress }: ExamProgressSectionProps) {
   return (
-    <Card className="p-6">
-      <h3 className="mb-4 font-semibold text-foreground">Tiến độ làm bài</h3>
-      <div className="mb-6 flex items-center justify-center">
+    <Card className="p-4">
+      <h3 className="mb-3 font-semibold text-foreground">Tiến độ làm bài</h3>
+      <div className="mb-4 flex items-center justify-center">
         <ProgressCircle
           value={progress.answered}
           total={progress.total}

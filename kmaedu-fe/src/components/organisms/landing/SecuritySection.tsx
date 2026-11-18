@@ -69,11 +69,11 @@ export default function SecuritySection() {
                     </div>
 
                     {/* Right: Features */}
-                    <div className="grid gap-6">
+                    <div className="grid gap-4">
                         {securityFeatures.map((feature, index) => (
                             <div
                                 key={feature.title}
-                                className={`p-6 border border-foreground/10 hover:border-foreground/20 transition-all duration-500 group ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"}`}
+                                className={`p-4 border border-foreground/10 hover:border-foreground/20 transition-all duration-500 group ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"}`}
                                 style={{ transitionDelay: `${index * 100}ms` }}
                             >
                                 <div className="flex items-start gap-4">

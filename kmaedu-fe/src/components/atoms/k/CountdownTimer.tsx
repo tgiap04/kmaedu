@@ -28,12 +28,12 @@ export function CountdownTimer({
         "flex flex-col items-center justify-center gap-3",
         className
       )}>
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-purple-500">
-        <ClockIcon className="h-8 w-8 text-white" />
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-purple-500">
+        <ClockIcon className="h-6 w-6 text-white" />
       </div>
       <div className="text-center">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p className="mt-1 text-3xl font-bold tabular-nums text-foreground">
+        <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">
           {timeString}
         </p>
         {description && (

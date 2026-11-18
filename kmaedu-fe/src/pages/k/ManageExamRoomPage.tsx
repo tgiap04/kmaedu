@@ -208,13 +208,13 @@ export default function ManageExamRoomPage() {
   if (loading && examRooms.length === 0) {
     return (
       <div className="animate-pulse">
-        <div className="mb-6 h-16 w-72 rounded-lg bg-surface-soft" />
-        <div className="mb-6 grid gap-4 sm:grid-cols-2">
+        <div className="mb-4 h-12 w-72 rounded-lg bg-surface-soft" />
+        <div className="mb-4 grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-lg bg-surface-soft" />
+            <div key={i} className="h-24 rounded-lg bg-surface-soft" />
           ))}
         </div>
-        <div className="h-64 rounded-lg bg-surface-soft" />
+        <div className="h-52 rounded-lg bg-surface-soft" />
       </div>
     );
   }
@@ -236,7 +236,7 @@ export default function ManageExamRoomPage() {
 
         <RoomStatsSection stats={stats} />
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <ExamRoomList
               rooms={transformedRooms}
@@ -251,7 +251,7 @@ export default function ManageExamRoomPage() {
 
           <div className="lg:col-span-1">
             {loadingParticipants ? (
-              <div className="h-64 animate-pulse rounded-lg bg-surface-soft" />
+              <div className="h-52 animate-pulse rounded-lg bg-surface-soft" />
             ) : (
               <RecentParticipantsList participants={recentParticipants} onViewAll={() => {}} />
             )}

@@ -44,7 +44,7 @@ function PomodoroPanelBase({ actions, myRole }: Props) {
   if (!timer || !config || !view) {
     return (
       <Card>
-        <CardContent className="py-10 text-center text-muted-foreground">
+        <CardContent className="py-8 text-center text-muted-foreground">
           Đang tải bộ đếm…
         </CardContent>
       </Card>
@@ -56,12 +56,12 @@ function PomodoroPanelBase({ actions, myRole }: Props) {
 
   return (
     <Card>
-      <CardContent className="flex flex-col items-center gap-3 py-5">
+      <CardContent className="flex flex-col items-center gap-3 p-4">
         <span className="rounded-lg bg-surface-cream-strong px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink">
           {PHASE_LABEL[view.phase]} · Chu kỳ {view.cycle}/
           {config.cyclesBeforeLongBreak}
         </span>
-        <div className="font-display text-5xl tabular-nums tracking-tight text-ink">
+        <div className="font-display text-4xl tabular-nums tracking-tight text-ink">
           {formatRemaining(view.remainingMs)}
         </div>
         <Progress value={view.progress * 100} className="w-full" />

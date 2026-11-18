@@ -147,7 +147,7 @@ export function FormSelectQuizSet({
       {/* Form tạo mới */}
       {showCreateForm && (
         <Card>
-          <CardContent>
+          <CardContent className="p-4">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-sm font-medium">
@@ -201,7 +201,7 @@ export function FormSelectQuizSet({
                 />
               </div>
 
-              <div className="flex gap-6 w-full">
+              <div className="flex gap-4 w-full">
                 <Field>
                   <FieldContent className="flex flex-row items-center gap-x-3 w-full justify-between">
                     <FieldLabel htmlFor="isPublic" className="cursor-pointer">

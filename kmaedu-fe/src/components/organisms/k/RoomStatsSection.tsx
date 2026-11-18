@@ -15,7 +15,7 @@ interface RoomStatsSectionProps {
 
 const RoomStatsSectionComponent = ({ stats }: RoomStatsSectionProps) => {
   return (
-    <div className="mb-6 grid gap-4 sm:grid-cols-2">
+    <div className="mb-4 grid gap-4 sm:grid-cols-2">
       <HistoryStatCard icon={DoorOpenIcon} title="Phòng thi đang hoạt động" value={stats.activeRooms} tone="red" />
       <HistoryStatCard icon={UsersThreeIcon} title="Tổng số thí sinh" value={stats.totalParticipants} tone="green" />
     </div>
