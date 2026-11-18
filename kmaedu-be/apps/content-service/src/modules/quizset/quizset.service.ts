@@ -464,6 +464,7 @@ export class QuizsetService {
                 );
 
                 return {
+                    createdQuestionIds: createdQuestions,
                     createdQuestionsCount: createdQuestions.length,
                     affectedQuizSetsCount: quizSetIds.length,
                     affectedQuizSetIds: quizSetIds,
@@ -479,6 +480,8 @@ export class QuizsetService {
             return {
                 message: `Thêm ${result.createdQuestionsCount} câu hỏi vào ${result.affectedQuizSetsCount} bộ câu hỏi thành công`,
                 createdCount: result.createdQuestionsCount,
+                // In the order the quizzes were sent, so the caller can label exactly these questions.
+                createdQuestionIds: result.createdQuestionIds,
                 affectedQuizSets: result.affectedQuizSetsCount,
             };
         } catch (error) {
@@ -1311,7 +1314,8 @@ export class QuizsetService {
                 },
                 skip,
                 take: limitNum,
-                orderBy: { quizQuestion: { createdAt: 'asc' } },
+                // Questions added in one request share createdAt: the id keeps paging stable.
+                orderBy: [{ quizQuestion: { createdAt: 'asc' } }, { quizQuestionId: 'asc' }],
             }),
             this.prisma.detailsQuizQuestion.count({ where }),
         ]);
