@@ -1,0 +1,44 @@
+{
+  "score": 8,
+  "criticalCount": 0,
+  "decision": "SEALED",
+  "acceptanceCovered": [
+    "my-exams matches the design — stage1-spec #1 PASS",
+    "cards shrink on every page by the plan scale — stage1-spec #4 PASS, phase reports 02–05",
+    "Card wrapper no longer double-pads — all 43 consumers walked by three reviewers",
+    "class-only outside my-exams — scripted check: only size props, chart heights, ProgressCircle viewBox",
+    "reading and exam question text keep their size — adv-layout and Stage 5 review",
+    "my-exams logic covered by unit tests — 23 tests incl. boundaries, RED before GREEN"
+  ],
+  "regressionChecked": [
+    "every <Card> from components/antd/card including 10 callers outside the diff",
+    "negative margins, fixed heights and clamps vs content after shrinking",
+    "my-exams pagination, expanded state, failed load, stale responses, pin on both cards",
+    "landing section rows and headings restored to HEAD sizes",
+    "package.json and yarn.lock unchanged"
+  ],
+  "contractStatus": "OK",
+  "refuted": [],
+  "unproven": [
+    "visual check of logged-in pages (/k, admin, study room, exam session, flashcard study): no browser session may be used, so they were reviewed from class lists only"
+  ],
+  "reachableRegressions": [],
+  "findings": [
+    { "severity": "High", "category": "Architecture", "location": "kmaedu-fe/src/pages/k/components/continue-exam-card.tsx:60", "summary": "continue card lost pin/unpin; CardMenu added", "disposition": "Accept" },
+    { "severity": "High", "category": "Architecture", "location": "kmaedu-fe/src/pages/k/components/session-analytics-sections.tsx:59", "summary": "violations pie clipped in h-52; restored h-64", "disposition": "Accept" },
+    { "severity": "High", "category": "Architecture", "location": "kmaedu-fe/src/pages/study-flashcard/FlashcardStudyPage.tsx:442", "summary": "flip card overflowed sooner; min-h 320/380", "disposition": "Accept" },
+    { "severity": "High", "category": "Architecture", "location": "kmaedu-fe/src/pages/exam-session/ExamQuizPage.tsx:570", "summary": "review-mode list card button clipped after body padding removal; p-4", "disposition": "Accept" },
+    { "severity": "Medium", "category": "Architecture", "location": "kmaedu-fe/src/pages/k/my-exams-types.ts:134", "summary": "header counts covered only the loaded page; shown only when the list fits one page", "disposition": "Accept" },
+    { "severity": "Medium", "category": "Testing", "location": "kmaedu-fe/src/pages/k/my-exams-types.ts:112", "summary": "formatTimeAgo copy without boundary tests; formatAttemptTime reuses lib/history", "disposition": "Accept" },
+    { "severity": "Medium", "category": "Testing", "location": "kmaedu-fe/src/pages/k/my-exams-types.test.ts:79", "summary": "date tests depended on runner timezone; local-time anchors", "disposition": "Accept" },
+    { "severity": "Low", "category": "Error Handling", "location": "kmaedu-fe/src/pages/k/MyExamsPage.tsx:61", "summary": "failed load showed empty state and 0 counts; failed state with retry", "disposition": "Accept" },
+    { "severity": "Low", "category": "Architecture", "location": "kmaedu-fe/src/pages/k/MyExamsPage.tsx:47", "summary": "stale page responses overwrote newer ones; latestLoad guard", "disposition": "Accept" },
+    { "severity": "Low", "category": "Architecture", "location": "kmaedu-fe/src/pages/k/MyExamsPage.tsx:76", "summary": "paging back to 1 collapsed the list; keep it expanded", "disposition": "Accept" },
+    { "severity": "Low", "category": "Architecture", "location": "kmaedu-fe/src/components/organisms/k/ai-tool/flashcard-result-preview.tsx:21", "summary": "preview face had no slack; max-h-36", "disposition": "Accept" },
+    { "severity": "Low", "category": "Architecture", "location": "kmaedu-fe/src/pages/study-room/StudyRoomListPage.tsx:62", "summary": "skeleton shorter than real card; h-40", "disposition": "Accept" },
+    { "severity": "Low", "category": "Architecture", "location": "kmaedu-fe/src/components/organisms/landing/ProductShowcase.tsx:82", "summary": "landing section rows/headings shrunk beyond scope; restored", "disposition": "Accept" },
+    { "severity": "Low", "category": "Clean Code", "location": "kmaedu-fe/src/pages/k/components/session-card.tsx:56", "summary": "calendar icon shown with an empty date", "disposition": "Accept" },
+    { "severity": "Low", "category": "Data", "location": "kmaedu-fe/src/pages/k/components/session-card.tsx:31", "summary": "all finished results green incl. 0.0 — follows the design", "disposition": "Reject" },
+    { "severity": "Low", "category": "Security", "location": "kmaedu-fe/src/pages/k/components/continue-exam-card.tsx:6", "summary": "unencoded ids in resumeUrl — moved code, server cuids, fixed prefix", "disposition": "Reject" }
+  ]
+}

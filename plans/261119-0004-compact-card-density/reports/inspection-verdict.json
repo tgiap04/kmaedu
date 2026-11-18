@@ -1,0 +1,80 @@
+{
+  "score": 7,
+  "criticalCount": 0,
+  "decision": "REWORK",
+  "acceptanceCovered": [
+    "antd Card body padding removed; all 43 callers pad themselves (no flush content, no header-only card without bottom padding)",
+    "scale table applied across admin, /k, live pages and public pages",
+    "exam question/answer text and markdown sizes unchanged",
+    "no edits in components/ui, kokonutui, magicui, components/antd (except card.tsx), nav sidebar, routes, layouts",
+    "class-only outside my-exams (plus required ProgressCircle viewBox and chart height defaults)",
+    "my-exams new logic covered by unit tests"
+  ],
+  "regressionChecked": [
+    "every <Card> from @/components/antd/card, including unchanged callers",
+    "CardHeader/CardContent spacing combinations",
+    "negative margins and absolute positioning tied to shrunk sizes",
+    "fixed heights/min/max heights vs content (flip cards, charts, skeletons, scroll areas, chat panels)",
+    "text below 12px and touch targets below 28px",
+    "room-rail-tabs .ant-card-body flex dependency and globals.css .glass-card override"
+  ],
+  "contractStatus": "OK",
+  "refuted": [],
+  "unproven": [
+    "visual correctness of authenticated pages (/k, admin, study-room, exam session) — not screenshotted"
+  ],
+  "reachableRegressions": [
+    "ExamQuizPage review mode: 'Xem tổng quan' button overflows and is clipped on the right; legend box flush to card edges (src/pages/exam-session/ExamQuizPage.tsx:570-617)"
+  ],
+  "findings": [
+    {
+      "severity": "High",
+      "category": "Layout",
+      "location": "src/pages/exam-session/ExamQuizPage.tsx:570-617",
+      "summary": "review-mode question list card keeps !px-0 after body padding removal: button w-full mx-3 clipped by overflow-hidden, legend flush to edges; use p-4 and drop px-4/px-3/mx-3",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Low",
+      "category": "Layout",
+      "location": "src/components/molecules/ConnectionInfoPanel.tsx:41",
+      "summary": "CardHeader pb-4 + CardContent pt-3 gives 28px gap vs 12px elsewhere; drop pb-4",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Low",
+      "category": "Layout",
+      "location": "src/components/organisms/k/ai-tool/flashcard-result-preview.tsx:21",
+      "summary": "280px face leaves 232px content box for up to 260px content; long answers squeeze padding to ~10px; max-h-48 -> max-h-40",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Low",
+      "category": "Consistency",
+      "location": "src/components/organisms/k/CategoriesSidebar.tsx:20-27",
+      "summary": "header px-5 vs inner list px-4 (also ConversationList, PostsList); 4px misalignment, pre-existing at 8px",
+      "disposition": "Defer"
+    },
+    {
+      "severity": "Low",
+      "category": "Consistency",
+      "location": "src/components/antd/card.tsx:20-23",
+      "summary": "part defaults pad 20px while p-4 cards and study-room panels pad 16px",
+      "disposition": "Defer"
+    },
+    {
+      "severity": "Low",
+      "category": "Layout",
+      "location": "src/pages/k/components/my-exams-sections.tsx:73",
+      "summary": "skeleton uses md:grid-cols-2 while real grid uses @3xl container query; possible layout jump",
+      "disposition": "Defer"
+    },
+    {
+      "severity": "Low",
+      "category": "Logic",
+      "location": "src/pages/k/MyExamsPage.tsx:44",
+      "summary": "overview pills count only rooms on the current 50-attempt page (same as old countLabel)",
+      "disposition": "Defer"
+    }
+  ]
+}

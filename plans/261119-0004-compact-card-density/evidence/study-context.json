@@ -1,0 +1,31 @@
+{
+  "task": "Restyle /k/my-exams after the design mock, then shrink cards on every frontend page by one density scale (class-only outside my-exams).",
+  "mode": "auto",
+  "acceptanceCriteria": [
+    "my-exams matches the design",
+    "cards shrink on every page by the plan scale",
+    "Card wrapper no longer double-pads",
+    "class-only outside my-exams",
+    "reading and exam question text keep their size",
+    "my-exams logic covered by unit tests"
+  ],
+  "touchpoints": [
+    "kmaedu-fe/src/components/antd/card.tsx",
+    "kmaedu-fe/src/components/k-page/page-header.tsx",
+    "kmaedu-fe/src/pages/k/MyExamsPage.tsx",
+    "kmaedu-fe/src/pages/k/my-exams-types.ts",
+    "kmaedu-fe/src/pages/k/components/session-card.tsx",
+    "kmaedu-fe/src/pages/k/components/continue-exam-card.tsx",
+    "kmaedu-fe/src/pages/k/components/my-exams-sections.tsx",
+    "kmaedu-fe/src/pages/**, src/templates/**, src/components/{organisms,molecules,atoms/k,k,admin,common}/** (class changes)"
+  ],
+  "blastRadius": [
+    "43 consumers of components/antd/card",
+    "15 consumers of PageHeader",
+    "stat cards, charts and skeleton heights",
+    "exam review screen, study-room panels, flashcard study, ai-tool, landing"
+  ],
+  "contracts": [
+    "no API, store, route or prop contract changes; Card keeps its exported parts and props"
+  ]
+}

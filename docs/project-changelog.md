@@ -1,12 +1,13 @@
 ---
 title: KMAEdu Project Changelog
-last_updated: 2026-11-16
+last_updated: 2026-11-19
 ---
 
 # KMAEdu Project Changelog
 
 ## [Unreleased]
 
+- **Changed: compact cards across the frontend and a new /k/my-exams layout**. The shared `Card` (`components/antd/card.tsx`) no longer adds antd's 24px body padding on top of each caller's own, so cards that were padded about 48px now get 16–20px; `PageHeader` is smaller (48px tile, 28px title); every page's cards follow one scale (icon tiles 48–56px, titles and big numbers one step down, 16px between cards, fixed heights about 20% lower). `/k/my-exams` follows the new design: three count pills (shown only when the whole list fits one page), a "Tiếp tục học" card for rooms with an open attempt, a two-column grid for the rest with a history button and a pin menu, and a "Xem tất cả" toggle. Reading text, exam question text and landing headings keep their sizes. Plan `plans/261119-0004-compact-card-density/`.
 - **Removed: avatars, profile banners and quiz/flashcard set thumbnails** (BREAKING). `POST /profile/upload-avatar` and `/profile/upload-banner` are gone, Google login no longer copies `picture`, and no response carries `avatar`, `banner` or `thumbnail` (auth `/auth/me` and profile, public user objects in content/assessment/study-room/admin, set views); the UI shows initials and icons. `POST/PUT /quizsets` and `/flashcardsets` take JSON only. Proto: `auth.v1.User.avatar`/`banner` and `PublicProfile.avatar` are deleted and reserved (the release PR needs the `proto:breaking` label). Data: contract migrations `remove_avatar_banner` (auth) and `remove_set_thumbnails` (content) first queue each owner's R2 objects (`avatars|banners/<userId>/…`, `quizset-|flashcardset-thumbnails/<userId>/…`) in `r2_delete_tasks`, then drop the columns (label `migration:contract`). auth and content no longer read `R2_PUBLIC_URL`.
 - **Removed: legacy hybrid retrieval in ai-service (GraphRAG per document replaces it)**. Chat and quiz/flashcard generation read the per-document GraphRAG tables; `HybridRetrievalService`, `GraphStorageService`, `EntityExtractionService`, the old graph package, the pickle graph cache (`src/storage/graph_cache`), `src/rag/rag_graph.py` and the dev/experiment scripts that depended on them (`build_graph.py`, `build_department_graphs.py`, the graph smoke-test scripts, `experiments/evaluate_chatbot.py`, the Streamlit app, the two retrieval benchmark scripts) are deleted. Plan `plans/261115-0128-graphrag-ai-service/`.
   - **Env**: The retrieval-mode switch and every `AI_GRAPH_*` variable (FAISS, cache root, hop depth) no longer exist. New optional `GRAPHRAG_LLM_MODEL` (compose default `Faye-AI`; empty = AI2 default), `GRAPHRAG_CONCURRENCY=24`, `GRAPHRAG_MAX_TOKENS=8192`, `GRAPHRAG_MERGE_THRESHOLD=0.92`, `GRAPHRAG_BUILD_TIMEOUT_MINUTES=40` (claim lease = timeout + 5 min) on `ai` and `ai-worker`.

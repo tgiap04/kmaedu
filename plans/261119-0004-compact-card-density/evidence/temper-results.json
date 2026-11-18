@@ -1,0 +1,12 @@
+{
+  "commands": [
+    { "command": "yarn vitest run src/pages/k/my-exams-types.test.ts", "exitCode": 1, "testCount": 12, "phase": "RED", "summary": "9 failed on assertions against stubs (examOverview, splitByProgress, stableIndex, formatTimeAgo)" },
+    { "command": "yarn vitest run src/pages/k/my-exams-types.test.ts", "exitCode": 0, "testCount": 12, "phase": "GREEN", "summary": "12 passed after implementation" },
+    { "command": "yarn vitest run src/pages/k/my-exams-types.test.ts", "exitCode": 1, "testCount": 17, "phase": "RED", "summary": "review fix round 1: 3 failed on assertions (casing, future time, unreadable date) before formatAttemptTime" },
+    { "command": "yarn vitest run src/pages/k/my-exams-types.test.ts", "exitCode": 0, "testCount": 17, "phase": "GREEN", "summary": "17 passed" },
+    { "command": "yarn vitest run src/pages/k/my-exams-types.test.ts", "exitCode": 1, "testCount": 23, "phase": "RED", "summary": "review fix round 2: 6 myExamsView tests failed on assertions against a stub" },
+    { "command": "yarn vitest run src/pages/k/my-exams-types.test.ts", "exitCode": 0, "testCount": 23, "phase": "GREEN", "summary": "23 passed" },
+    { "command": "TZ=America/Los_Angeles yarn vitest run src/pages/k/my-exams-types.test.ts", "exitCode": 0, "testCount": 23, "phase": "GREEN", "summary": "date tests independent of the runner timezone" },
+    { "command": "yarn test", "exitCode": 0, "testCount": 229, "phase": "GREEN", "summary": "31 files; also tsc --noEmit exit 0, eslint 128 changed files 0 errors, yarn build exit 0" }
+  ]
+}
