@@ -14,7 +14,7 @@ export function PracticeResult({ result, onPracticeAgain }: PracticeResultProps)
   const { attempt, questions } = result;
   return (
     <div className="space-y-6">
-      <div className="rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+      <div className="rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
         <div className="flex flex-wrap items-center justify-between gap-4 p-5 md:p-6">
           <div>
             <p className="text-sm text-muted-foreground">Điểm</p>
@@ -28,7 +28,7 @@ export function PracticeResult({ result, onPracticeAgain }: PracticeResultProps)
       </div>
 
       {questions.map((q, index) => (
-        <div key={q.id} className="rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+        <div key={q.id} className="rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
           <div className="p-5 md:p-6">
             <h3 className="mb-3 font-semibold">Câu {index + 1}</h3>
             <StandardMarkdownRenderer content={q.question} className="mb-4" fontSize={15} />

@@ -1,4 +1,4 @@
-import { Ban, Crown, MicOff, MoreVertical, Shield } from "lucide-react";
+import { ProhibitIcon, CrownIcon, MicrophoneSlashIcon, DotsThreeCircleVerticalIcon, ShieldIcon } from "@phosphor-icons/react";
 import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import { Badge } from "@/components/antd/badge";
 import {
@@ -15,13 +15,13 @@ function roleBadge(role: number) {
   if (role >= StudyRoomRole.HOST)
     return (
       <Badge variant="warning">
-        <Crown className="h-3 w-3" /> Chủ phòng
+        <CrownIcon className="h-3 w-3" /> Chủ phòng
       </Badge>
     );
   if (role >= StudyRoomRole.COHOST)
     return (
       <Badge variant="info">
-        <Shield className="h-3 w-3" /> Co-host
+        <ShieldIcon className="h-3 w-3" /> Co-host
       </Badge>
     );
   return null;
@@ -69,12 +69,12 @@ export function RosterRow({ entry, myRole, myId, blocked, actions }: RowProps) {
           {roleBadge(entry.role)}
           {entry.isMuted && (
             <Badge variant="secondary">
-              <MicOff className="h-3 w-3" /> Cấm chat
+              <MicrophoneSlashIcon className="h-3 w-3" /> Cấm chat
             </Badge>
           )}
           {entry.isBanned && (
             <Badge variant="destructive">
-              <Ban className="h-3 w-3" /> Bị ban
+              <ProhibitIcon className="h-3 w-3" /> Bị ban
             </Badge>
           )}
         </div>
@@ -86,7 +86,7 @@ export function RosterRow({ entry, myRole, myId, blocked, actions }: RowProps) {
         <DropdownMenu>
           <DropdownMenuTrigger>
             <button type="button" className="p-1 text-muted-foreground">
-              <MoreVertical className="h-4 w-4" />
+              <DotsThreeCircleVerticalIcon className="h-4 w-4" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

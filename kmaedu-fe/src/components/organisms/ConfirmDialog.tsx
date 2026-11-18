@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/antd/alert-dialog";
-import { Loader2 } from "lucide-react";
+import { CircleNotchIcon } from "@phosphor-icons/react";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -69,7 +69,7 @@ export function ConfirmDialog({
                 ? "bg-destructive hover:bg-destructive/90 px-2"
                 : "px-2"
             }>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
             {confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>

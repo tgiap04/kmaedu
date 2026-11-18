@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowCircleRightIcon, ArrowCircleUpRightIcon } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../antd/button";
 import LanguageSwitcher from "../molecules/language-switcher";
@@ -82,7 +82,7 @@ export default function FooterSection() {
               onSubmit={handleSubscribe}
               className="lg:justify-self-end w-full lg:w-auto"
             >
-              <div className="flex w-full max-w-md items-center gap-2 rounded-xl border border-foreground/10 bg-canvas/60 p-1.5">
+              <div className="flex w-full max-w-md items-center gap-2 rounded-lg border border-foreground/10 bg-canvas/60 p-1.5">
                 <input
                   type="email"
                   value={email}
@@ -96,7 +96,7 @@ export default function FooterSection() {
                   className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand-soft px-4 text-xs font-medium text-brand-strong transition-colors hover:bg-brand-soft-hover"
                 >
                   {subscribed ? t("footer.newsletter.subscribed") : t("footer.newsletter.subscribe")}
-                  {!subscribed && <ArrowRight className="h-4 w-4" />}
+                  {!subscribed && <ArrowCircleRightIcon className="h-4 w-4" />}
                 </Button>
               </div>
             </form>
@@ -128,7 +128,7 @@ export default function FooterSection() {
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                   >
                     {link.name}
-                    <ArrowUpRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                    <ArrowCircleUpRightIcon className="w-3 h-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                   </a>
                 ))}
               </div>

@@ -3,7 +3,7 @@ import * as React from "react";
 import { useLayoutEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { LogOut, Menu, User, X } from "lucide-react";
+import { SignOutIcon, ListIcon, UserIcon, XIcon } from "@phosphor-icons/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +56,7 @@ export default function HeaderSection() {
         <nav
           data-state={menuState ? "active" : undefined}
           className={cn(
-            "mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 rounded-[16px] border px-4 transition-all duration-200 sm:px-5",
+            "mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 rounded-lg border px-4 transition-all duration-200 sm:px-5",
             isScrolled
               ? "border-hairline bg-canvas/80 shadow-[0_8px_24px_rgba(20,20,19,0.06)] backdrop-blur"
               : "border-transparent bg-canvas/60 backdrop-blur-sm",
@@ -106,7 +106,7 @@ export default function HeaderSection() {
                 </Link>
                 <Link
                   to="/register"
-                  className="inline-flex h-9 items-center rounded-[9999px] bg-foreground px-4 text-[13px] font-medium text-background transition-opacity hover:opacity-90"
+                  className="inline-flex h-9 items-center rounded-lg bg-foreground px-4 text-[13px] font-medium text-background transition-opacity hover:opacity-90"
                 >
                   {t("nav.getStarted")}
                 </Link>
@@ -122,13 +122,13 @@ export default function HeaderSection() {
                   </DropdownMenuLabel>
                   <DropdownMenuGroup>
                     <DropdownMenuItem onClick={() => navigate("/k/profile")}>
-                      <User className="h-4 w-4" />
+                      <UserIcon className="h-4 w-4" />
                       {t("nav.profile")}
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-                    <LogOut className="h-4 w-4" />
+                    <SignOutIcon className="h-4 w-4" />
                     {t("nav.logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -142,16 +142,16 @@ export default function HeaderSection() {
               className="inline-flex h-9 w-9 items-center justify-center rounded-[9999px] border border-hairline bg-canvas text-ink transition-colors hover:border-coral/40 hover:bg-surface-card lg:hidden"
             >
               {menuState ? (
-                <X className="h-4 w-4" strokeWidth={1.75} />
+                <XIcon className="h-4 w-4" />
               ) : (
-                <Menu className="h-4 w-4" strokeWidth={1.75} />
+                <ListIcon className="h-4 w-4" />
               )}
             </button>
           </div>
         </nav>
 
         {menuState && (
-          <div className="mx-auto mt-2 max-w-7xl rounded-[16px] border border-hairline bg-canvas p-4 shadow-[0_18px_40px_rgba(20,20,19,0.08)] lg:hidden">
+          <div className="mx-auto mt-2 max-w-7xl rounded-lg border border-hairline bg-canvas p-4 shadow-[0_18px_40px_rgba(20,20,19,0.08)] lg:hidden">
             <ul className="space-y-3">
               {menuItems.map((item) => (
                 <li key={item.href}>
@@ -182,14 +182,14 @@ export default function HeaderSection() {
                 <Link
                   to="/login"
                   onClick={() => setMenuState(false)}
-                  className="inline-flex h-10 flex-1 items-center justify-center rounded-[8px] border border-hairline text-[14px] font-medium text-ink"
+                  className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-hairline text-[14px] font-medium text-ink"
                 >
                   {t("nav.login")}
                 </Link>
                 <Link
                   to="/register"
                   onClick={() => setMenuState(false)}
-                  className="inline-flex h-10 flex-1 items-center justify-center rounded-[8px] bg-foreground text-[14px] font-medium text-background"
+                  className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-foreground text-[14px] font-medium text-background"
                 >
                   {t("nav.getStarted")}
                 </Link>

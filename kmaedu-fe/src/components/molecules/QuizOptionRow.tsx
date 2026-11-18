@@ -22,7 +22,7 @@ export function QuizOptionRow({ optionLetter, content, state, onClick, disabled 
   const isInteractive = !!onClick;
 
   const containerClass = cn(
-    "flex items-center gap-2 p-4 rounded-[10px] border-2 transition-colors",
+    "flex items-center gap-2 p-4 rounded-lg border-2 transition-colors",
     isInteractive && "cursor-pointer",
     !isInteractive && "cursor-default",
     state === "selected" && "border-coral bg-coral/5 hover:border-coral/70",

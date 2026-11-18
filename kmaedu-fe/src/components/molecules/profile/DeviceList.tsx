@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/antd/card";
 import { Button } from "@/components/antd/button";
-import { Monitor, Smartphone, Tablet, Loader2, LogOut, MapPin, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { MonitorIcon, DeviceMobileIcon, DeviceTabletIcon, CircleNotchIcon, SignOutIcon, MapPinIcon, ClockIcon, CheckCircleIcon, WarningIcon } from "@phosphor-icons/react";
 import { getDevicesApi, logoutDeviceApi, logoutAllOthersApi, type Device } from "@/apis/devicesApi";
 import { useToast } from "@/components/antd/toast";
 import {
@@ -69,12 +69,12 @@ export function DeviceList() {
     const name = (deviceName || "").toLowerCase();
     const osLower = (os || "").toLowerCase();
     if (name.includes("iphone") || name.includes("android") || osLower.includes("ios") || osLower.includes("android")) {
-      return <Smartphone className="h-5 w-5" />;
+      return <DeviceMobileIcon className="h-5 w-5" />;
     }
     if (name.includes("ipad") || name.includes("tablet")) {
-      return <Tablet className="h-5 w-5" />;
+      return <DeviceTabletIcon className="h-5 w-5" />;
     }
-    return <Monitor className="h-5 w-5" />;
+    return <MonitorIcon className="h-5 w-5" />;
   };
 
   const currentDevice = devices.find((d) => d.isCurrent);
@@ -82,11 +82,11 @@ export function DeviceList() {
 
   if (isLoading) {
     return (
-      <Card className="!rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+      <Card className="!rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
         <CardHeader className="pb-0">
           <CardTitle className="flex items-center gap-3 text-xl">
             <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
-              <Monitor className="size-[18px] text-brand" />
+              <MonitorIcon className="size-[18px] text-brand" />
             </div>
             <div>
               <div className="text-[16px] font-bold text-ink">Thiết bị</div>
@@ -95,19 +95,19 @@ export function DeviceList() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-text" />
+          <CircleNotchIcon className="h-6 w-6 animate-spin text-muted-text" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="!rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+    <Card className="!rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader className="pb-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-3 text-xl">
             <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
-              <Monitor className="size-[18px] text-brand" />
+              <MonitorIcon className="size-[18px] text-brand" />
             </div>
             <div>
               <div className="text-[16px] font-bold text-ink">Thiết bị</div>
@@ -125,9 +125,9 @@ export function DeviceList() {
                   className="gap-2 border-error/30 text-error hover:border-error hover:bg-error/5 shrink-0"
                 >
                   {isLogoutingAll ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <CircleNotchIcon className="h-4 w-4 animate-spin" />
                   ) : (
-                    <LogOut className="h-4 w-4" />
+                    <SignOutIcon className="h-4 w-4" />
                   )}
                   Đăng xuất tất cả
                 </Button>
@@ -135,7 +135,7 @@ export function DeviceList() {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-warning" />
+                    <WarningIcon className="h-5 w-5 text-warning" />
                     Xác nhận đăng xuất
                   </AlertDialogTitle>
                   <AlertDialogDescription>
@@ -161,7 +161,7 @@ export function DeviceList() {
         {devices.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-12 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-soft">
-              <Monitor className="h-6 w-6 text-muted-text" />
+              <MonitorIcon className="h-6 w-6 text-muted-text" />
             </div>
             <p className="text-sm text-muted-text">Không có thiết bị nào đã đăng nhập.</p>
           </div>
@@ -169,15 +169,15 @@ export function DeviceList() {
           <div className="space-y-3">
             {/* Current device */}
             {currentDevice && (
-              <div className="flex items-start gap-4 rounded-xl border-2 border-coral/30 bg-coral/5 p-4 transition-all">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-coral/10 text-brand-strong">
+              <div className="flex items-start gap-4 rounded-lg border-2 border-coral/30 bg-coral/5 p-4 transition-all">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-coral/10 text-brand-strong">
                   {getDeviceIcon(currentDevice.deviceName, currentDevice.os)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium text-ink">{currentDevice.deviceName || "Thiết bị hiện tại"}</span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-coral/10 px-2 py-0.5 text-xs font-medium text-brand-strong">
-                      <CheckCircle2 className="h-3 w-3" />
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-coral/10 px-2 py-0.5 text-xs font-medium text-brand-strong">
+                      <CheckCircleIcon className="h-3 w-3" />
                       Thiết bị này
                     </span>
                   </div>
@@ -187,12 +187,12 @@ export function DeviceList() {
                     </p>
                     {currentDevice.location && (
                       <p className="flex items-center gap-1 text-xs text-muted-text">
-                        <MapPin className="h-3 w-3" />
+                        <MapPinIcon className="h-3 w-3" />
                         {currentDevice.location}
                       </p>
                     )}
                     <p className="flex items-center gap-1 text-xs text-muted-text">
-                      <Clock className="h-3 w-3" />
+                      <ClockIcon className="h-3 w-3" />
                       Hoạt động {currentDevice.lastActivity}
                     </p>
                   </div>
@@ -202,8 +202,8 @@ export function DeviceList() {
 
             {/* Other devices */}
             {otherDevices.map((device) => (
-              <div key={device.id} className="flex items-start gap-4 rounded-xl border border-hairline bg-surface-soft p-4 transition-all hover:border-hairline/80">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-card text-muted-text">
+              <div key={device.id} className="flex items-start gap-4 rounded-lg border border-hairline bg-surface-soft p-4 transition-all hover:border-hairline/80">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-surface-card text-muted-text">
                   {getDeviceIcon(device.deviceName, device.os)}
                 </div>
                 <div className="flex flex-1 min-w-0 items-start justify-between gap-3">
@@ -215,12 +215,12 @@ export function DeviceList() {
                       </p>
                       {device.location && (
                         <p className="flex items-center gap-1 text-xs text-muted-text">
-                          <MapPin className="h-3 w-3" />
+                          <MapPinIcon className="h-3 w-3" />
                           {device.location}
                         </p>
                       )}
                       <p className="flex items-center gap-1 text-xs text-muted-text">
-                        <Clock className="h-3 w-3" />
+                        <ClockIcon className="h-3 w-3" />
                         Hoạt động {device.lastActivity}
                       </p>
                     </div>
@@ -234,9 +234,9 @@ export function DeviceList() {
                         disabled={logoutingId === device.id}
                       >
                         {logoutingId === device.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <CircleNotchIcon className="h-4 w-4 animate-spin" />
                         ) : (
-                          <LogOut className="h-4 w-4" />
+                          <SignOutIcon className="h-4 w-4" />
                         )}
                         <span className="hidden sm:inline">Đăng xuất</span>
                       </Button>

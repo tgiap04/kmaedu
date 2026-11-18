@@ -1,10 +1,10 @@
 import { Button } from "@/components/antd/button";
 import { NotificationBadge } from "@/components/atoms/k/NotificationBadge";
-import { LucideIcon } from "lucide-react";
+import type { Icon as AppIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface NotificationFilterButtonProps {
-  icon: LucideIcon;
+  icon: AppIcon;
   label: string;
   count: number;
   isActive: boolean;

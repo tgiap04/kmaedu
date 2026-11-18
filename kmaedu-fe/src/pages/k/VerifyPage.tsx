@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShieldCheck, Loader2, ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
+import { ShieldCheckIcon, CircleNotchIcon, ArrowCircleLeftIcon, EnvelopeSimpleIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { PageHeader } from "@/components/k-page/page-header";
 import { useAuthStore } from "@/stores/useAuthStore";
 import {
@@ -55,18 +55,18 @@ export default function VerifyPage() {
   if (user?.isVerified) {
     return (
       <div>
-        <PageHeader icon={<ShieldCheck />} title="Xác minh tài khoản" subtitle="Bảo vệ tài khoản và mở đầy đủ tính năng học tập" />
+        <PageHeader icon={<ShieldCheckIcon />} title="Xác minh tài khoản" subtitle="Bảo vệ tài khoản và mở đầy đủ tính năng học tập" />
         <div className="mx-auto w-full max-w-md">
-          <div className="rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)] p-8 text-center">
+          <div className="rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)] p-8 text-center">
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle2 className="h-10 w-10 text-green-600" />
+              <CheckCircleIcon className="h-10 w-10 text-green-600" />
             </div>
             <h2 className="mb-3 text-xl font-bold text-ink">Tài khoản đã được xác minh!</h2>
             <p className="mb-6 text-muted-foreground">
               Tài khoản của bạn đã được xác minh thành công. Bạn có thể sử dụng đầy đủ các tính năng của hệ thống.
             </p>
-            <Link to="/k" className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40">
-              <ArrowLeft className="h-4 w-4" />
+            <Link to="/k" className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40">
+              <ArrowCircleLeftIcon className="h-4 w-4" />
               Quay lại trang chủ
             </Link>
           </div>
@@ -77,12 +77,12 @@ export default function VerifyPage() {
 
   return (
     <div>
-      <PageHeader icon={<ShieldCheck />} title="Xác minh tài khoản" subtitle="Bảo vệ tài khoản và mở đầy đủ tính năng học tập" />
+      <PageHeader icon={<ShieldCheckIcon />} title="Xác minh tài khoản" subtitle="Bảo vệ tài khoản và mở đầy đủ tính năng học tập" />
       <div className="mx-auto w-full max-w-md">
-        <div className="rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)] p-6 sm:p-8">
+        <div className="rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)] p-6 sm:p-8">
           <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 grid size-12 place-items-center rounded-xl bg-brand-soft">
-              <ShieldCheck className="size-6 text-brand" />
+            <div className="mx-auto mb-4 grid size-12 place-items-center rounded-lg bg-brand-soft">
+              <ShieldCheckIcon className="size-6 text-brand" />
             </div>
             <h2 className="text-xl font-bold text-ink">Nhập mã xác minh</h2>
             <p className="mt-2 text-body">Mã xác minh đã được gửi đến email của bạn</p>
@@ -90,9 +90,9 @@ export default function VerifyPage() {
           </div>
 
           {autoSentEmail && !success && (
-            <div className="mb-6 rounded-xl border border-brand-border bg-brand-soft p-4">
+            <div className="mb-6 rounded-lg border border-brand-border bg-brand-soft p-4">
               <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 flex-shrink-0 text-brand" />
+                <EnvelopeSimpleIcon className="h-5 w-5 flex-shrink-0 text-brand" />
                 <p className="text-sm text-brand">Email xác minh đã được gửi tự động. Vui lòng kiểm tra hộp thư của bạn.</p>
               </div>
             </div>
@@ -133,11 +133,11 @@ export default function VerifyPage() {
                 <button
                   type="submit"
                   disabled={loading || code.length < 6}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-brand px-4 py-3 font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-60"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-3 font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-60"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <CircleNotchIcon className="h-5 w-5 animate-spin" />
                       Đang xác minh...
                     </>
                   ) : (
@@ -148,8 +148,8 @@ export default function VerifyPage() {
 
               <div className="mt-6 text-center">
                 <p className="mb-2 text-sm text-muted-foreground">Không nhận được mã?</p>
-                <button onClick={handleResendCode} disabled={loading} className="inline-flex items-center gap-2 rounded-full text-sm font-semibold text-brand hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-50">
-                  <Mail className="h-4 w-4" />
+                <button onClick={handleResendCode} disabled={loading} className="inline-flex items-center gap-2 rounded-lg text-sm font-semibold text-brand hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:opacity-50">
+                  <EnvelopeSimpleIcon className="h-4 w-4" />
                   Gửi lại mã xác minh
                 </button>
               </div>
@@ -158,7 +158,7 @@ export default function VerifyPage() {
 
           <div className="mt-6 border-t border-hairline pt-6 text-center">
             <Link to="/k" className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-ink">
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowCircleLeftIcon className="h-4 w-4" />
               Quay lại trang chủ
             </Link>
           </div>

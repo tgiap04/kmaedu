@@ -48,7 +48,7 @@ export function KpiCard({ label, value, format = "number", icon, className, load
         {icon ? <span className="text-ink/40">{icon}</span> : null}
       </div>
       {loading ? (
-        <div className="h-9 w-24 animate-pulse rounded-md bg-hairline/60" aria-hidden="true" />
+        <div className="h-9 w-24 animate-pulse rounded-lg bg-hairline/60" aria-hidden="true" />
       ) : (
         <div
           className="font-display text-[36px] font-normal leading-tight tracking-tight text-ink"

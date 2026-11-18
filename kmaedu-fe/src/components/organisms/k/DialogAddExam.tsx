@@ -22,7 +22,7 @@ import {
   useFlashcardGeneratorStore,
 } from "@/stores/useAIGeneratorStore";
 import { useStatsStore } from "@/stores/useStatsStore";
-import { Loader2 } from "lucide-react";
+import { CircleNotchIcon } from "@phosphor-icons/react";
 
 export enum DialogAddExamType {
   QUIZZ = 1,
@@ -300,7 +300,7 @@ export function DialogAddExam(props: DialogAddExamProps) {
               type="submit"
               disabled={isDisabled}
               className="cursor-pointer flex-1">
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
               Lưu thay đổi
             </Button>
           </DialogFooter>

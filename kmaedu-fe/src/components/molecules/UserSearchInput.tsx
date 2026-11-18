@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import { Badge } from "@/components/antd/badge";
 import { Button } from "@/components/antd/button";
 import { Card } from "@/components/antd/card";
-import { Loader2, X, Search, Users } from "lucide-react";
+import { CircleNotchIcon, XCircleIcon, MagnifyingGlassIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { searchUsersForWhitelistApi } from "@/apis/examSessionApi";
 import { cn } from "@/lib/utils";
@@ -118,7 +118,7 @@ export function UserSearchInput({
                 className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
                 onClick={() => handleRemoveUser(user.id)}
                 disabled={disabled}>
-                <X className="h-3 w-3" />
+                <XCircleIcon className="h-3 w-3" />
               </Button>
             </Badge>
           ))}
@@ -128,7 +128,7 @@ export function UserSearchInput({
       {/* Search input */}
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder={placeholder}
@@ -142,7 +142,7 @@ export function UserSearchInput({
             className="pl-9"
           />
           {isSearching && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+            <CircleNotchIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
           )}
         </div>
 
@@ -179,7 +179,7 @@ export function UserSearchInput({
                 </div>
               ) : (
                 <div className="flex flex-col items-center py-6 text-muted-foreground">
-                  <Users className="h-8 w-8 mb-2 opacity-50" />
+                  <UsersThreeIcon className="h-8 w-8 mb-2 opacity-50" />
                   <p className="text-sm">Không tìm thấy người dùng</p>
                 </div>
               )}

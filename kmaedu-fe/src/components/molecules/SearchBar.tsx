@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Input } from "@/components/antd/input";
 
 interface SearchBarProps {
@@ -20,7 +20,7 @@ export function SearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="pl-10 bg-background border-border !py-2"
-        prefix={<Search className="h-4 w-4 text-muted-foreground" />}
+        prefix={<MagnifyingGlassIcon className="h-4 w-4 text-muted-foreground" />}
       />
     </div>
   );

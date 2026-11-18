@@ -19,7 +19,7 @@ const ExamHistoryListSectionComponent = ({
   const displayItems = items.slice(0, maxItems);
 
   return (
-    <div className="h-full rounded-2xl border border-hairline bg-canvas p-5 shadow-soft">
+    <div className="h-full rounded-lg border border-hairline bg-canvas p-5 shadow-soft">
       <HistoryListCardHeader
         title="Lịch sử làm bài"
         subtitle="Kết quả các bài thi đã làm"

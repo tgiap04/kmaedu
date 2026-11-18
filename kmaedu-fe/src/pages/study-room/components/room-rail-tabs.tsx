@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { MessagesSquare, Trophy, Users } from "lucide-react";
+import { ChatsCircleIcon, TrophyIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useStudyRoomStore } from "@/stores/useStudyRoomStore";
 import { StudyRoomActions } from "./study-room-actions";
@@ -25,9 +25,9 @@ function RoomRailTabsBase({ actions, myRole, roomId }: Props) {
   );
 
   const tabs = [
-    { key: "chat" as const, label: "Trò chuyện", icon: MessagesSquare },
-    { key: "members" as const, label: "Thành viên", icon: Users, badge: online },
-    { key: "ranks" as const, label: "Xếp hạng", icon: Trophy },
+    { key: "chat" as const, label: "Trò chuyện", icon: ChatsCircleIcon },
+    { key: "members" as const, label: "Thành viên", icon: UsersThreeIcon, badge: online },
+    { key: "ranks" as const, label: "Xếp hạng", icon: TrophyIcon },
   ];
 
   return (
@@ -35,7 +35,7 @@ function RoomRailTabsBase({ actions, myRole, roomId }: Props) {
       <div
         role="tablist"
         aria-label="Bảng bên phòng học"
-        className="flex shrink-0 gap-1 rounded-xl border border-hairline bg-surface-card p-1"
+        className="flex shrink-0 gap-1 rounded-lg border border-hairline bg-surface-card p-1"
       >
         {tabs.map(({ key, label, icon: Icon, badge }) => {
           const active = tab === key;
@@ -58,7 +58,7 @@ function RoomRailTabsBase({ actions, myRole, roomId }: Props) {
               {badge != null && badge > 0 && (
                 <span
                   className={cn(
-                    "rounded-full px-1.5 text-xs tabular-nums",
+                    "rounded-lg px-1.5 text-xs tabular-nums",
                     active ? "bg-white/20" : "bg-surface-cream-strong text-ink",
                   )}
                 >

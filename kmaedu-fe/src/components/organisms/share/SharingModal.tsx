@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Globe, Link2, Lock } from "lucide-react";
+import { CopyIcon, GlobeIcon, LinkSimpleIcon, LockSimpleIcon } from "@phosphor-icons/react";
 import {
   Dialog,
   DialogContent,
@@ -43,7 +43,7 @@ export function SharingModal({ open, onOpenChange, title, resourceId, shareUrl, 
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Link2 className="h-5 w-5" />
+            <LinkSimpleIcon className="h-5 w-5" />
             {title}
           </DialogTitle>
         </DialogHeader>
@@ -59,7 +59,7 @@ export function SharingModal({ open, onOpenChange, title, resourceId, shareUrl, 
               <div className="flex gap-2">
                 <Input value={shareUrl} readOnly className="flex-1" />
                 <Button variant="outline" size="icon" onClick={copyLink} title="Sao chép liên kết">
-                  <Copy className="h-4 w-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -68,9 +68,9 @@ export function SharingModal({ open, onOpenChange, title, resourceId, shareUrl, 
               <div className="space-y-0.5">
                 <Label className="flex items-center gap-2">
                   {form.isPublic ? (
-                    <Globe className="h-4 w-4 text-green-600" />
+                    <GlobeIcon className="h-4 w-4 text-green-600" />
                   ) : (
-                    <Lock className="h-4 w-4 text-orange-600" />
+                    <LockSimpleIcon className="h-4 w-4 text-orange-600" />
                   )}
                   {form.isPublic ? "Công khai" : "Riêng tư"}
                 </Label>

@@ -1,7 +1,7 @@
 import { Card } from "@/components/antd/card";
 import { NotificationFilterButton } from "@/components/molecules/NotificationFilterButton";
 import { NotificationActions } from "@/components/molecules/NotificationActions";
-import { Bell, Circle, User, Shield, Settings } from "lucide-react";
+import { BellIcon, CircleIcon, UserIcon, ShieldIcon, GearSixIcon } from "@phosphor-icons/react";
 
 export type NotificationFilter =
   | "all"
@@ -33,7 +33,7 @@ export function NotificationFilterSidebar({
         </p>
 
         <NotificationFilterButton
-          icon={Bell}
+          icon={BellIcon}
           label="Tất cả thông báo"
           count={counts.all}
           isActive={activeFilter === "all"}
@@ -41,7 +41,7 @@ export function NotificationFilterSidebar({
         />
 
         <NotificationFilterButton
-          icon={Circle}
+          icon={CircleIcon}
           label="Chưa đọc"
           count={counts.unread}
           isActive={activeFilter === "unread"}
@@ -49,7 +49,7 @@ export function NotificationFilterSidebar({
         />
 
         <NotificationFilterButton
-          icon={User}
+          icon={UserIcon}
           label="Tài khoản"
           count={counts.account}
           isActive={activeFilter === "account"}
@@ -57,7 +57,7 @@ export function NotificationFilterSidebar({
         />
 
         <NotificationFilterButton
-          icon={Shield}
+          icon={ShieldIcon}
           label="Bảo mật"
           count={counts.security}
           isActive={activeFilter === "security"}
@@ -65,7 +65,7 @@ export function NotificationFilterSidebar({
         />
 
         <NotificationFilterButton
-          icon={Settings}
+          icon={GearSixIcon}
           label="Hệ thống"
           count={counts.system}
           isActive={activeFilter === "system"}

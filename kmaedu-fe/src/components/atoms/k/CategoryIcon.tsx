@@ -1,8 +1,8 @@
-import { LucideIcon } from "lucide-react";
+import type { Icon as AppIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface CategoryIconProps {
-  icon: LucideIcon;
+  icon: AppIcon;
   className?: string;
   bgClassName?: string;
 }
@@ -19,7 +19,7 @@ export function CategoryIcon({
         bgClassName || "bg-primary/10",
         className
       )}>
-      <Icon className="h-4 w-4 text-primary" />
+      <Icon className="h-4 w-4 text-primary" weight="duotone" />
     </div>
   );
 }

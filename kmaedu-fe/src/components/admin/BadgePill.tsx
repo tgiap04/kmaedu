@@ -23,7 +23,7 @@ export function BadgePill({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-pill px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded-lg px-2.5 py-0.5 text-xs font-medium",
         variantClasses[variant],
         className,
       )}

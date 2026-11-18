@@ -23,7 +23,7 @@ function Badge({ className, variant = "default", children, ...props }: BadgeProp
   return (
     <Tag
       className={cn(
-        "!m-0 !inline-flex !h-auto !items-center !gap-1 !whitespace-nowrap !rounded-full !border !px-2 !py-0.5 !text-[11px] !font-medium !leading-4 align-middle transition-colors [&>svg]:pointer-events-none [&>svg]:size-3 [&>svg]:shrink-0",
+        "!m-0 !inline-flex !h-auto !items-center !gap-1 !whitespace-nowrap !rounded-lg !border !px-2 !py-0.5 !text-[11px] !font-medium !leading-4 align-middle transition-colors [&>svg]:pointer-events-none [&>svg]:size-3 [&>svg]:shrink-0",
         variantClasses[variant as BadgeVariant],
         className,
       )}

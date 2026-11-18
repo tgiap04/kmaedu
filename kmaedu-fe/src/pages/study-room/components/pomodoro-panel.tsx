@@ -1,5 +1,5 @@
 import { memo, useEffect, useState } from "react";
-import { Pause, Play, RotateCcw, Settings2 } from "lucide-react";
+import { PauseIcon, PlayIcon, ArrowCounterClockwiseIcon, SlidersHorizontalIcon } from "@phosphor-icons/react";
 import { Card, CardContent } from "@/components/antd/card";
 import { Button } from "@/components/antd/button";
 import { Progress } from "@/components/antd/progress";
@@ -57,7 +57,7 @@ function PomodoroPanelBase({ actions, myRole }: Props) {
   return (
     <Card>
       <CardContent className="flex flex-col items-center gap-3 py-5">
-        <span className="rounded-full bg-surface-cream-strong px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink">
+        <span className="rounded-lg bg-surface-cream-strong px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink">
           {PHASE_LABEL[view.phase]} · Chu kỳ {view.cycle}/
           {config.cyclesBeforeLongBreak}
         </span>
@@ -70,15 +70,15 @@ function PomodoroPanelBase({ actions, myRole }: Props) {
           <div className="flex flex-wrap items-center justify-center gap-2">
             {view.running ? (
               <Button variant="secondary" onClick={actions.pauseTimer}>
-                <Pause className="h-4 w-4" /> Tạm dừng
+                <PauseIcon className="h-4 w-4" /> Tạm dừng
               </Button>
             ) : (
               <Button onClick={actions.startTimer}>
-                <Play className="h-4 w-4" /> Bắt đầu
+                <PlayIcon className="h-4 w-4" /> Bắt đầu
               </Button>
             )}
             <Button variant="outline" onClick={actions.resetTimer}>
-              <RotateCcw className="h-4 w-4" /> Đặt lại
+              <ArrowCounterClockwiseIcon className="h-4 w-4" /> Đặt lại
             </Button>
             {isHost && (
               <Button
@@ -88,7 +88,7 @@ function PomodoroPanelBase({ actions, myRole }: Props) {
                   setEditing((v) => !v);
                 }}
               >
-                <Settings2 className="h-4 w-4" /> Cấu hình
+                <SlidersHorizontalIcon className="h-4 w-4" /> Cấu hình
               </Button>
             )}
           </div>

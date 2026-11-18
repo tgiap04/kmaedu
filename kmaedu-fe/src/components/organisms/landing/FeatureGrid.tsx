@@ -1,20 +1,20 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, FileText, MessageSquareText, Shield } from "lucide-react";
+import { ArrowCircleUpRightIcon, FileTextIcon, ChatTextIcon, ShieldIcon } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 
 const features = [
   {
-    icon: FileText,
+    icon: FileTextIcon,
     key: "quiz",
     href: "/k/ai-tool",
   },
   {
-    icon: Shield,
+    icon: ShieldIcon,
     key: "exam",
     href: "/k/manage-exam-room",
   },
   {
-    icon: MessageSquareText,
+    icon: ChatTextIcon,
     key: "tutor",
     href: "/k/ai-tool",
   },
@@ -41,10 +41,10 @@ export default function FeatureGrid() {
           {features.map(({ icon: Icon, key, href }) => (
             <article
               key={key}
-              className="flex flex-col rounded-[12px] bg-surface-card p-8 transition-colors hover:bg-surface-cream-strong"
+              className="flex flex-col rounded-lg bg-surface-card p-8 transition-colors hover:bg-surface-cream-strong"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-canvas text-coral">
-                <Icon className="h-5 w-5" strokeWidth={1.75} />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-canvas text-coral">
+                <Icon className="h-5 w-5" />
               </div>
               <h3 className="font-display !mt-6 text-[22px] font-medium leading-[1.3] tracking-[-0.01em] text-ink">
                 {t(`features.${key}.title`)}
@@ -57,7 +57,7 @@ export default function FeatureGrid() {
                 className="mt-6 inline-flex items-center gap-1.5 text-[14px] font-medium text-coral hover:text-coral-active"
               >
                 {t(`features.${key}.cta`)}
-                <ArrowUpRight className="h-4 w-4" />
+                <ArrowCircleUpRightIcon className="h-4 w-4" />
               </Link>
             </article>
           ))}

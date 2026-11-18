@@ -7,7 +7,7 @@ import { brandCardClass, sidebarSectionLabelClass } from "./sidebar-styles";
 export function SidebarBrandCard({ to, caption, collapsed = false }: { to: string; caption: string; collapsed?: boolean }) {
   if (collapsed) {
     return (
-      <Link to={to} aria-label="KMAEdu" className="grid h-12 w-12 place-items-center rounded-2xl">
+      <Link to={to} aria-label="KMAEdu" className="grid h-12 w-12 place-items-center rounded-lg">
         <Logo sizeLogo={34} sizeText={0} showText={false} />
       </Link>
     );
@@ -16,7 +16,7 @@ export function SidebarBrandCard({ to, caption, collapsed = false }: { to: strin
     <Link to={to} aria-label="KMAEdu" className={cn(brandCardClass, "flex items-center gap-3 px-3.5 py-3")}>
       {/* soft decorative shape on the right, as in the brand mock */}
       <span aria-hidden className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-brand-soft-hover/80 blur-2xl" />
-      <span aria-hidden className="pointer-events-none absolute -bottom-12 right-6 h-20 w-20 rotate-45 rounded-3xl bg-canvas/50" />
+      <span aria-hidden className="pointer-events-none absolute -bottom-12 right-6 h-20 w-20 rotate-45 rounded-lg bg-canvas/50" />
       <span className="relative shrink-0">
         <Logo sizeLogo={36} sizeText={0} showText={false} />
       </span>

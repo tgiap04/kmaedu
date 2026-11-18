@@ -12,8 +12,8 @@ interface TreeViewProps {
 function RootNode({ rootWord, total }: { rootWord: string; total: number }) {
   return (
     <div className="wft-node">
-      <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-canvas px-4 py-3 shadow-sm">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-sm font-semibold text-brand-strong ring-4 ring-coral/15">
+      <div className="flex items-center gap-3 rounded-lg border border-hairline bg-canvas px-4 py-3 shadow-sm">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-sm font-semibold text-brand-strong ring-4 ring-coral/15">
           {rootWord.charAt(0).toUpperCase()}
         </div>
         <div className="min-w-0 pr-1">
@@ -35,7 +35,7 @@ function PosNode({ meta, count }: { meta: PosMeta; count: number }) {
   return (
     <div className="wft-node">
       <div
-        className="flex items-center gap-2 rounded-xl border bg-canvas px-3.5 py-2 shadow-sm"
+        className="flex items-center gap-2 rounded-lg border bg-canvas px-3.5 py-2 shadow-sm"
         style={{ borderColor: `${meta.color}55` }}
       >
         <span
@@ -71,7 +71,7 @@ export function TreeView({ rootWord, words }: TreeViewProps) {
   });
 
   return (
-    <div className="wft rounded-2xl border border-hairline">
+    <div className="wft rounded-lg border border-hairline">
       <p className="wft-title">
         Tổng: <b>{words.length}</b> từ vựng
       </p>

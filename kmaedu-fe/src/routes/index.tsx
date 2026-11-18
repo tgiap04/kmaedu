@@ -22,6 +22,7 @@ import FlashcardStudyPage from "@/pages/study-flashcard/FlashcardStudyPage";
 import ExamSessionPage from "@/pages/exam-session/ExamSessionPage";
 import ExamQuizPage from "@/pages/exam-session/ExamQuizPage";
 import ManageExamPage from "@/pages/k/ManageExamPage";
+import CreateExamPage from "@/pages/k/CreateExamPage";
 import ManageQuizSetDetailPage from "@/pages/k/ManageQuizSetDetailPage";
 import ManageFlashcardSetDetailPage from "@/pages/k/ManageFlashcardSetDetailPage";
 import AIToolPage from "@/pages/k/AIToolPage";
@@ -147,6 +148,7 @@ export const router = createBrowserRouter([
   },
   { path: "/exam-session/:id/quiz", element: guarded(<ExamQuizPage />, { permission: "exam:take", layout: false }) },
   { path: "/k/manage-exam", element: guarded(<ManageExamPage />, { permission: "quizset:manage", pageKey: "manage-exam" }) },
+  { path: "/k/manage-exam/create", element: guarded(<CreateExamPage />, { permission: "quizset:manage", pageKey: "manage-exam" }) },
   { path: "/k/manage-quiz-set/:id", element: guarded(<ManageQuizSetDetailPage />, { permission: "quizset:manage", pageKey: "manage-exam" }) },
   // Owner preview (quizset:manage) is decided by the backend.
   { path: "/k/practice-quiz/:id", element: guarded(<QuizPracticePage />, { anyOf: ["quiz:practice", "quizset:manage"] }) },

@@ -1,5 +1,5 @@
 import { Button } from "@/components/antd/button";
-import { Archive, Trash2 } from "lucide-react";
+import { ArchiveIcon, TrashIcon } from "@phosphor-icons/react";
 
 interface NotificationActionsProps {
   onArchiveAll: () => void;
@@ -19,14 +19,14 @@ export function NotificationActions({
         variant="ghost"
         onClick={onArchiveAll}
         className="w-full justify-start gap-3 px-4 py-2.5 text-left font-normal text-muted-foreground hover:bg-muted hover:text-foreground">
-        <Archive className="h-4 w-4 shrink-0" />
+        <ArchiveIcon className="h-4 w-4 shrink-0" />
         <span>Lưu trữ đã đọc</span>
       </Button>
       <Button
         variant="ghost"
         onClick={onDeleteOld}
         className="w-full justify-start gap-3 px-4 py-2.5 text-left font-normal text-muted-foreground hover:bg-muted hover:text-foreground">
-        <Trash2 className="h-4 w-4 shrink-0" />
+        <TrashIcon className="h-4 w-4 shrink-0" />
         <span>Xóa thông báo cũ</span>
       </Button>
     </div>

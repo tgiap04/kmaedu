@@ -11,6 +11,8 @@ import { QuizSetModal } from "@/components/organisms/QuizSetModal";
 import { DeleteConfirmDialog } from "@/components/organisms/DeleteConfirmDialog";
 import type { QuizSetFormData } from "@/components/molecules/QuizSetForm";
 import { TableSkeletonLoader } from "@/components/organisms/TableSkeletonLoader";
+import { toast } from "@/components/antd/toast";
+import { bulkDeleteSummary } from "@/lib/manage-exam/exam-list-view";
 
 export default function ManageExamPage() {
   const navigate = useNavigate();
@@ -19,7 +21,6 @@ export default function ManageExamPage() {
     loading,
     fetchQuizSets,
     deleteQuizSet,
-    createQuizSet,
     updateQuizSet,
   } = useQuizSetStore();
   const { quizStats, fetchQuizStats, invalidateQuizStats } = useStatsStore();
@@ -29,12 +30,14 @@ export default function ManageExamPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
+  // Bumped to refetch the current page (after a delete), since the store keeps only the visible rows.
+  const [reloadKey, setReloadKey] = useState(0);
   const limit = 10;
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedQuizSetId, setSelectedQuizSetId] = useState<string | null>(null);
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
   const [editFormData, setEditFormData] = useState<QuizSetFormData | undefined>(undefined);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -65,19 +68,18 @@ export default function ManageExamPage() {
     };
 
     loadQuizSets();
-  }, [currentPage, debouncedSearchQuery, statusFilter, fetchQuizSets]);
+  }, [currentPage, debouncedSearchQuery, statusFilter, fetchQuizSets, reloadKey]);
 
   const transformedExams: ExamTableData[] = useMemo(
     () =>
       quizSetsK.map((quizSet) => ({
         id: quizSet.id,
-        icon: "📘",
         name: quizSet.title,
         description: quizSet.description || "",
         questionCount: quizSet.questionCount,
         status: (quizSet.isPublic ? "public" : "private") as ExamStatus,
-        createdDate: new Date(quizSet.createdAt).toLocaleDateString("vi-VN"),
-        createdAt: quizSet.createdAt,
+        createdDate: new Date(quizSet.createdAt).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }),
+        createdTime: new Date(quizSet.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
         lastStudied: quizSet.lastStudied
           ? new Date(quizSet.lastStudied).toLocaleDateString("vi-VN")
           : null,
@@ -88,19 +90,16 @@ export default function ManageExamPage() {
 
   const totalPages = Math.ceil(totalResults / limit);
 
-  const stats = useMemo(
-    () => ({
-      totalExams: quizStats?.totalGroups || 0,
-      totalExamsTrend: quizStats?.totalGroupsTrend || 0,
-      activeExams: quizStats?.activeExams || 0,
-      activeExamsTrend: 0,
+  const stats = useMemo(() => {
+    const totalExams = quizStats?.totalGroups || 0;
+    const publicExams = quizStats?.activeExams || 0;
+    return {
+      totalExams,
+      publicExams,
       totalQuestions: quizStats?.totalQuestions || 0,
-      totalQuestionsTrend: quizStats?.totalQuestionsTrend || 0,
-      completionRate: quizStats?.completionRate || 0,
-      completionRateTrend: 0,
-    }),
-    [quizStats],
-  );
+      privateExams: Math.max(0, totalExams - publicExams),
+    };
+  }, [quizStats]);
 
   const statusOptions = useMemo(
     () => [
@@ -112,8 +111,8 @@ export default function ManageExamPage() {
   );
 
   const handleCreateExam = useCallback(() => {
-    setIsCreateModalOpen(true);
-  }, []);
+    navigate("/k/manage-exam/create");
+  }, [navigate]);
 
   const handleViewExam = useCallback(
     (id: string) => {
@@ -140,50 +139,36 @@ export default function ManageExamPage() {
     [quizSetsK],
   );
 
-  const handleDeleteExam = useCallback((id: string) => {
-    setSelectedQuizSetId(id);
+  const handleDeleteExams = useCallback((ids: string[]) => {
+    if (ids.length === 0) return;
+    setPendingDeleteIds(ids);
     setIsDeleteDialogOpen(true);
   }, []);
 
-  const handleConfirmDelete = useCallback(async () => {
-    if (selectedQuizSetId) {
-      try {
-        await deleteQuizSet(selectedQuizSetId);
-        invalidateQuizStats();
-        setIsDeleteDialogOpen(false);
-        setSelectedQuizSetId(null);
-      } catch (error) {
-        console.error("Delete quiz set error:", error);
-      } finally {
-        await fetchQuizStats();
-      }
-    }
-  }, [selectedQuizSetId, deleteQuizSet, invalidateQuizStats, fetchQuizStats]);
+  const handleDeleteExam = useCallback((id: string) => handleDeleteExams([id]), [handleDeleteExams]);
 
-  const handleCreateSubmit = useCallback(
-    async (data: QuizSetFormData) => {
-      try {
-        await createQuizSet(
-          {
-            title: data.title,
-            description: data.description || "",
-            isPublic: data.isPublic,
-            isPinned: data.isPinned,
-            tags: data.tags,
-            questionCount: 0,
-            questions: [],
-          },
-        );
-        invalidateQuizStats();
-        setIsCreateModalOpen(false);
-      } catch (error) {
-        console.error("Create quiz set error:", error);
-      } finally {
-        await fetchQuizStats();
+  const handleConfirmDelete = useCallback(async () => {
+    if (pendingDeleteIds.length === 0) return;
+    try {
+      // One at a time: the store updates its list and cache after each delete.
+      let deleted = 0;
+      for (const id of pendingDeleteIds) {
+        if (await deleteQuizSet(id, { quiet: true })) deleted++;
       }
-    },
-    [createQuizSet, invalidateQuizStats, fetchQuizStats],
-  );
+      const summary = bulkDeleteSummary(deleted, pendingDeleteIds.length);
+      if (summary) toast[summary.kind](summary.text);
+      setIsDeleteDialogOpen(false);
+      setPendingDeleteIds([]);
+      // The page emptied: step back one page; otherwise refetch it so later rows and the total move up.
+      if (useQuizSetStore.getState().quizSetsK.length === 0 && currentPage > 1) setCurrentPage((p) => p - 1);
+      else setReloadKey((k) => k + 1);
+    } catch (error) {
+      console.error("Delete quiz set error:", error);
+    } finally {
+      invalidateQuizStats();
+      await fetchQuizStats();
+    }
+  }, [pendingDeleteIds, deleteQuizSet, invalidateQuizStats, fetchQuizStats, currentPage]);
 
   const handleEditSubmit = useCallback(
     async (data: QuizSetFormData) => {
@@ -230,21 +215,21 @@ export default function ManageExamPage() {
         currentPage={currentPage}
         totalPages={totalPages}
         totalResults={totalResults}
-        onSearchChange={setSearchQuery}
-        onStatusChange={setStatusFilter}
+        perPage={limit}
+        onSearchChange={(value) => {
+          setSearchQuery(value);
+          setCurrentPage(1);
+        }}
+        onStatusChange={(value) => {
+          setStatusFilter(value);
+          setCurrentPage(1);
+        }}
         onCreateExam={handleCreateExam}
         onViewExam={handleViewExam}
         onEditExam={handleEditExam}
         onDeleteExam={handleDeleteExam}
+        onDeleteExams={handleDeleteExams}
         onPageChange={setCurrentPage}
-      />
-
-      <QuizSetModal
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        mode="create"
-        isLoading={loading}
-        onSubmit={handleCreateSubmit}
       />
 
       <QuizSetModal
@@ -260,7 +245,11 @@ export default function ManageExamPage() {
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         title="Xác nhận xóa đề thi"
-        description="Bạn có chắc chắn muốn xóa đề thi này? Tất cả câu hỏi trong đề thi sẽ bị xóa. Hành động này không thể hoàn tác."
+        description={
+          pendingDeleteIds.length > 1
+            ? `Bạn có chắc chắn muốn xóa ${pendingDeleteIds.length} đề thi đã chọn? Tất cả câu hỏi trong các đề thi này sẽ bị xóa. Hành động này không thể hoàn tác.`
+            : "Bạn có chắc chắn muốn xóa đề thi này? Tất cả câu hỏi trong đề thi sẽ bị xóa. Hành động này không thể hoàn tác."
+        }
         isLoading={loading}
         onConfirm={handleConfirmDelete}
       />

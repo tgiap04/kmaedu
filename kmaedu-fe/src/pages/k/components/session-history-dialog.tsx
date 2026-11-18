@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react"
+import { WarningCircleIcon, CheckCircleIcon, ClockIcon, XCircleIcon } from "@phosphor-icons/react";
 import { getMyAttemptsBySessionApi, type MyAttemptItem } from "@/apis/examAttemptApi"
 import { Button } from "@/components/antd/button"
 import { Skeleton } from "@/components/antd/skeleton"
@@ -18,23 +18,23 @@ function formatDuration(seconds: number | null): string {
 function AttemptStatusBadge({ status }: { status: number }) {
   if (status === 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-pill bg-coral/10 px-2 py-0.5 text-xs font-medium text-brand-strong">
-        <Clock className="h-3 w-3" />
+      <span className="inline-flex items-center gap-1 rounded-lg bg-coral/10 px-2 py-0.5 text-xs font-medium text-brand-strong">
+        <ClockIcon className="h-3 w-3" />
         Đang làm
       </span>
     )
   }
   if (status === 1) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-pill bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
-        <CheckCircle className="h-3 w-3" />
+      <span className="inline-flex items-center gap-1 rounded-lg bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+        <CheckCircleIcon className="h-3 w-3" />
         Hoàn thành
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-pill bg-error/10 px-2 py-0.5 text-xs font-medium text-error">
-      <XCircle className="h-3 w-3" />
+    <span className="inline-flex items-center gap-1 rounded-lg bg-error/10 px-2 py-0.5 text-xs font-medium text-error">
+      <XCircleIcon className="h-3 w-3" />
       Đã hủy
     </span>
   )
@@ -113,7 +113,7 @@ export function SessionHistoryDialog({ session }: { session: SessionSummary | nu
         return (
           <div
             key={attempt.id}
-            className="flex items-start justify-between gap-3 rounded-xl border border-hairline bg-canvas p-4"
+            className="flex items-start justify-between gap-3 rounded-lg border border-hairline bg-canvas p-4"
           >
             <div className="flex-1 min-w-0 space-y-1.5">
               <div className="flex items-center gap-2 flex-wrap">
@@ -121,7 +121,7 @@ export function SessionHistoryDialog({ session }: { session: SessionSummary | nu
                 <AttemptStatusBadge status={attempt.status} />
                 {attempt.violationCount > 0 && (
                   <span className="inline-flex items-center gap-0.5 text-xs text-error">
-                    <AlertCircle className="h-3 w-3" />
+                    <WarningCircleIcon className="h-3 w-3" />
                     {attempt.violationCount} VP
                   </span>
                 )}
@@ -133,7 +133,7 @@ export function SessionHistoryDialog({ session }: { session: SessionSummary | nu
                 <span className="font-semibold text-foreground">{percentage}%</span>
                 <span>{attempt.correctAnswers}/{attempt.totalQuestions} đúng</span>
                 <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
+                  <ClockIcon className="h-3 w-3" />
                   {formatDuration(attempt.timeSpentSeconds)}
                 </span>
               </div>

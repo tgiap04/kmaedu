@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/antd/select";
 import { RadioGroup, RadioGroupItem } from "@/components/antd/radio-group";
-import { Loader2, Tag, Palette } from "lucide-react";
+import { CircleNotchIcon, TagIcon, PaletteIcon } from "@phosphor-icons/react";
 import { getQuizSetLabelsApi, QuizSetLabel } from "@/apis/quizsetApi";
 import {
   getFlashcardSetLabelsApi,
@@ -133,7 +133,7 @@ export function LabelSelector({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-4">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <CircleNotchIcon className="h-5 w-5 animate-spin text-muted-foreground" />
         <span className="ml-2 text-sm text-muted-foreground">
           Đang tải nhãn...
         </span>
@@ -144,7 +144,7 @@ export function LabelSelector({
   return (
     <div className="space-y-4">
       <Label className="flex items-center gap-2">
-        <Tag className="h-4 w-4" />
+        <TagIcon className="h-4 w-4" />
         Nhãn câu hỏi (tùy chọn)
       </Label>
 
@@ -225,7 +225,7 @@ export function LabelSelector({
 
             <div>
               <Label className="text-sm flex items-center gap-1">
-                <Palette className="h-3 w-3" />
+                <PaletteIcon className="h-3 w-3" />
                 Màu sắc
               </Label>
               <div className="flex flex-wrap gap-2 mt-2">

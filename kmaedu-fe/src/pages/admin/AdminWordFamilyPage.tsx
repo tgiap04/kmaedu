@@ -14,12 +14,7 @@ import {
   Space,
   Tooltip,
 } from "antd";
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ReloadOutlined,
-} from "@ant-design/icons";
+import { ArrowsClockwiseIcon, PencilSimpleIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
 import { toast } from "@/components/antd/toast";
 import { storeCache } from "@/lib/storeCache";
 import {
@@ -153,7 +148,7 @@ export default function AdminWordFamilyPage() {
       dataIndex: "slug",
       key: "slug",
       render: (slug: string) => (
-        <code className="rounded bg-canvas px-1.5 py-0.5 text-xs">
+        <code className="rounded-lg bg-canvas px-1.5 py-0.5 text-xs">
           {slug}
         </code>
       ),
@@ -187,7 +182,7 @@ export default function AdminWordFamilyPage() {
             <Button
               type="text"
               size="small"
-              icon={<EditOutlined />}
+              icon={<PencilSimpleIcon size={16} />}
               onClick={() => openEdit(record)}
             />
           </Tooltip>
@@ -198,7 +193,7 @@ export default function AdminWordFamilyPage() {
             cancelText="Hủy"
           >
             <Tooltip title="Xóa">
-              <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+              <Button type="text" size="small" danger icon={<TrashIcon size={16} />} />
             </Tooltip>
           </Popconfirm>
         </Space>
@@ -219,13 +214,13 @@ export default function AdminWordFamilyPage() {
         </div>
         <Space>
           <Button
-            icon={<ReloadOutlined />}
+            icon={<ArrowsClockwiseIcon size={16} />}
             onClick={() => void fetchCategories()}
             loading={loading}
           >
             Làm mới
           </Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+          <Button type="primary" icon={<PlusCircleIcon size={16} />} onClick={openCreate}>
             Thêm danh mục
           </Button>
         </Space>

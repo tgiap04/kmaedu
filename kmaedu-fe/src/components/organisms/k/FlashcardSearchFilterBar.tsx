@@ -27,7 +27,7 @@ const FlashcardSearchFilterBarComponent = ({
   onStatusChange,
 }: FlashcardSearchFilterBarProps) => {
   return (
-    <div className="flex flex-col items-stretch justify-between gap-3 rounded-[20px] border border-hairline bg-canvas p-3 shadow-[0_4px_20px_rgba(15,23,42,0.04)] md:flex-row md:items-center md:px-5 [&>div:first-child]:min-w-0 [&>div:first-child]:max-w-none [&>div:first-child]:md:max-w-md">
+    <div className="flex flex-col items-stretch justify-between gap-3 rounded-lg border border-hairline bg-canvas p-3 shadow-[0_4px_20px_rgba(15,23,42,0.04)] md:flex-row md:items-center md:px-5 [&>div:first-child]:min-w-0 [&>div:first-child]:max-w-none [&>div:first-child]:md:max-w-md">
       <SearchBar
         value={searchQuery}
         onChange={onSearchChange}

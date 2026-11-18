@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from "react";
-import { Sparkles } from "lucide-react";
+import { SparkleIcon } from "@phosphor-icons/react";
 
 interface LegalPageShellProps extends PropsWithChildren {
   eyebrow: string;
@@ -17,8 +17,8 @@ export default function LegalPageShell({
     <div className="overflow-x-hidden bg-canvas">
       <section className="bg-canvas landing-dot-paper pt-28 pb-16 md:pt-32 md:pb-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex items-center gap-2 rounded-[9999px] border border-hairline bg-surface-card px-3 py-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-coral" />
+          <div className="inline-flex items-center gap-2 rounded-lg border border-hairline bg-surface-card px-3 py-1.5">
+            <SparkleIcon className="h-3.5 w-3.5 text-coral" />
             <span className="text-[12px] font-medium uppercase tracking-[1.5px] text-ink">
               {eyebrow}
             </span>

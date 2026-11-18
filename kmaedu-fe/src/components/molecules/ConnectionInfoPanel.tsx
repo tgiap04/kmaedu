@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/antd/card";
 import { ConnectionStatus } from "@/components/atoms/k/ConnectionStatus";
 import { Button } from "@/components/antd/button";
-import { X } from "lucide-react";
+import { XCircleIcon } from "@phosphor-icons/react";
 
 interface ConnectionInfo {
   status: "connected" | "connecting" | "disconnected";
@@ -43,7 +43,7 @@ export function ConnectionInfoPanel({
           Thông tin kết nối
         </CardTitle>
         <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
+          <XCircleIcon className="h-4 w-4" />
         </Button>
       </CardHeader>
 
@@ -60,7 +60,7 @@ export function ConnectionInfoPanel({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">URL:</span>
-              <code className="text-xs bg-muted px-2 py-1 rounded">
+              <code className="text-xs bg-muted px-2 py-1 rounded-lg">
                 {socketStatus.url}
               </code>
             </div>
@@ -111,7 +111,7 @@ export function ConnectionInfoPanel({
             {eventLog.map((log, index) => (
               <div
                 key={index}
-                className="flex items-start gap-2 rounded bg-muted p-2">
+                className="flex items-start gap-2 rounded-lg bg-muted p-2">
                 <span className="text-muted-foreground shrink-0">
                   {log.time}
                 </span>

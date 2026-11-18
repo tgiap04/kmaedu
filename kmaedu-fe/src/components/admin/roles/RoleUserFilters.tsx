@@ -1,5 +1,5 @@
 import { Button, Input, Select } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 
 export interface RoleFilterValues {
@@ -20,7 +20,7 @@ export function RoleUserFilters({ values, onChange, onClear }: RoleUserFiltersPr
     <div className="flex flex-wrap items-end gap-3">
       <Input
         allowClear
-        prefix={<SearchOutlined />}
+        prefix={<MagnifyingGlassIcon size={16} className="text-muted-foreground" />}
         placeholder={t("roles.filters.search")}
         aria-label={t("roles.filters.search")}
         value={values.q}

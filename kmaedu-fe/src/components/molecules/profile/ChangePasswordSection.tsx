@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { PASSWORD_MAX, PASSWORD_MIN, passwordProblem } from "@/lib/auth/register-rules";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/antd/card";
 import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
-import { Lock, Loader2, Eye, EyeOff, Check, AlertCircle } from "lucide-react";
+import { LockSimpleIcon, CircleNotchIcon, EyeIcon, EyeSlashIcon, WarningCircleIcon, CheckIcon } from "@phosphor-icons/react";
 import { useToast } from "@/components/antd/toast";
 import { sendCodeChangePasswordApi, changePasswordApi } from "@/apis/authApi";
 import { AxiosError } from "axios";
@@ -32,7 +33,7 @@ export function ChangePasswordSection() {
   const { toast } = useToast();
 
   const passwordsMatch = newPassword === confirmPassword;
-  const passwordMinLength = newPassword.length >= 6;
+  const passwordMinLength = newPassword.length >= PASSWORD_MIN && newPassword.length <= PASSWORD_MAX;
 
   const handleSendCode = async () => {
     try {
@@ -53,8 +54,8 @@ export function ChangePasswordSection() {
       toast.error("Mật khẩu mới không khớp!");
       return;
     }
-    if (newPassword.length < 6) {
-      toast.error("Mật khẩu mới phải có ít nhất 6 ký tự!");
+    if (passwordProblem(newPassword)) {
+      toast.error(`Mật khẩu mới phải dài từ ${PASSWORD_MIN} đến ${PASSWORD_MAX} ký tự!`);
       return;
     }
     try {
@@ -85,11 +86,11 @@ export function ChangePasswordSection() {
   };
 
   return (
-    <Card className="!rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+    <Card className="!rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader className="pb-0">
         <CardTitle className="flex items-center gap-3 text-xl">
           <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
-            <Lock className="size-[18px] text-brand" />
+            <LockSimpleIcon className="size-[18px] text-brand" />
           </div>
           <div>
             <div className="text-[16px] font-bold text-ink">Bảo mật</div>
@@ -107,11 +108,11 @@ export function ChangePasswordSection() {
             <Button
               onClick={handleSendCode}
               disabled={isSendingCode}
-              className="gap-2 rounded-full border border-brand-border bg-brand-soft font-semibold text-brand hover:bg-brand-soft-hover disabled:opacity-50 shrink-0"
+              className="gap-2 rounded-lg border border-brand-border bg-brand-soft font-semibold text-brand hover:bg-brand-soft-hover disabled:opacity-50 shrink-0"
             >
               {isSendingCode ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <CircleNotchIcon className="h-4 w-4 animate-spin" />
                   Đang gửi...
                 </>
               ) : (
@@ -124,7 +125,7 @@ export function ChangePasswordSection() {
         {step === "verify" && (
           <form onSubmit={handleChangePassword} className="space-y-5">
             <div className="flex items-start gap-3 rounded-lg border border-coral/20 bg-coral/5 p-4">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-coral" />
+              <WarningCircleIcon className="mt-0.5 h-4 w-4 shrink-0 text-coral" />
               <div className="text-sm text-body">
                 Mã xác minh đã được gửi đến email. Mã có hiệu lực trong{" "}
                 <span className="font-medium text-ink">10 phút</span>.
@@ -166,7 +167,7 @@ export function ChangePasswordSection() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-text transition-colors hover:text-ink"
                     aria-label={showCurrent ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   >
-                    {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showCurrent ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -180,8 +181,8 @@ export function ChangePasswordSection() {
                     type={showNew ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Ít nhất 6 ký tự"
-                    minLength={6}
+                    placeholder={`Ít nhất ${PASSWORD_MIN} ký tự`}
+                    minLength={PASSWORD_MIN}
                     required
                     className="w-full pr-10"
                   />
@@ -191,7 +192,7 @@ export function ChangePasswordSection() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-text transition-colors hover:text-ink"
                     aria-label={showNew ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   >
-                    {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showNew ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -206,7 +207,7 @@ export function ChangePasswordSection() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Nhập lại mật khẩu mới"
-                    minLength={6}
+                    minLength={PASSWORD_MIN}
                     required
                     className="w-full pr-10"
                   />
@@ -216,7 +217,7 @@ export function ChangePasswordSection() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-text transition-colors hover:text-ink"
                     aria-label={showConfirm ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   >
-                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirm ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                   </button>
                 </div>
                 {confirmPassword && !passwordsMatch && (
@@ -226,23 +227,23 @@ export function ChangePasswordSection() {
             </div>
 
             {newPassword.length > 0 && !passwordMinLength && (
-              <p className="text-xs text-warning">Mật khẩu phải có ít nhất 6 ký tự</p>
+              <p className="text-xs text-warning">Mật khẩu phải dài từ {PASSWORD_MIN} đến {PASSWORD_MAX} ký tự</p>
             )}
 
             <div className="flex flex-wrap gap-3 pt-2">
               <Button
                 type="submit"
                 disabled={isSubmitting || !passwordsMatch || !passwordMinLength}
-                className="gap-2 rounded-full border border-brand-border bg-brand-soft font-semibold text-brand hover:bg-brand-soft-hover disabled:opacity-50"
+                className="gap-2 rounded-lg border border-brand-border bg-brand-soft font-semibold text-brand hover:bg-brand-soft-hover disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <CircleNotchIcon className="h-4 w-4 animate-spin" />
                     Đang xử lý...
                   </>
                 ) : (
                   <>
-                    <Lock className="h-4 w-4" />
+                    <LockSimpleIcon className="h-4 w-4" />
                     Đổi mật khẩu
                   </>
                 )}
@@ -271,7 +272,7 @@ export function ChangePasswordSection() {
         {step === "success" && (
           <div className="flex flex-col items-center gap-4 py-8 text-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success/10">
-              <Check className="h-7 w-7 text-success" />
+              <CheckIcon className="h-7 w-7 text-success" />
             </div>
             <div>
               <h3 className="text-[16px] font-bold text-ink">Đổi mật khẩu thành công!</h3>

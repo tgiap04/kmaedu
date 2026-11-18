@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowCircleLeftIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button";
 import { toast } from "@/components/antd/toast";
 import { useStudyRoomSocket } from "@/hooks/useStudyRoomSocket";
@@ -86,7 +86,7 @@ export default function StudyRoomPage() {
           size="icon"
           onClick={() => navigate("/k/study-room")}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowCircleLeftIcon className="h-4 w-4" />
         </Button>
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-lg leading-tight text-ink">

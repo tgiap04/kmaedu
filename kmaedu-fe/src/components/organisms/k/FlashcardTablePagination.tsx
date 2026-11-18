@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Button } from "@/components/antd/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretCircleLeftIcon, CaretCircleRightIcon } from "@phosphor-icons/react";
 
 interface FlashcardTablePaginationProps {
   currentPage: number;
@@ -40,7 +40,7 @@ const FlashcardTablePaginationComponent = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 rounded-[20px] border border-hairline bg-canvas px-4 py-3 shadow-[0_4px_20px_rgba(15,23,42,0.04)] sm:flex-row md:px-5">
+    <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-hairline bg-canvas px-4 py-3 shadow-[0_4px_20px_rgba(15,23,42,0.04)] sm:flex-row md:px-5">
       <div className="text-sm text-muted-foreground">
         Hiển thị {startResult} - {endResult} trong tổng số {totalResults} kết quả
       </div>
@@ -50,8 +50,8 @@ const FlashcardTablePaginationComponent = ({
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-8 rounded-full border-hairline focus-visible:ring-2 focus-visible:ring-brand/40">
-          <ChevronLeft className="h-4 w-4 mr-1" />
+          className="h-8 rounded-lg border-hairline focus-visible:ring-2 focus-visible:ring-brand/40">
+          <CaretCircleLeftIcon className="h-4 w-4 mr-1" />
           Trước
         </Button>
         {renderPageNumbers().map((page) => (
@@ -73,9 +73,9 @@ const FlashcardTablePaginationComponent = ({
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-8 rounded-full border-hairline focus-visible:ring-2 focus-visible:ring-brand/40">
+          className="h-8 rounded-lg border-hairline focus-visible:ring-2 focus-visible:ring-brand/40">
           Sau
-          <ChevronRight className="h-4 w-4 ml-1" />
+          <CaretCircleRightIcon className="h-4 w-4 ml-1" />
         </Button>
       </div>
     </div>

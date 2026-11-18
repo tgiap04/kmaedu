@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { ProfileForm } from "@/components/molecules/profile/ProfileForm";
 import { ChangePasswordSection } from "@/components/molecules/profile/ChangePasswordSection";
 import { DeviceList } from "@/components/molecules/profile/DeviceList";
-import { Loader2, UserRound } from "lucide-react";
+import { CircleNotchIcon, UserCircleIcon } from "@phosphor-icons/react";
 import {
   getProfileApi,
   updateProfileApi,
@@ -69,7 +69,7 @@ export default function ProfilePage() {
   if (isLoading || !profile) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-brand" />
+        <CircleNotchIcon className="h-8 w-8 animate-spin text-brand" />
       </div>
     );
   }
@@ -77,7 +77,7 @@ export default function ProfilePage() {
   return (
     <div>
       <PageHeader
-        icon={<UserRound />}
+        icon={<UserCircleIcon />}
         title="Hồ sơ cá nhân"
         subtitle="Quản lý thông tin tài khoản, bảo mật và thiết bị đã đăng nhập của bạn."
       />

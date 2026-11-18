@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-import { FileText, WandSparkles } from "lucide-react";
+import { FileTextIcon, MagicWandIcon } from "@phosphor-icons/react";
 import { useTestGeneratorStore } from "@/stores/useAIGeneratorStore";
 import { DialogAddExam, DialogAddExamType } from "@/components/organisms/k/DialogAddExam";
 import { useGenerationGuard } from "@/hooks/useGenerationGuard";
@@ -50,7 +50,7 @@ export function TestGenerator({ aside }: { aside?: ReactNode }) {
     <div className="grid w-full gap-5 lg:grid-cols-[400px_minmax(0,1fr)]">
       <div className="flex flex-col gap-4">
         <GeneratorUploadCard
-          icon={<WandSparkles />}
+          icon={<MagicWandIcon />}
           title="Tạo đề thi thông minh"
           subtitle="Từ tài liệu của bạn, chỉ với vài thao tác đơn giản"
           hasFile={hasFile}
@@ -85,7 +85,7 @@ export function TestGenerator({ aside }: { aside?: ReactNode }) {
 
       <ResultPanel
         ref={resultRef}
-        icon={<FileText />}
+        icon={<FileTextIcon />}
         title="Kết quả đề kiểm tra"
         countLabel={hasResult ? `${generatedTest.length} câu hỏi` : undefined}
         keyword={isNarrow ? keyword : undefined}
@@ -109,7 +109,7 @@ export function TestGenerator({ aside }: { aside?: ReactNode }) {
           <QuizResultList questions={generatedTest} />
         ) : (
           <ResultEmptyState
-            icon={<FileText />}
+            icon={<FileTextIcon />}
             title="Chưa có đề thi nào"
             description="Đề thi AI tạo từ tài liệu của bạn sẽ hiện ở đây."
             steps={[

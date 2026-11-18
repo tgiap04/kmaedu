@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Clock, Trash2, Loader2 } from "lucide-react";
+import { FileTextIcon, ClockIcon, TrashIcon, CircleNotchIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { RecentUpload } from "@/apis/aiApi";
 import { Badge } from "@/components/antd/badge";
@@ -50,7 +50,7 @@ export function RecentFileItem({
   return (
     <div
       className={cn(
-        "group relative flex items-start gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer",
+        "group relative flex items-start gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer",
         "bg-black/5 cursor-pointer border border-border hover:border-border",
         isSelected && "bg-white/15 border-primary/50 ring-1 ring-primary/30",
         isDeleting && "opacity-50 pointer-events-none"
@@ -58,7 +58,7 @@ export function RecentFileItem({
       onClick={() => !isDeleting && onSelect?.(upload)}>
       {/* File Icon */}
       <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
-        <FileText className="w-5 h-5 text-primary" />
+        <FileTextIcon className="w-5 h-5 text-primary" />
       </div>
 
       {/* Content */}
@@ -70,7 +70,7 @@ export function RecentFileItem({
           {displayFilename}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <Clock className="w-3 h-3" />
+          <ClockIcon className="w-3 h-3" />
           <span>{formatTimeAgo(upload.createdAt)}</span>
           <span>•</span>
           <span>{formatFileSize(upload.size)}</span>
@@ -108,9 +108,9 @@ export function RecentFileItem({
           }}
           title="Xóa file">
           {isDeleting ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <CircleNotchIcon className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <Trash2 className="w-3.5 h-3.5" />
+            <TrashIcon className="w-3.5 h-3.5" />
           )}
         </Button>
       </div>

@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/antd/alert-dialog";
-import { Loader2 } from "lucide-react";
+import { CircleNotchIcon } from "@phosphor-icons/react";
 
 interface PendingJobDialogProps {
   open: boolean;
@@ -48,7 +48,7 @@ export function PendingJobDialog({
             disabled={isLoading}
             onClick={onCancel}
             className="bg-red-600 hover:bg-red-700 text-white border-0">
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
             Dừng tác vụ
           </AlertDialogCancel>
           <AlertDialogAction onClick={onContinue} disabled={isLoading}>

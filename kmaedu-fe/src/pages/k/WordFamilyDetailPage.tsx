@@ -10,7 +10,7 @@ import { toast } from "@/components/antd/toast";
 import { useCan } from "@/hooks/useCan";
 import { WORD_FAMILY_ACTION_PERMISSIONS } from "@/lib/rbac/nav-items";
 import { Button, Spin } from "antd";
-import { BookText, ListTree, Zap } from "lucide-react";
+import { BookBookmarkIcon, TreeViewIcon, LightningIcon } from "@phosphor-icons/react";
 import { PageHeader } from "@/components/k-page/page-header";
 import { RowsSkeleton, SectionCard, SectionMessage } from "@/components/k-page/section-card";
 import { WordFamilyBreadcrumb } from "@/components/k/word-family/word-family-breadcrumb";
@@ -157,7 +157,7 @@ export default function WordFamilyDetailPage() {
               ]}
             />
           }
-          icon={<BookText />}
+          icon={<BookBookmarkIcon />}
           title={rootWord ?? ""}
           subtitle={<>{words.length} từ vựng &middot; {slug}</>}
           actions={
@@ -179,13 +179,13 @@ export default function WordFamilyDetailPage() {
 
         <div className="space-y-4">
           {error && !generating && (
-            <div className="overflow-hidden rounded-[20px] border border-hairline bg-canvas">
+            <div className="overflow-hidden rounded-lg border border-hairline bg-canvas">
               <SectionMessage title={error} />
             </div>
           )}
 
           {generating && (
-            <div className="flex items-center gap-3 rounded-[20px] border border-brand-border bg-brand-soft px-5 py-3.5 text-sm text-ink">
+            <div className="flex items-center gap-3 rounded-lg border border-brand-border bg-brand-soft px-5 py-3.5 text-sm text-ink">
               <Spin size="small" />
               <span>
                 Đang sinh từ con cho &ldquo;{rootWord}&rdquo;, vui lòng đợi trong
@@ -195,7 +195,7 @@ export default function WordFamilyDetailPage() {
           )}
 
           {loadingDetail && (
-            <SectionCard icon={<ListTree />} title="Từ vựng" plain>
+            <SectionCard icon={<TreeViewIcon />} title="Từ vựng" plain>
               <div className="divide-y divide-hairline-soft">
                 <RowsSkeleton rows={5} />
               </div>
@@ -203,14 +203,14 @@ export default function WordFamilyDetailPage() {
           )}
 
           {!loadingDetail && !generating && words.length === 0 && !error && (
-            <SectionCard icon={<ListTree />} title="Từ vựng" plain>
+            <SectionCard icon={<TreeViewIcon />} title="Từ vựng" plain>
               <SectionMessage title={`Chưa có từ con cho từ gốc "${rootWord}".`} />
               {canGenerate && (
                 <div className="flex justify-center pb-6">
                   <Button
                     type="primary"
                     size="large"
-                    icon={<Zap className="size-4" />}
+                    icon={<LightningIcon className="size-4" />}
                     onClick={handleGenerate}
                     loading={generating}
                   >
@@ -222,7 +222,7 @@ export default function WordFamilyDetailPage() {
           )}
 
           {!loadingDetail && words.length > 0 && viewMode === "tree" && (
-            <SectionCard icon={<ListTree />} title="Sơ đồ từ vựng" countLabel={`${words.length} từ`} plain>
+            <SectionCard icon={<TreeViewIcon />} title="Sơ đồ từ vựng" countLabel={`${words.length} từ`} plain>
               <div className="overflow-x-auto p-3 md:p-4">
                 <TreeView rootWord={rootWord!} words={words} />
               </div>
@@ -230,7 +230,7 @@ export default function WordFamilyDetailPage() {
           )}
 
           {!loadingDetail && words.length > 0 && viewMode === "list" && (
-            <SectionCard icon={<ListTree />} title="Danh sách từ vựng" countLabel={`${words.length} từ`} plain>
+            <SectionCard icon={<TreeViewIcon />} title="Danh sách từ vựng" countLabel={`${words.length} từ`} plain>
               <ListView
                 words={words}
                 selectedIndices={selectedIndices}

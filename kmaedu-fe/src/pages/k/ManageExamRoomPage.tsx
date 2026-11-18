@@ -1,7 +1,7 @@
 import { displayUserName } from "@/lib/user/display-user-name";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { DoorOpen, Plus } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { DoorOpenIcon, PlusCircleIcon } from "@phosphor-icons/react";
 import { PageHeader } from "@/components/k-page/page-header";
 import { getExamAttemptsByRoomApi, type ExamAttemptListItem } from "@/apis/examAttemptApi";
 import { ExamRoomModal } from "@/components/organisms/ExamRoomModal";
@@ -27,6 +27,9 @@ export default function ManageExamRoomPage() {
   const { fetchAllQuizSets, quizSetsK } = useQuizSetStore();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  // Opened from a quiz set ("Sử dụng đề thi này"): ?quizSetId= prefills the create form once.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [createInitial, setCreateInitial] = useState<ExamRoomFormData | undefined>();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
@@ -39,7 +42,20 @@ export default function ManageExamRoomPage() {
   }, [fetchAllExamRooms]);
 
   useEffect(() => {
-    fetchAllQuizSets();
+    const quizSetId = searchParams.get("quizSetId");
+    if (!quizSetId) return;
+    setCreateInitial({ title: "", description: "", quizSetId });
+    setIsCreateModalOpen(true);
+    setSearchParams((params) => {
+      params.delete("quizSetId");
+      return params;
+    }, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  // Until the user's quiz sets arrive, the room form cannot tell a valid set from a deleted one.
+  const [quizSetsLoading, setQuizSetsLoading] = useState(true);
+  useEffect(() => {
+    void fetchAllQuizSets().finally(() => setQuizSetsLoading(false));
   }, [fetchAllQuizSets]);
 
   useEffect(() => {
@@ -131,7 +147,8 @@ export default function ManageExamRoomPage() {
       setEditFormData({
         title: room.title,
         description: room.description || "",
-        quizSetId: room.quizSetId,
+        // The backend marks rooms whose set was deleted; the form also drops ids missing from the list.
+        quizSetId: room.sourceDeleted ? "" : room.quizSetId,
       });
       setSelectedRoomId(id);
       setIsEditModalOpen(true);
@@ -148,6 +165,7 @@ export default function ManageExamRoomPage() {
           quizSetId: data.quizSetId,
         });
         setIsCreateModalOpen(false);
+        setCreateInitial(undefined);
       } catch (error) {
         console.error("Create exam room error:", error);
       }
@@ -190,13 +208,13 @@ export default function ManageExamRoomPage() {
   if (loading && examRooms.length === 0) {
     return (
       <div className="animate-pulse">
-        <div className="mb-6 h-16 w-72 rounded-2xl bg-surface-soft" />
+        <div className="mb-6 h-16 w-72 rounded-lg bg-surface-soft" />
         <div className="mb-6 grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-2xl bg-surface-soft" />
+            <div key={i} className="h-28 rounded-lg bg-surface-soft" />
           ))}
         </div>
-        <div className="h-64 rounded-[20px] bg-surface-soft" />
+        <div className="h-64 rounded-lg bg-surface-soft" />
       </div>
     );
   }
@@ -205,12 +223,12 @@ export default function ManageExamRoomPage() {
     <div>
       <div>
         <PageHeader
-          icon={<DoorOpen />}
+          icon={<DoorOpenIcon />}
           title="Quản lý phòng thi"
           subtitle="Tạo và quản lý các phòng thi trực tuyến"
           actions={
             <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
+              <PlusCircleIcon className="mr-2 h-4 w-4" />
               Tạo phòng thi mới
             </Button>
           }
@@ -233,7 +251,7 @@ export default function ManageExamRoomPage() {
 
           <div className="lg:col-span-1">
             {loadingParticipants ? (
-              <div className="h-64 animate-pulse rounded-[20px] bg-surface-soft" />
+              <div className="h-64 animate-pulse rounded-lg bg-surface-soft" />
             ) : (
               <RecentParticipantsList participants={recentParticipants} onViewAll={() => {}} />
             )}
@@ -243,9 +261,14 @@ export default function ManageExamRoomPage() {
 
       <ExamRoomModal
         open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
+        onOpenChange={(open) => {
+          setIsCreateModalOpen(open);
+          if (!open) setCreateInitial(undefined);
+        }}
         mode="create"
+        initialData={createInitial}
         quizSets={quizSetOptions}
+        isLoadingQuizSets={quizSetsLoading}
         isLoading={loading}
         onSubmit={handleCreateSubmit}
       />
@@ -255,6 +278,7 @@ export default function ManageExamRoomPage() {
         onOpenChange={setIsEditModalOpen}
         mode="edit"
         quizSets={quizSetOptions}
+        isLoadingQuizSets={quizSetsLoading}
         isLoading={loading}
         initialData={editFormData}
         onSubmit={handleEditSubmit}

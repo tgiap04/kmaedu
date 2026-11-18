@@ -1,4 +1,4 @@
-import { Calendar, Clock } from "lucide-react";
+import { CalendarBlankIcon, ClockIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface DateInfoProps {
@@ -26,7 +26,7 @@ export function DateInfo({
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Calendar className="h-3.5 w-3.5" />
+        <CalendarBlankIcon className="h-3.5 w-3.5" />
         <span>
           Tạo:
           {formatDate(createdAt)}
@@ -35,7 +35,7 @@ export function DateInfo({
 
       {lastActivity && (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Clock className="h-3.5 w-3.5" />
+          <ClockIcon className="h-3.5 w-3.5" />
           <span>
             {activityLabel}
             :

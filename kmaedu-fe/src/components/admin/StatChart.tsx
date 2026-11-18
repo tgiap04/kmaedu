@@ -74,7 +74,7 @@ function formatTooltip(value: unknown, format: StatChartFormat): [string, string
 function ChartSkeleton({ height }: { height: number }) {
   return (
     <div
-      className="w-full animate-pulse rounded-md bg-hairline/60"
+      className="w-full animate-pulse rounded-lg bg-hairline/60"
       style={{ height }}
       aria-hidden="true"
     />
@@ -89,7 +89,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry?: () => voi
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-md border border-hairline bg-canvas px-3 py-1 text-xs font-medium text-ink hover:bg-surface-card"
+          className="rounded-lg border border-hairline bg-canvas px-3 py-1 text-xs font-medium text-ink hover:bg-surface-card"
         >
           Thử lại
         </button>

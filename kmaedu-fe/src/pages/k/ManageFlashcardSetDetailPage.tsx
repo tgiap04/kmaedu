@@ -4,7 +4,7 @@ import { useFlashcardSetStore } from "@/stores/useFlashcardSetStore";
 import { Button } from "@/components/antd/button";
 import { Badge } from "@/components/antd/badge";
 import { Skeleton } from "@/components/antd/skeleton";
-import { CalendarDays, CreditCard, Eye, Plus } from "lucide-react";
+import { CalendarDotsIcon, CreditCardIcon, EyeIcon, PlusCircleIcon, CardsIcon } from "@phosphor-icons/react";
 import { PageHeader } from "@/components/k-page/page-header";
 import { SectionCard, SectionMessage } from "@/components/k-page/section-card";
 import { HistoryStatCard } from "@/components/molecules/HistoryStatCard";
@@ -197,13 +197,13 @@ export default function ManageFlashcardSetDetailPage() {
   if (loading || !currentFlashcardSet) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-16 w-72 rounded-2xl" />
+        <Skeleton className="h-16 w-72 rounded-lg" />
         <div className="grid gap-4 md:grid-cols-3">
-          <Skeleton className="h-28 rounded-2xl" />
-          <Skeleton className="h-28 rounded-2xl" />
-          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-28 rounded-lg" />
+          <Skeleton className="h-28 rounded-lg" />
+          <Skeleton className="h-28 rounded-lg" />
         </div>
-        <Skeleton className="h-96 rounded-[20px]" />
+        <Skeleton className="h-96 rounded-lg" />
       </div>
     );
   }
@@ -218,7 +218,7 @@ export default function ManageFlashcardSetDetailPage() {
           setCurrentPage(1);
         }}
       >
-        <SelectTrigger className="w-40 rounded-full sm:w-48">
+        <SelectTrigger className="w-40 rounded-lg sm:w-48">
           <SelectValue placeholder="Chọn nhãn" />
         </SelectTrigger>
         <SelectContent>
@@ -241,7 +241,7 @@ export default function ManageFlashcardSetDetailPage() {
     <div>
       <div>
         <PageHeader
-          icon={<CreditCard />}
+          icon={<CardsIcon />}
           title={currentFlashcardSet.title}
           subtitle={
             <>
@@ -275,9 +275,9 @@ export default function ManageFlashcardSetDetailPage() {
         />
 
         <div className="mb-6 grid gap-4 md:grid-cols-3">
-          <HistoryStatCard icon={CreditCard} title="Tổng số thẻ" value={totalFlashcards} tone="red" />
-          <HistoryStatCard icon={Eye} title="Lượt xem" value={currentFlashcardSet.viewCount} tone="green" />
-          <HistoryStatCard icon={CalendarDays} title="Ngày tạo" value={new Date(currentFlashcardSet.createdAt).toLocaleDateString("vi-VN")} tone="blue" />
+          <HistoryStatCard icon={CreditCardIcon} title="Tổng số thẻ" value={totalFlashcards} tone="red" />
+          <HistoryStatCard icon={EyeIcon} title="Lượt xem" value={currentFlashcardSet.viewCount} tone="green" />
+          <HistoryStatCard icon={CalendarDotsIcon} title="Ngày tạo" value={new Date(currentFlashcardSet.createdAt).toLocaleDateString("vi-VN")} tone="blue" />
         </div>
 
         <FlashcardLabelManager
@@ -293,14 +293,14 @@ export default function ManageFlashcardSetDetailPage() {
         />
 
         <SectionCard
-          icon={<CreditCard />}
+          icon={<CardsIcon />}
           title="Danh sách flashcard"
           countLabel={totalFlashcards > 0 ? `${totalFlashcards} thẻ` : undefined}
           action={
             <div className="flex flex-wrap items-center gap-2">
               {labelFilter}
               <Button onClick={handleAddCard} disabled={showCardForm}>
-                <Plus className="mr-2 h-4 w-4" />
+                <PlusCircleIcon className="mr-2 h-4 w-4" />
                 Thêm thẻ
               </Button>
             </div>
@@ -310,7 +310,7 @@ export default function ManageFlashcardSetDetailPage() {
           {flashcardsLoading ? (
             <div className="grid gap-4 border-t border-hairline-soft p-4 md:grid-cols-2 md:p-5 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-40 w-full rounded-2xl" />
+                <Skeleton key={i} className="h-40 w-full rounded-lg" />
               ))}
             </div>
           ) : paginatedFlashcards.length > 0 ? (

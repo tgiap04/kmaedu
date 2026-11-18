@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { BookOpen, ClipboardList } from "lucide-react"
+import { NotePencilIcon, DoorOpenIcon } from "@phosphor-icons/react";
 import { type RecentExamAttempt, togglePinExamRoomApi } from "@/apis/studentMaterialsApi"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/antd/dialog"
 import { Skeleton } from "@/components/antd/skeleton"
@@ -84,11 +84,11 @@ export default function MyExamsPage() {
   if (loading) {
     return (
       <div className="relative text-foreground">
-        <PageHeader icon={<ClipboardList />} title="Bài thi của tôi" subtitle="Danh sách các phòng thi đã tham gia" />
-        <SectionCard icon={<BookOpen />} title="Phòng thi đã tham gia" plain>
+        <PageHeader icon={<NotePencilIcon />} title="Bài thi của tôi" subtitle="Danh sách các phòng thi đã tham gia" />
+        <SectionCard icon={<DoorOpenIcon />} title="Phòng thi đã tham gia" plain>
           <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:p-5 lg:grid-cols-3">
             {Array.from({ length: 6 }, (_, i) => (
-              <Skeleton key={i} className="h-[240px] rounded-xl" />
+              <Skeleton key={i} className="h-[240px] rounded-lg" />
             ))}
           </div>
         </SectionCard>
@@ -98,10 +98,10 @@ export default function MyExamsPage() {
 
   return (
     <div className="relative text-foreground">
-      <PageHeader icon={<ClipboardList />} title="Bài thi của tôi" subtitle="Danh sách các phòng thi đã tham gia" />
+      <PageHeader icon={<NotePencilIcon />} title="Bài thi của tôi" subtitle="Danh sách các phòng thi đã tham gia" />
 
       <SectionCard
-        icon={<BookOpen />}
+        icon={<DoorOpenIcon />}
         title="Phòng thi đã tham gia"
         countLabel={sessions.length > 0 ? `${sessions.length} phòng thi` : undefined}
         plain

@@ -1,6 +1,6 @@
 import { type FormEvent, type PropsWithChildren, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AlertTriangle, ChevronsLeft, Mail, Search, X } from "lucide-react";
+import { WarningIcon, EnvelopeSimpleIcon, MagnifyingGlassIcon, XCircleIcon, CaretDoubleLeftIcon } from "@phosphor-icons/react";
 import { HeaderWaves, NotificationBell, dashboardHeaderClass } from "@/components/organisms/nav/header-parts";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "@/components/organisms/nav/sidebar-styles";
 import ProfileDropdown from "@/components/atoms/ProfileDropdown";
@@ -135,7 +135,7 @@ export function KLayout({ children }: PropsWithChildren) {
       <SidebarKit collapsed={sidebarCollapsed} />
 
       <main
-        className="m-0 overflow-x-clip pt-[76px]"
+        className="m-0 flex min-h-screen flex-col overflow-x-clip pt-[76px]"
         style={{
           marginLeft: isDesktop ? sidebarWidth : 0,
           // Width must exclude the sidebar gutter — using w-full (100%) together
@@ -147,7 +147,7 @@ export function KLayout({ children }: PropsWithChildren) {
         {showVerificationBanner && (
           <div className="mx-4 mt-4 flex w-auto flex-col items-start justify-between gap-2 rounded-lg border border-warning/25 bg-warning/10 px-3 py-2 text-body shadow-[0_1px_3px_rgba(20,20,19,0.08)] sm:flex-row sm:items-center sm:gap-4 sm:px-4 sm:py-2.5">
             <div className="flex flex-1 items-center gap-3">
-              <AlertTriangle className="h-5 w-5 flex-shrink-0 text-warning" />
+              <WarningIcon className="h-5 w-5 flex-shrink-0 text-warning" />
               <p className="text-xs font-medium sm:text-sm">
                 Tài khoản chưa được xác minh. Vui lòng kiểm tra email để xác minh tài khoản.
               </p>
@@ -156,15 +156,15 @@ export function KLayout({ children }: PropsWithChildren) {
               <button
                 onClick={handleResendVerification}
                 disabled={sendingEmail || loading}
-                className="flex min-h-9 items-center gap-1.5 rounded-md border border-warning/30 bg-canvas px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-surface-card disabled:opacity-50"
+                className="flex min-h-9 items-center gap-1.5 rounded-lg border border-warning/30 bg-canvas px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-surface-card disabled:opacity-50"
               >
-                <Mail className="h-3.5 w-3.5" />
+                <EnvelopeSimpleIcon className="h-3.5 w-3.5" />
                 {sendingEmail ? "Đang gửi..." : "Gửi lại email"}
               </button>
               <Link
                 to="/k/verify"
                 state={{ from: location.pathname }}
-                className="flex min-h-9 items-center rounded-md bg-brand-soft px-3 py-1.5 text-xs font-medium text-brand-strong transition-colors hover:bg-brand-soft-hover"
+                className="flex min-h-9 items-center rounded-lg bg-brand-soft px-3 py-1.5 text-xs font-medium text-brand-strong transition-colors hover:bg-brand-soft-hover"
               >
                 Xác minh ngay
               </Link>
@@ -172,9 +172,9 @@ export function KLayout({ children }: PropsWithChildren) {
                 type="button"
                 aria-label="Ẩn thông báo xác minh"
                 onClick={() => setShowVerifyAlert(false)}
-                className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink"
+                className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink"
               >
-                <X className="h-4 w-4" />
+                <XCircleIcon className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -195,15 +195,15 @@ export function KLayout({ children }: PropsWithChildren) {
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-hairline bg-canvas text-body shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-colors hover:border-brand-border hover:text-brand-strong"
                 aria-label={sidebarCollapsed ? "Mở rộng sidebar" : "Thu nhỏ sidebar"}
               >
-                <ChevronsLeft className={cn("h-5 w-5 transition-transform duration-200", sidebarCollapsed && "rotate-180")} />
+                <CaretDoubleLeftIcon className={cn("h-5 w-5 transition-transform duration-200", sidebarCollapsed && "rotate-180")} />
               </button>
             )}
 
             <form
               onSubmit={handleSearch}
-              className="hidden h-12 w-full max-w-md items-center gap-3 rounded-full border border-hairline bg-canvas px-4 text-[15px] text-muted-foreground shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-colors focus-within:border-brand-border focus-within:ring-4 focus-within:ring-coral/10 lg:flex xl:max-w-lg"
+              className="hidden h-12 w-full max-w-md items-center gap-3 rounded-lg border border-hairline bg-canvas px-4 text-[15px] text-muted-foreground shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-colors focus-within:border-brand-border focus-within:ring-4 focus-within:ring-coral/10 lg:flex xl:max-w-lg"
             >
-              <Search className="h-5 w-5 shrink-0 text-body" />
+              <MagnifyingGlassIcon className="h-5 w-5 shrink-0 text-body" />
               <input
                 ref={searchRef}
                 value={searchQuery}
@@ -223,8 +223,9 @@ export function KLayout({ children }: PropsWithChildren) {
           </div>
         </header>
 
-        {/* The only place that sets /k page spacing: pages render edge to edge inside this gutter (same as the header). */}
-        <div className={kPageGutterClass}>{children}</div>
+        {/* The only place that sets /k page spacing: pages render edge to edge inside this gutter (same as the header).
+            flex-1 + main's min-h-screen keep the footer at the bottom of the screen on short pages. */}
+        <div className={cn("flex-1", kPageGutterClass)}>{children}</div>
 
         <footer className="mx-4 border-t border-hairline pb-6 pt-4 text-center text-xs text-muted-foreground xl:mx-6 2xl:mx-8">
           <p>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
 import { Label } from "@/components/antd/label";
-import { Save, Loader2, AlertCircle, Mail, User as UserIcon } from "lucide-react";
+import { FloppyDiskIcon, CircleNotchIcon, WarningCircleIcon, EnvelopeSimpleIcon, UserIcon } from "@phosphor-icons/react";
 import type { UserProfile, UpdateProfileData } from "@/apis/profileApi";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/antd/card";
@@ -47,7 +47,7 @@ export function ProfileForm({
   };
 
   return (
-    <Card className="!rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+    <Card className="!rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader className="pb-0">
         <CardTitle className="flex items-center gap-3">
           <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
@@ -63,8 +63,8 @@ export function ProfileForm({
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Verification warning */}
           {!profile.isVerified && (
-            <div className="flex items-start gap-4 rounded-xl border border-warning/30 bg-warning/5 p-4 transition-all animate-in fade-in duration-300">
-              <AlertCircle className="h-5 w-5 text-warning shrink-0 mt-0.5 animate-pulse" />
+            <div className="flex items-start gap-4 rounded-lg border border-warning/30 bg-warning/5 p-4 transition-all animate-in fade-in duration-300">
+              <WarningCircleIcon className="h-5 w-5 text-warning shrink-0 mt-0.5 animate-pulse" />
               <div className="flex-1 space-y-1">
                 <h4 className="text-sm font-semibold text-ink">Địa chỉ email chưa được xác minh</h4>
                 <p className="text-xs text-muted-text">
@@ -80,7 +80,7 @@ export function ProfileForm({
                 >
                   {isSendingVerification ? (
                     <>
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <CircleNotchIcon className="h-3 w-3 animate-spin" />
                       Đang gửi...
                     </>
                   ) : (
@@ -127,10 +127,10 @@ export function ProfileForm({
           {/* Account Details (read-only grid) */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-ink">Chi tiết tài khoản</Label>
-            <div className="grid gap-4 rounded-xl border border-hairline bg-surface-soft p-4 sm:grid-cols-2">
+            <div className="grid gap-4 rounded-lg border border-hairline bg-surface-soft p-4 sm:grid-cols-2">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-card text-muted-text">
-                  <Mail className="h-4 w-4" />
+                  <EnvelopeSimpleIcon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
                   <span className="text-xxs font-medium uppercase tracking-wider text-muted-soft">Email</span>
@@ -155,16 +155,16 @@ export function ProfileForm({
             <Button
               type="submit"
               disabled={isSubmitting || !hasChanges}
-              className="gap-2 rounded-full border border-brand-border bg-brand-soft font-semibold text-brand hover:bg-brand-soft-hover disabled:opacity-50"
+              className="gap-2 rounded-lg border border-brand-border bg-brand-soft font-semibold text-brand hover:bg-brand-soft-hover disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <CircleNotchIcon className="h-4 w-4 animate-spin" />
                   Đang lưu...
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4" />
+                  <FloppyDiskIcon className="h-4 w-4" />
                   Lưu thay đổi
                 </>
               )}

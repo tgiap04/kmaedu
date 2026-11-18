@@ -100,12 +100,12 @@ export function HeroSection() {
                   className="mt-8 sm:mt-12 flex flex-col items-center justify-center gap-3 sm:gap-2 md:flex-row">
                   <div
                     key={1}
-                    className="rounded-[14px] border border-hairline bg-surface-card p-0.5">
+                    className="rounded-lg border border-hairline bg-surface-card p-0.5">
                     <Button
                       variant="default"
                       asChild
                       size="lg"
-                      className="rounded-xl bg-primary px-5 text-base text-primary-foreground hover:bg-coral-active">
+                      className="rounded-lg bg-primary px-5 text-base text-primary-foreground hover:bg-coral-active">
                       <Link to="/k">
                         <span className="text-nowrap">Bắt đầu ngay</span>
                       </Link>
@@ -116,7 +116,7 @@ export function HeroSection() {
                     asChild
                     size="lg"
                     variant="ghost"
-                    className="h-10.5 rounded-xl px-5 text-ink hover:bg-surface-card">
+                    className="h-10.5 rounded-lg px-5 text-ink hover:bg-surface-card">
                     <Link to="/k">
                       <span className="text-nowrap text-base">Xem thêm</span>
                     </Link>
@@ -142,16 +142,16 @@ export function HeroSection() {
                   aria-hidden
                   className="bg-gradient-to-b to-background absolute inset-0 z-10 from-transparent from-35%"
                 />
-                <div className="inset-shadow-2xs ring-hairline bg-surface-dark relative mx-auto max-w-7xl overflow-hidden rounded-2xl border border-surface-dark-elevated p-4 shadow-none ring-1">
+                <div className="inset-shadow-2xs ring-hairline bg-surface-dark relative mx-auto max-w-7xl overflow-hidden rounded-lg border border-surface-dark-elevated p-4 shadow-none ring-1">
                   <img
-                    className="bg-surface-dark aspect-15/8 relative hidden rounded-2xl"
+                    className="bg-surface-dark aspect-15/8 relative hidden rounded-lg"
                     src="https://tailark.com//_next/image?url=%2Fmail2.png&w=3840&q=75"
                     alt="app screen"
                     width="2700"
                     height="1440"
                   />
                   <img
-                    className="z-2 border-white/10 aspect-15/8 relative rounded-2xl border"
+                    className="z-2 border-white/10 aspect-15/8 relative rounded-lg border"
                     src="https://tailark.com/_next/image?url=%2Fmail2-light.png&w=3840&q=75"
                     alt="app screen"
                     width="2700"

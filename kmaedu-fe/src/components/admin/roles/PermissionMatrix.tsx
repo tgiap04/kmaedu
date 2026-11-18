@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Alert, Button, Skeleton } from "antd";
-import { Check, Minus } from "lucide-react";
+import { CheckCircleIcon, MinusCircleIcon } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import { useAdminRolesStore } from "@/stores/useAdminRolesStore";
 import { groupPermissions, permissionI18nKey } from "@/lib/admin-roles/permission-groups";
@@ -35,7 +35,7 @@ export function PermissionMatrix() {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-md border border-hairline">
+      <div className="overflow-x-auto rounded-lg border border-hairline">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
             <tr className="bg-surface-card text-left text-xs uppercase tracking-wide text-ink/60">
@@ -63,9 +63,9 @@ export function PermissionMatrix() {
                     return (
                       <td key={c} className="px-4 py-2 text-center">
                         {yes ? (
-                          <Check aria-label={t("roles.matrix.yes")} className="mx-auto h-4 w-4 text-coral" />
+                          <CheckCircleIcon aria-hidden={false} role="img" aria-label={t("roles.matrix.yes")} className="mx-auto h-4 w-4 text-coral" />
                         ) : (
-                          <Minus aria-label={t("roles.matrix.no")} className="mx-auto h-4 w-4 text-ink/30" />
+                          <MinusCircleIcon aria-hidden={false} role="img" aria-label={t("roles.matrix.no")} className="mx-auto h-4 w-4 text-ink/30" />
                         )}
                       </td>
                     );

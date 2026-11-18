@@ -1,4 +1,4 @@
-import { BookOpenCheck, Edit, Trash2 } from "lucide-react";
+import { BookOpenTextIcon, PencilSimpleLineIcon, TrashIcon } from "@phosphor-icons/react";
 import { ItemRow, type RowAction } from "@/components/k-page/item-row";
 import { ExamStatusBadge } from "@/components/atoms/k/ExamStatusBadge";
 import type { ManagementActions, ManagementTableData } from "./management-table-types";
@@ -14,8 +14,8 @@ export function buildRowMenu(item: ManagementTableData, a: ManagementActions): R
     const fn = a.onShare;
     menu.push({ label: a.shareActionLabel ?? "Chia sẻ", icon: a.shareActionIcon, onClick: () => fn(item.id) });
   }
-  menu.push({ label: "Chỉnh sửa", icon: Edit, onClick: () => a.onEdit(item.id) });
-  menu.push({ label: "Xóa", icon: Trash2, onClick: () => a.onDelete(item.id), destructive: true });
+  menu.push({ label: "Chỉnh sửa", icon: PencilSimpleLineIcon, onClick: () => a.onEdit(item.id) });
+  menu.push({ label: "Xóa", icon: TrashIcon, onClick: () => a.onDelete(item.id), destructive: true });
   return menu;
 }
 
@@ -32,7 +32,7 @@ export function ManagementMobileRows({ data, actions }: { data: ManagementTableD
         return (
           <div key={item.id}>
             <ItemRow
-              icon={<BookOpenCheck />}
+              icon={<BookOpenTextIcon />}
               tone="red"
               title={item.name}
               meta={[`${item.questionCount} ${item.countLabel}`, item.createdDate]}

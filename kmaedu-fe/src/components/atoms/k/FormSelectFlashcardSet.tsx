@@ -5,7 +5,7 @@ import { Label } from "@/components/antd/label";
 import { Checkbox } from "@/components/antd/checkbox";
 import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
-import { Plus as PlusIcon, X as Cross2Icon } from "lucide-react";
+import { PlusCircleIcon, XCircleIcon as Cross2Icon } from "@phosphor-icons/react";
 import { Card, CardContent } from "@/components/antd/card";
 import { Switch } from "@/components/antd/switch";
 import { Field, FieldContent, FieldLabel } from "@/components/antd/field";
@@ -109,7 +109,7 @@ export function FormSelectFlashcardSet({
             size="sm"
             onClick={() => setShowCreateForm(true)}
             className="cursor-pointer ml-auto flex-1">
-            <PlusIcon className="w-4 h-4 mr-2" />
+            <PlusCircleIcon className="w-4 h-4 mr-2" />
             Tạo mới
           </Button>
         </div>

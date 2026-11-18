@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Copy, Download, Layers, Play, WandSparkles } from "lucide-react";
+import { CopyIcon, CloudArrowDownIcon, StackIcon, PlayIcon, MagicWandIcon } from "@phosphor-icons/react";
 import type { RecentUpload } from "@/apis/aiApi";
 import { useToast } from "@/components/antd/toast";
 import { downloadFile } from "@/lib/download-file";
@@ -46,7 +46,7 @@ export function MyDocumentsSection() {
 
   return (
     <SectionCard
-      icon={<Copy />}
+      icon={<CopyIcon />}
       title="Tài liệu của tôi"
       countLabel={recentUploads.length ? `${recentUploads.length} tài liệu` : undefined}
       action={<ViewAllLink to="/k/history/pdf" />}
@@ -68,18 +68,18 @@ export function MyDocumentsSection() {
               meta={[formatFileSize(upload.size), `Tải lên ${formatTimeAgo(upload.createdAt)}`]}
               metric={
                 <>
-                  <Layers aria-hidden />
+                  <StackIcon aria-hidden />
                   {summary ?? "Chưa tạo nội dung"}
                 </>
               }
               action={
                 summary
-                  ? { label: "Xem lại", icon: Play, onClick: () => openInAiTool(upload) }
-                  : { label: "Tải xuống", icon: Download, variant: "neutral", onClick: () => void download(upload) }
+                  ? { label: "Xem lại", icon: PlayIcon, onClick: () => openInAiTool(upload) }
+                  : { label: "Tải xuống", icon: CloudArrowDownIcon, variant: "neutral", onClick: () => void download(upload) }
               }
               menu={[
-                { label: "Mở trong Công cụ AI", icon: WandSparkles, onClick: () => openInAiTool(upload) },
-                { label: "Tải xuống", icon: Download, onClick: () => void download(upload) },
+                { label: "Mở trong Công cụ AI", icon: MagicWandIcon, onClick: () => openInAiTool(upload) },
+                { label: "Tải xuống", icon: CloudArrowDownIcon, onClick: () => void download(upload) },
               ]}
             />
           );

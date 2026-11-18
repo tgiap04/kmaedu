@@ -1,13 +1,6 @@
 import { Card } from "@/components/antd/card";
 import { SettingsSidebarItem } from "@/components/molecules/SettingsSidebarItem";
-import {
-  Palette,
-  Monitor,
-  Bell,
-  Lock,
-  User,
-  Layers,
-} from "lucide-react";
+import { PaletteIcon, MonitorIcon, BellIcon, LockSimpleIcon, UserIcon, StackIcon } from "@phosphor-icons/react";
 
 export type SettingsSection =
   | "theme"
@@ -34,42 +27,42 @@ export function SettingsSidebar({
         </p>
 
         <SettingsSidebarItem
-          icon={Palette}
+          icon={PaletteIcon}
           label="Chủ đề"
           isActive={activeSection === "theme"}
           onClick={() => onSectionChange("theme")}
         />
 
         <SettingsSidebarItem
-          icon={Monitor}
+          icon={MonitorIcon}
           label="Giao diện"
           isActive={activeSection === "interface"}
           onClick={() => onSectionChange("interface")}
         />
 
         <SettingsSidebarItem
-          icon={Bell}
+          icon={BellIcon}
           label="Thông báo"
           isActive={activeSection === "notifications"}
           onClick={() => onSectionChange("notifications")}
         />
 
         <SettingsSidebarItem
-          icon={Lock}
+          icon={LockSimpleIcon}
           label="Bảo mật & Quyền riêng tư"
           isActive={activeSection === "privacy"}
           onClick={() => onSectionChange("privacy")}
         />
 
         <SettingsSidebarItem
-          icon={User}
+          icon={UserIcon}
           label="Tài khoản"
           isActive={activeSection === "account"}
           onClick={() => onSectionChange("account")}
         />
 
         <SettingsSidebarItem
-          icon={Layers}
+          icon={StackIcon}
           label="Tích hợp"
           isActive={activeSection === "integrations"}
           onClick={() => onSectionChange("integrations")}

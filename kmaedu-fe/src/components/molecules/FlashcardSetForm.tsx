@@ -5,7 +5,7 @@ import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
 import { Label } from "@/components/antd/label";
 import { Switch } from "@/components/antd/switch";
-import { Loader2 } from "lucide-react";
+import { CircleNotchIcon } from "@phosphor-icons/react";
 
 /**
  * Interface cho dữ liệu form FlashcardSet
@@ -155,7 +155,7 @@ export function FlashcardSetForm({
           placeholder="Nhập mô tả cho bộ flashcard"
           disabled={isLoading}
           rows={4}
-          className={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+          className={`w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
             errors.description ? "border-red-500" : ""
           }`}
         />
@@ -189,7 +189,7 @@ export function FlashcardSetForm({
             {formData.tags.map((tag: string) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-100 text-red-800 text-sm">
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-red-100 text-red-800 text-sm">
                 {tag}
                 <button
                   type="button"
@@ -230,7 +230,7 @@ export function FlashcardSetForm({
           Hủy
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isLoading && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
           {submitLabel}
         </Button>
       </div>

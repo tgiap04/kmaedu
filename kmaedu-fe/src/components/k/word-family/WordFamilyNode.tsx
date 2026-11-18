@@ -17,7 +17,7 @@ export function WordFamilyNode({ word, accent }: WordFamilyNodeProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="w-[230px] overflow-hidden rounded-2xl border border-hairline bg-canvas shadow-sm transition-shadow duration-150 hover:shadow-md motion-reduce:transition-none">
+    <div className="w-[230px] overflow-hidden rounded-lg border border-hairline bg-canvas shadow-sm transition-shadow duration-150 hover:shadow-md motion-reduce:transition-none">
       <div className="flex items-center gap-3 px-3.5 py-3">
         <div
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold"

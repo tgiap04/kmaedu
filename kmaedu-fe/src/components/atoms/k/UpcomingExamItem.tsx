@@ -1,5 +1,5 @@
 import { Badge } from "@/components/antd/badge";
-import { Calendar } from "lucide-react";
+import { CalendarBlankIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface UpcomingExamItemProps {
@@ -33,7 +33,7 @@ export function UpcomingExamItem({
       <div className="flex-1 space-y-1">
         <h4 className="font-semibold text-foreground">{subject}</h4>
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Calendar className="h-3 w-3" />
+          <CalendarBlankIcon className="h-3 w-3" />
           <span>{date}</span>
         </div>
       </div>

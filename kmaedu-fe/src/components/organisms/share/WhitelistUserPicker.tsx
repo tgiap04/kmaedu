@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Search, X } from "lucide-react";
+import { CircleNotchIcon, MagnifyingGlassIcon, XCircleIcon } from "@phosphor-icons/react";
 import { Input } from "@/components/antd/input";
 import { Label } from "@/components/antd/label";
 import { Avatar, AvatarFallback } from "@/components/antd/avatar";
@@ -75,7 +75,7 @@ export function WhitelistUserPicker({ saved, change, onChange, search }: Whiteli
     <div className="space-y-3">
       <Label>Danh sách người được phép ({people.length})</Label>
       <div className="relative" ref={boxRef}>
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
           onChange={(e) => {
@@ -87,10 +87,10 @@ export function WhitelistUserPicker({ saved, change, onChange, search }: Whiteli
           className="pl-9"
         />
         {searching && (
-          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+          <CircleNotchIcon className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
         )}
         {open && query.trim().length >= MIN_QUERY && !searching && (
-          <div className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border bg-popover shadow-lg">
+          <div className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-lg border bg-popover shadow-lg">
             {failed ? (
               <p className="p-3 text-center text-sm text-destructive">Không thể tìm kiếm, thử lại sau</p>
             ) : candidates.length === 0 ? (
@@ -119,7 +119,7 @@ export function WhitelistUserPicker({ saved, change, onChange, search }: Whiteli
       {people.length > 0 && (
         <div className="flex max-h-40 flex-wrap gap-2 overflow-auto">
           {people.map((p) => (
-            <span key={p.id} className="inline-flex items-center gap-2 rounded-full bg-muted px-2 py-1 text-sm">
+            <span key={p.id} className="inline-flex items-center gap-2 rounded-lg bg-muted px-2 py-1 text-sm">
               <Avatar className="h-5 w-5">
                 <AvatarFallback className="text-[10px]">{initialOf(p)}</AvatarFallback>
               </Avatar>
@@ -129,7 +129,7 @@ export function WhitelistUserPicker({ saved, change, onChange, search }: Whiteli
                 className="text-muted-foreground transition-colors hover:text-destructive"
                 aria-label={`Gỡ ${p.name || p.username}`}
               >
-                <X className="h-3 w-3" />
+                <XCircleIcon className="h-3 w-3" />
               </button>
             </span>
           ))}

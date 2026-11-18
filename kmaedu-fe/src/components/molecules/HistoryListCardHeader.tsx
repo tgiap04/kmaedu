@@ -1,4 +1,4 @@
-import { ArrowRight, FileText } from "lucide-react";
+import { FileTextIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 
 interface HistoryListCardHeaderProps {
@@ -12,7 +12,7 @@ export function HistoryListCardHeader({ title, subtitle, viewAllTo }: HistoryLis
   return (
     <div className="flex items-center gap-3 border-b border-hairline-soft pb-4">
       <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
-        <FileText className="size-5" aria-hidden />
+        <FileTextIcon className="size-5" aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
         <h2 className="truncate text-lg font-semibold text-ink">{title}</h2>
@@ -20,11 +20,11 @@ export function HistoryListCardHeader({ title, subtitle, viewAllTo }: HistoryLis
       </div>
       <Link
         to={viewAllTo}
-        className="group inline-flex shrink-0 items-center gap-2 rounded-full px-1 text-sm font-semibold text-coral focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+        className="group inline-flex shrink-0 items-center gap-2 rounded-lg px-1 text-sm font-semibold text-coral focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
       >
         Xem tất cả
         <span className="flex size-6 items-center justify-center rounded-full bg-brand-soft transition-transform group-hover:translate-x-0.5">
-          <ArrowRight className="size-3.5" aria-hidden />
+          <ArrowRightIcon className="size-3.5" aria-hidden />
         </span>
       </Link>
     </div>

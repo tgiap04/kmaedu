@@ -1,9 +1,9 @@
 import { Card } from "@/components/antd/card";
-import { LucideIcon } from "lucide-react";
+import type { Icon as AppIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface ExamMetricCardProps {
-  icon: LucideIcon;
+  icon: AppIcon;
   label: string;
   value: string | number;
   iconColor?: string;
@@ -27,7 +27,7 @@ export function ExamMetricCard({
             "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg",
             iconBgColor
           )}>
-          <Icon className={cn("h-5 w-5", iconColor)} />
+          <Icon className={cn("h-5 w-5", iconColor)} weight="duotone" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium text-muted-foreground">{label}</p>

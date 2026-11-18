@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/antd/button";
 import { ScrollArea } from "@/components/antd/scroll-area";
 import { cn } from "@/lib/utils";
-import { FileText, Loader2, FolderOpen, Check } from "lucide-react";
+import { FileTextIcon, CircleNotchIcon, FolderOpenIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { useRecentUploadsStore } from "@/stores/useAIGeneratorStore";
 import { RecentUpload } from "@/apis/aiApi";
 import { repairVietnameseText } from "@/lib/text";
@@ -87,13 +87,13 @@ export function RecentFilesModal({
     <div className="space-y-4">
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+          <CircleNotchIcon className="w-8 h-8 animate-spin text-primary mb-3" />
           <p className="text-sm text-muted-foreground">Đang tải...</p>
         </div>
       ) : recentUploads.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center mb-4 border border-border">
-            <FolderOpen className="w-8 h-8 text-muted-foreground" />
+            <FolderOpenIcon className="w-8 h-8 text-muted-foreground" />
           </div>
           <p className="text-muted-foreground">Chưa có file nào được tải lên</p>
           <p className="text-xs text-muted-foreground/60 mt-1">
@@ -117,7 +117,7 @@ export function RecentFilesModal({
                   )}
                   onClick={() => handleSelect(file)}>
                   <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-5 h-5 text-red-400" />
+                    <FileTextIcon className="w-5 h-5 text-red-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                      <p
@@ -131,7 +131,7 @@ export function RecentFilesModal({
                     </p>
                   </div>
                   {selectedId === file.id && (
-                    <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                    <CheckCircleIcon className="w-5 h-5 text-primary flex-shrink-0" />
                   )}
                 </div>
               ))}
@@ -161,7 +161,7 @@ export function RecentFilesModal({
         <DialogContent className="max-w-lg bg-background/95 backdrop-blur-xl border-border">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
+              <FileTextIcon className="w-5 h-5 text-primary" />
               Chọn file gần đây
             </DialogTitle>
           </DialogHeader>
@@ -177,7 +177,7 @@ export function RecentFilesModal({
       <DrawerContent className="bg-background/95 backdrop-blur-xl border-border max-h-[85vh]">
         <DrawerHeader>
           <DrawerTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
+            <FileTextIcon className="w-5 h-5 text-primary" />
             Chọn file gần đây
           </DrawerTitle>
         </DrawerHeader>

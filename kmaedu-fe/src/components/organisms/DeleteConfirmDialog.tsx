@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/antd/alert-dialog";
-import { Loader2 } from "lucide-react";
+import { CircleNotchIcon } from "@phosphor-icons/react";
 
 interface DeleteConfirmDialogProps {
   open: boolean;
@@ -50,7 +50,7 @@ export function DeleteConfirmDialog({
             onClick={handleConfirm}
             disabled={isLoading}
             className="bg-red-600 hover:bg-red-700 focus:ring-red-600 px-4 !ml-2 flex items-center gap-x-2">
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
             Xóa
           </AlertDialogAction>
         </AlertDialogFooter>

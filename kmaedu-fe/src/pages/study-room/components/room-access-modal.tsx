@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, RefreshCw } from "lucide-react";
+import { CopyIcon, ArrowsClockwiseIcon } from "@phosphor-icons/react";
 import {
   Dialog,
   DialogContent,
@@ -82,7 +82,7 @@ export function RoomAccessModal({ room, open, onOpenChange }: Props) {
                 onClick={copy}
                 aria-label="Sao chép mã mời"
               >
-                <Copy className="h-4 w-4" />
+                <CopyIcon className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
@@ -91,7 +91,7 @@ export function RoomAccessModal({ room, open, onOpenChange }: Props) {
                 loading={busy}
                 aria-label="Tạo mã mời mới"
               >
-                <RefreshCw className="h-4 w-4" />
+                <ArrowsClockwiseIcon className="h-4 w-4" />
               </Button>
             </div>
           </div>

@@ -12,7 +12,7 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { CaretCircleDownIcon } from "@phosphor-icons/react";
 import LustreText from "@/components/antd/lustretext";
 
 const EXPANDABLE_CONTENT_SYMBOL = Symbol.for("AnnouncementExpandedContent");
@@ -227,7 +227,7 @@ function AnnouncementComponent({
   const badgeContent = (
     <Badge
       className={cn(
-        "group relative max-w-full overflow-hidden rounded-full bg-background px-4 py-1.5 font-medium shadow-sm",
+        "group relative max-w-full overflow-hidden rounded-lg bg-background px-4 py-1.5 font-medium shadow-sm",
         styled && "border-foreground/5",
         className
       )}
@@ -249,13 +249,13 @@ function AnnouncementComponent({
             type="button"
             onClick={handleToggle}
             data-state={isOpen ? "open" : "closed"}
-            className="flex shrink-0 items-center rounded p-1 hover:bg-foreground/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ml-1"
+            className="flex shrink-0 items-center rounded-lg p-1 hover:bg-foreground/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ml-1"
             aria-expanded={isOpen}
             aria-haspopup="true"
             aria-label={
               isOpen ? "Collapse announcement" : "Expand announcement"
             }>
-            <ChevronDown
+            <CaretCircleDownIcon
               className="size-3 shrink-0 transition-transform duration-300 data-[state=open]:rotate-180"
               aria-hidden="true"
               data-state={isOpen ? "open" : "closed"}
@@ -275,7 +275,7 @@ function AnnouncementComponent({
         transition={{ duration: 0.3, ease: "easeOut" }}
         className="relative inline-block">
         {movingBorder ? (
-          <div className="relative overflow-hidden rounded-full bg-transparent p-[1px]">
+          <div className="relative overflow-hidden rounded-lg bg-transparent p-[1px]">
             <div className="absolute inset-0 pointer-events-none">
               <MovingBorder duration={movingBorderDuration} rx="50%" ry="50%">
                 <div
@@ -345,11 +345,11 @@ export function AnnouncementTag({
   const tagContent = (
     <span
       className={cn(
-        "relative inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full bg-background",
+        "relative inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-lg bg-background",
         className
       )}
       {...props}>
-      <span className="absolute inset-0 rounded-full bg-foreground/5 opacity-70 pointer-events-none" />
+      <span className="absolute inset-0 rounded-lg bg-foreground/5 opacity-70 pointer-events-none" />
       <span className="relative z-10">
         {React.Children.map(children, (child) =>
           lustre && typeof child === "string" ? (
@@ -364,7 +364,7 @@ export function AnnouncementTag({
 
   if (movingBorder) {
     return (
-      <span className="relative inline-block overflow-hidden rounded-full p-[1px]">
+      <span className="relative inline-block overflow-hidden rounded-lg p-[1px]">
         <span className="absolute inset-0 pointer-events-none">
           <MovingBorder duration={movingBorderDuration} rx="50%" ry="50%">
             <div

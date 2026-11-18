@@ -1,4 +1,4 @@
-import { Hash } from "lucide-react";
+import { HashIcon } from "@phosphor-icons/react";
 
 export interface TrendingTopic {
   id: string;
@@ -17,7 +17,7 @@ export function TrendingTopicItem({ topic, onClick }: TrendingTopicItemProps) {
       onClick={onClick}
       className="flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted">
       <div className="flex items-center gap-2">
-        <Hash className="h-4 w-4 text-primary" />
+        <HashIcon className="h-4 w-4 text-primary" />
         <span className="font-medium text-foreground">{topic.tag}</span>
       </div>
       <span className="text-sm text-muted-foreground">

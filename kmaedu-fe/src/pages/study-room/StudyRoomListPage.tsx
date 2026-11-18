@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogIn, Plus, Users } from "lucide-react";
+import { SignInIcon, PlusCircleIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { PageHeader } from "@/components/k-page/page-header";
 import { SectionCard } from "@/components/k-page/section-card";
 import { Button } from "@/components/antd/button";
@@ -33,17 +33,17 @@ export default function StudyRoomListPage() {
   return (
     <div>
       <PageHeader
-        icon={<Users />}
+        icon={<UsersThreeIcon />}
         title="Phòng học nhóm"
         subtitle="Học cùng nhau với Pomodoro, nhạc nền và trò chuyện thời gian thực"
         actions={
           <>
-            <Button variant="outline" className="rounded-full" onClick={() => setJoinOpen(true)}>
-              <LogIn className="mr-1.5 h-4 w-4" /> Nhập mã
+            <Button variant="outline" className="rounded-lg" onClick={() => setJoinOpen(true)}>
+              <SignInIcon className="mr-1.5 h-4 w-4" /> Nhập mã
             </Button>
             {canCreate && (
-              <Button className="rounded-full" onClick={() => setCreateOpen(true)}>
-                <Plus className="mr-1.5 h-4 w-4" /> Tạo phòng
+              <Button className="rounded-lg" onClick={() => setCreateOpen(true)}>
+                <PlusCircleIcon className="mr-1.5 h-4 w-4" /> Tạo phòng
               </Button>
             )}
           </>
@@ -51,7 +51,7 @@ export default function StudyRoomListPage() {
       />
 
       <SectionCard
-        icon={<Users />}
+        icon={<UsersThreeIcon />}
         title="Phòng của tôi"
         countLabel={myRooms.length > 0 ? `${myRooms.length} phòng` : undefined}
         plain
@@ -59,7 +59,7 @@ export default function StudyRoomListPage() {
         {loading && myRooms.length === 0 ? (
           <div className="grid gap-4 p-4 sm:grid-cols-2 md:p-5 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-44 animate-pulse rounded-2xl border border-hairline bg-surface-soft" />
+              <div key={i} className="h-44 animate-pulse rounded-lg border border-hairline bg-surface-soft" />
             ))}
           </div>
         ) : myRooms.length === 0 ? (

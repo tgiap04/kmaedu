@@ -122,7 +122,7 @@
   --chart-3: var(--accent-teal);
   --chart-4: var(--surface-dark-elevated);
   --chart-5: var(--warning);
-  --radius: 0.625rem;
+  --radius: 15px; /* the one corner radius of the UI; keep in step with UI_RADIUS in AppProviders.tsx */
   --sidebar: var(--canvas);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--coral);
@@ -191,13 +191,17 @@
   --font-display: var(--font-display);
   --font-body: var(--font-body);
   --font-mono: var(--font-mono);
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
+  /* Every rounded-* step is the one UI radius (--radius); true circles use rounded-full. */
+  --radius-xs: var(--radius);
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
   --shadow-soft: var(--shadow-soft);
   --shadow-raised: var(--shadow-raised);
-  --radius-pill: 9999px;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -270,14 +274,14 @@
   .ai-tool-tabs .ant-tabs-nav-list {
     gap: 4px;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius);
     background: var(--card);
     padding: 4px;
   }
 
   .ai-tool-tabs .ant-tabs-tab {
     margin: 0 !important;
-    border-radius: 8px;
+    border-radius: var(--radius);
     padding: 10px 16px !important;
     color: var(--muted-foreground) !important;
   }
@@ -304,7 +308,7 @@
   .kmaedu-driver-popover {
     max-width: min(340px, calc(100vw - 32px)) !important;
     border: 1px solid var(--border) !important;
-    border-radius: 18px !important;
+    border-radius: var(--radius) !important;
     background: var(--popover) !important;
     color: var(--popover-foreground) !important;
     box-shadow: 0 24px 70px color-mix(in srgb, var(--foreground) 18%, transparent) !important;
@@ -326,7 +330,7 @@
   .kmaedu-driver-popover .driver-popover-next-btn,
   .kmaedu-driver-popover .driver-popover-prev-btn {
     border: 1px solid var(--border) !important;
-    border-radius: 999px !important;
+    border-radius: var(--radius) !important;
     color: var(--foreground) !important;
     text-shadow: none !important;
   }
@@ -413,7 +417,7 @@
 
   .profile-tabs .ant-tabs-tab {
     margin: 0 !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius) !important;
     padding: 10px 20px !important;
     background: none !important;
     border: 0 !important;
@@ -445,7 +449,7 @@
 /* glass-card: Card component with cream-surface theming */
 .glass-card,
 .ant-card.glass-card {
-  border-radius: 12px !important;
+  border-radius: var(--radius) !important;
   border: 1px solid var(--hairline) !important;
   background: var(--surface-card) !important;
   box-shadow: none !important;
@@ -482,7 +486,7 @@
 .glass-card input[type="text"],
 .glass-card input[type="password"],
 .glass-card input[type="email"] {
-  border-radius: 8px !important;
+  border-radius: var(--radius) !important;
   border-color: var(--hairline) !important;
   background: var(--canvas) !important;
   color: var(--ink) !important;
@@ -506,7 +510,7 @@
 
 .glass-card textarea,
 .glass-card .ant-input-textarea textarea {
-  border-radius: 8px !important;
+  border-radius: var(--radius) !important;
   border-color: var(--hairline) !important;
   background: var(--canvas) !important;
   color: var(--ink) !important;
@@ -549,7 +553,7 @@
   background-color: var(--canvas) !important;
   color: var(--ink) !important;
   border: 1px solid var(--hairline) !important;
-  border-radius: 12px !important;
+  border-radius: var(--radius) !important;
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12) !important;
   padding: 24px !important;
 }
@@ -581,7 +585,7 @@
 }
 
 .ant-modal-root .ant-btn {
-  border-radius: 8px !important;
+  border-radius: var(--radius) !important;
   font-weight: 500 !important;
   height: 40px !important;
 }

@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Eye, Share2 } from "lucide-react";
+import { EyeIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 import { ManagementTable, ManagementTableData } from "./ManagementTable";
 import { ExamStatus } from "@/components/atoms/k/ExamStatusBadge";
 
@@ -55,9 +55,9 @@ const FlashcardTableComponent = ({
     <ManagementTable
       title="Tất cả bộ thẻ"
       data={tableData}
-      primaryActionIcon={Eye}
+      primaryActionIcon={EyeIcon}
       primaryActionLabel="Chi tiết"
-      shareActionIcon={Share2}
+      shareActionIcon={ShareNetworkIcon}
       shareActionLabel="Chia sẻ"
       countColumnLabel="Số thẻ"
       onPrimaryAction={onManage}

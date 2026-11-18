@@ -18,7 +18,7 @@ import {
   useEffect,
 } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { UploadCloud, File as FileIcon } from "lucide-react";
+import { CloudArrowUpIcon, FileIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 type FileStatus = "idle" | "dragging" | "uploading" | "error";
@@ -436,10 +436,10 @@ export default function FileUpload({
       role="complementary"
       aria-label="File upload"
       style={{ zIndex: 10 }}>
-      <div className="group relative w-full rounded-xl bg-background ring-1 ring-border p-0.5">
+      <div className="group relative w-full rounded-lg bg-background ring-1 ring-border p-0.5">
         <div className="absolute inset-x-0 -top-px h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
-        <div className="relative w-full rounded-[10px] bg-card p-1.5">
+        <div className="relative w-full rounded-lg bg-card p-1.5">
           <div
             className={cn(
               "relative mx-auto w-full overflow-hidden rounded-lg border border-border bg-background/70",
@@ -500,7 +500,7 @@ export default function FileUpload({
                       onClick={triggerFileInput}
                       className="w-4/5 flex items-center justify-center gap-2 rounded-lg bg-card px-4 py-2.5 text-sm font-semibold text-foreground ring-1 ring-border transition-all duration-200 hover:bg-accent group">
                       <span>Tải file lên</span>
-                      <UploadCloud className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                      <CloudArrowUpIcon className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
                     </button>
                     <input
                       ref={fileInputRef}

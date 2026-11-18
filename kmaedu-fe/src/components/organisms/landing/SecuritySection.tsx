@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Shield, Lock, Eye, FileCheck } from "lucide-react";
+import { ShieldIcon, LockSimpleIcon, EyeIcon, FileTextIcon } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 
-const icons = [Shield, Lock, Eye, FileCheck];
+const icons = [ShieldIcon, LockSimpleIcon, EyeIcon, FileTextIcon];
 
 export default function SecuritySection() {
     const { t } = useTranslation("landing");

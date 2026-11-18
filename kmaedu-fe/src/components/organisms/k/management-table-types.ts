@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { Icon as AppIcon } from "@phosphor-icons/react";
 import type { ExamStatus } from "@/components/atoms/k/ExamStatusBadge";
 
 export interface ManagementTableData {
@@ -17,11 +17,11 @@ export interface ManagementTableData {
 
 /** Handlers and labels shared by the desktop table and the mobile rows. */
 export interface ManagementActions {
-  primaryActionIcon: LucideIcon;
+  primaryActionIcon: AppIcon;
   primaryActionLabel: string;
-  secondaryActionIcon?: LucideIcon;
+  secondaryActionIcon?: AppIcon;
   secondaryActionLabel?: string;
-  shareActionIcon?: LucideIcon;
+  shareActionIcon?: AppIcon;
   shareActionLabel?: string;
   onPrimaryAction: (id: string) => void;
   onSecondaryAction?: (id: string) => void;

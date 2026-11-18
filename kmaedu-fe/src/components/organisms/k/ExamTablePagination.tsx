@@ -1,83 +1,87 @@
 import { memo } from "react";
-import { Button } from "@/components/antd/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretCircleLeftIcon, CaretCircleRightIcon, TrashIcon } from "@phosphor-icons/react";
+import { cn } from "@/lib/utils";
+import { pageWindow, resultRange } from "@/lib/manage-exam/exam-list-view";
 
 interface ExamTablePaginationProps {
   currentPage: number;
   totalPages: number;
   totalResults: number;
+  perPage: number;
   onPageChange: (page: number) => void;
+  selectedCount: number;
+  onDeleteSelected: () => void;
+  /** What a row is, in the range text. */
+  unit?: string;
 }
 
+const square =
+  "grid size-10 place-items-center rounded-lg border text-[15px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:pointer-events-none disabled:opacity-40";
+
+/** Footer inside the exam table card: range text (or bulk delete) on the left, square page buttons on the right. */
 const ExamTablePaginationComponent = ({
   currentPage,
   totalPages,
   totalResults,
+  perPage,
   onPageChange,
+  selectedCount,
+  onDeleteSelected,
+  unit = "đề thi",
 }: ExamTablePaginationProps) => {
-  const startResult = (currentPage - 1) * 10 + 1;
-  const endResult = Math.min(currentPage * 10, totalResults);
-
-  const renderPageNumbers = () => {
-    const pages = [];
-    const maxVisible = 3;
-
-    if (totalPages <= maxVisible + 2) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 2) {
-        pages.push(1, 2, 3);
-      } else if (currentPage >= totalPages - 1) {
-        pages.push(totalPages - 2, totalPages - 1, totalPages);
-      } else {
-        pages.push(currentPage - 1, currentPage, currentPage + 1);
-      }
-    }
-
-    return pages;
-  };
+  const { from, to } = resultRange(currentPage, perPage, totalResults);
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 rounded-[20px] border border-hairline bg-canvas px-4 py-3 shadow-[0_4px_20px_rgba(15,23,42,0.04)] sm:flex-row md:px-5">
-      <div className="text-sm text-muted-foreground">
-        Hiển thị {startResult} - {endResult} trong tổng số {totalResults} kết quả
+    <div className="flex flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row md:px-5">
+      <div className="flex items-center gap-3 text-[14px] text-body">
+        <span>Hiển thị {from} – {to} trong tổng số {totalResults} {unit}</span>
+        {selectedCount > 0 && (
+          <button
+            type="button"
+            onClick={onDeleteSelected}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-brand-border bg-brand-soft px-3 text-[13px] font-semibold text-brand transition-colors hover:bg-brand-soft-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+          >
+            <TrashIcon className="size-3.5" aria-hidden />
+            Xóa {selectedCount} đã chọn
+          </button>
+        )}
       </div>
-      <div className="flex flex-wrap items-center justify-center gap-1">
-        <Button
-          variant="outline"
-          size="sm"
+      <nav className="flex items-center gap-2" aria-label="Phân trang">
+        <button
+          type="button"
+          aria-label="Trang trước"
           onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="h-8 rounded-full border-hairline focus-visible:ring-2 focus-visible:ring-brand/40">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Trước
-        </Button>
-        {renderPageNumbers().map((page) => (
-          <Button
+          disabled={currentPage <= 1}
+          className={cn(square, "border-hairline bg-canvas text-body hover:bg-surface-soft")}
+        >
+          <CaretCircleLeftIcon className="size-4" aria-hidden />
+        </button>
+        {pageWindow(currentPage, totalPages).map((page) => (
+          <button
             key={page}
-            variant={currentPage === page ? "default" : "outline"}
-            size="sm"
+            type="button"
             onClick={() => onPageChange(page)}
-            className={`h-8 w-8 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-brand/40 ${
-              currentPage === page
-                ? ""
-                : "border-hairline"
-            }`}>
+            aria-current={page === currentPage ? "page" : undefined}
+            className={cn(
+              square,
+              page === currentPage
+                ? "border-brand-border bg-brand-soft text-brand"
+                : "border-hairline bg-canvas text-ink hover:bg-surface-soft",
+            )}
+          >
             {page}
-          </Button>
+          </button>
         ))}
-        <Button
-          variant="outline"
-          size="sm"
+        <button
+          type="button"
+          aria-label="Trang sau"
           onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="h-8 rounded-full border-hairline focus-visible:ring-2 focus-visible:ring-brand/40">
-          Sau
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
-      </div>
+          disabled={currentPage >= totalPages}
+          className={cn(square, "border-hairline bg-canvas text-body hover:bg-surface-soft")}
+        >
+          <CaretCircleRightIcon className="size-4" aria-hidden />
+        </button>
+      </nav>
     </div>
   );
 };

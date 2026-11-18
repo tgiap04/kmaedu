@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { XCircleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
 import { Badge } from "@/components/antd/badge";
@@ -99,7 +99,7 @@ export function RoomAccessSettings({ room }: Props) {
                       setWhitelist(whitelist.filter((w) => w !== id))
                     }
                   >
-                    <X className="h-3 w-3" />
+                    <XCircleIcon className="h-3 w-3" />
                   </button>
                 </Badge>
               ))

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, CircleHelp, FileText, Sparkle } from "lucide-react";
+import { CaretCircleDownIcon, CaretCircleUpIcon, QuestionIcon, FileTextIcon, SparkleIcon } from "@phosphor-icons/react";
 import { Switch } from "@/components/antd/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/antd/tooltip";
 import { cn } from "@/lib/utils";
@@ -32,9 +32,9 @@ export function GeneratorSettingsCard(props: GeneratorSettingsCardProps) {
   return (
     <section className={cn(aiPanelClass, "space-y-2 p-4 md:p-5")}>
       <div className={rowClass} data-tour="ai-tool-count">
-        <FileText />
+        <FileTextIcon />
         <label htmlFor={countId} className="flex-1">{countLabel}</label>
-        <div className="flex h-11 items-center rounded-full border border-hairline bg-canvas pl-4 pr-1.5 focus-within:border-brand">
+        <div className="flex h-11 items-center rounded-lg border border-hairline bg-canvas pl-4 pr-1.5 focus-within:border-brand">
           <input
             id={countId}
             type="number"
@@ -51,22 +51,22 @@ export function GeneratorSettingsCard(props: GeneratorSettingsCardProps) {
           />
           <div className="ml-2 flex flex-col">
             <button type="button" aria-label="Tăng" disabled={disabled || count >= MAX_COUNT} onClick={() => onCountChange(clampCount(count + 1))} className="grid h-4 w-6 place-items-center text-body hover:text-brand disabled:opacity-30">
-              <ChevronUp className="h-3.5 w-3.5" />
+              <CaretCircleUpIcon className="h-3.5 w-3.5" />
             </button>
             <button type="button" aria-label="Giảm" disabled={disabled || count <= MIN_COUNT} onClick={() => onCountChange(clampCount(count - 1))} className="grid h-4 w-6 place-items-center text-body hover:text-brand disabled:opacity-30">
-              <ChevronDown className="h-3.5 w-3.5" />
+              <CaretCircleDownIcon className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
       </div>
 
       <div className={rowClass} data-tour="ai-tool-advanced">
-        <Sparkle />
+        <SparkleIcon />
         <label htmlFor={narrowId} className="flex flex-1 cursor-pointer items-center gap-2">
           Tập trung theo từ khóa
           <Tooltip>
             <TooltipTrigger asChild>
-              <CircleHelp className="h-4 w-4 text-muted-foreground" />
+              <QuestionIcon className="h-4 w-4 text-muted-foreground" />
             </TooltipTrigger>
             <TooltipContent>{narrowHint}</TooltipContent>
           </Tooltip>
@@ -81,7 +81,7 @@ export function GeneratorSettingsCard(props: GeneratorSettingsCardProps) {
           value={keyword}
           disabled={disabled}
           onChange={(event) => onKeywordChange(event.target.value)}
-          className="h-11 w-full rounded-xl border border-hairline bg-surface-soft px-4 text-[14px] text-ink outline-none animate-in slide-in-from-top-2 duration-200 placeholder:text-muted-foreground focus:border-brand"
+          className="h-11 w-full rounded-lg border border-hairline bg-surface-soft px-4 text-[14px] text-ink outline-none animate-in slide-in-from-top-2 duration-200 placeholder:text-muted-foreground focus:border-brand"
         />
       )}
     </section>

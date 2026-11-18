@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/antd/card";
 import { Button } from "@/components/antd/button";
 import { Label } from "@/components/antd/label";
-import { X } from "lucide-react";
+import { XCircleIcon } from "@phosphor-icons/react";
 import { Flashcard } from "@/types/flashcardSet";
 import { RichTextEditor } from "@/components/molecules/RichTextEditor";
 
@@ -80,7 +80,7 @@ export function FlashcardInlineForm({
           onClick={onCancel}
           disabled={loading}
           className="h-8 w-8">
-          <X className="h-4 w-4" />
+          <XCircleIcon className="h-4 w-4" />
         </Button>
       </div>
 

@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
-import { SendHorizonal } from "lucide-react";
+import { PaperPlaneRightIcon } from "@phosphor-icons/react";
 import {
   Card,
   CardContent,
@@ -97,7 +97,7 @@ function ChatPanelBase({ actions }: Props) {
             onPressEnter={send}
           />
           <Button size="icon" onClick={send} disabled={muted || !text.trim()}>
-            <SendHorizonal className="h-4 w-4" />
+            <PaperPlaneRightIcon className="h-4 w-4" />
           </Button>
         </div>
       </CardContent>

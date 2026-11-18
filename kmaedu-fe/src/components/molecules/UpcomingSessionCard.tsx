@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/antd/card";
 import { Button } from "@/components/antd/button";
-import { Calendar, Users, Clock } from "lucide-react";
+import { CalendarBlankIcon, UsersThreeIcon, ClockIcon } from "@phosphor-icons/react";
 
 export interface StudySession {
   id: string;
@@ -28,17 +28,17 @@ export function UpcomingSessionCard({
 
         <div className="space-y-2 text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Calendar className="h-4 w-4" />
+            <CalendarBlankIcon className="h-4 w-4" />
             <span>{session.date}</span>
           </div>
 
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Clock className="h-4 w-4" />
+            <ClockIcon className="h-4 w-4" />
             <span>{session.time}</span>
           </div>
 
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Users className="h-4 w-4" />
+            <UsersThreeIcon className="h-4 w-4" />
             <span>{session.participants} người tham gia</span>
           </div>
         </div>

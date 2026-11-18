@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, FileText, Loader2, X } from "lucide-react";
+import { CaretCircleRightIcon, FileTextIcon, CircleNotchIcon, XIcon } from "@phosphor-icons/react";
 import type { RecentUpload } from "@/apis/aiApi";
 import {
   AlertDialog,
@@ -36,7 +36,7 @@ export function RecentFilesCard({ disabled }: { disabled: boolean }) {
     <section data-tour="ai-tool-recents" className={cn(aiPanelClass, "p-4 md:p-5")}>
       <div className="flex items-center gap-3.5">
         <IconTile>
-          <FileText />
+          <FileTextIcon />
         </IconTile>
         <div className="min-w-0 flex-1">
           <h3 className="text-[17px] font-semibold text-ink">File gần đây</h3>
@@ -44,21 +44,21 @@ export function RecentFilesCard({ disabled }: { disabled: boolean }) {
         </div>
         <Link
           to="/k/history/pdf"
-          className="inline-flex h-11 shrink-0 items-center gap-1 rounded-full px-3 text-[13px] font-semibold text-brand transition-colors hover:bg-brand-soft"
+          className="inline-flex h-11 shrink-0 items-center gap-1 rounded-lg px-3 text-[13px] font-semibold text-brand transition-colors hover:bg-brand-soft"
         >
           Xem tất cả
-          <ChevronRight className="h-4 w-4" />
+          <CaretCircleRightIcon className="h-4 w-4" />
         </Link>
       </div>
 
       <div className="scrollbar-hairline -mr-2 mt-4 flex max-h-[160px] flex-col gap-2 overflow-y-auto pr-2">
         {isLoading ? (
           <span className="inline-flex items-center gap-2 py-2 text-sm text-body">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <CircleNotchIcon className="h-4 w-4 animate-spin" />
             Đang tải file gần đây...
           </span>
         ) : recentUploads.length === 0 ? (
-          <span className="rounded-xl border border-dashed border-hairline px-4 py-4 text-center text-sm text-muted-foreground">
+          <span className="rounded-lg border border-dashed border-hairline px-4 py-4 text-center text-sm text-muted-foreground">
             Chưa có file nào. Tải PDF lên để danh sách xuất hiện ở đây.
           </span>
         ) : (
@@ -66,7 +66,7 @@ export function RecentFilesCard({ disabled }: { disabled: boolean }) {
             <div
               key={upload.id}
               className={cn(
-                "flex min-h-[48px] items-center gap-1 rounded-xl border pl-3 pr-1.5 text-sm transition-colors",
+                "flex min-h-[48px] items-center gap-1 rounded-lg border pl-3 pr-1.5 text-sm transition-colors",
                 selectedUpload?.id === upload.id ? "border-brand-border bg-brand-soft" : "border-hairline bg-canvas hover:border-brand-border",
               )}
             >
@@ -76,7 +76,7 @@ export function RecentFilesCard({ disabled }: { disabled: boolean }) {
                 disabled={disabled}
                 className="flex min-w-0 flex-1 items-center gap-2.5 py-2 text-left disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <FileText className="h-[18px] w-[18px] shrink-0 text-brand" />
+                <FileTextIcon className="h-[18px] w-[18px] shrink-0 text-brand" />
                 <span className="min-w-0 flex-1 truncate font-semibold text-ink">{upload.filename}</span>
                 <span className="shrink-0 text-xs text-muted-foreground">{formatFileSize(upload.size)}</span>
               </button>
@@ -87,7 +87,7 @@ export function RecentFilesCard({ disabled }: { disabled: boolean }) {
                 disabled={disabled}
                 className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-body transition-colors hover:bg-error/10 hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <X className="h-4 w-4" />
+                <XIcon className="h-4 w-4" />
               </button>
             </div>
           ))
@@ -105,7 +105,7 @@ export function RecentFilesCard({ disabled }: { disabled: boolean }) {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Hủy</AlertDialogCancel>
             <AlertDialogAction disabled={isDeleting} onClick={confirmDelete} className="bg-error px-4 text-destructive-foreground hover:bg-error/90">
-              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isDeleting && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
               Xóa file
             </AlertDialogAction>
           </AlertDialogFooter>

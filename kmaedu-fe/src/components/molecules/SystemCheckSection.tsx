@@ -1,9 +1,9 @@
 import { Card } from "@/components/antd/card";
 import { SystemCheckItem } from "@/components/atoms/k/SystemCheckItem";
-import { Monitor, Wifi, Camera, Mic } from "lucide-react";
+import { MonitorIcon, WifiHighIcon, CameraIcon, MicrophoneIcon } from "@phosphor-icons/react";
 
 interface SystemCheck {
-  icon: typeof Monitor | typeof Wifi | typeof Camera | typeof Mic;
+  icon: typeof MonitorIcon | typeof WifiHighIcon | typeof CameraIcon | typeof MicrophoneIcon;
   label: string;
   checked: boolean;
 }
@@ -13,10 +13,10 @@ interface SystemCheckSectionProps {
 }
 
 const defaultChecks: SystemCheck[] = [
-  { icon: Monitor, label: "Trình duyệt tương thích", checked: true },
-  { icon: Wifi, label: "Kết nối Internet", checked: true },
-  { icon: Camera, label: "Quyền truy cập Camera", checked: true },
-  { icon: Mic, label: "Quyền truy cập Microphone", checked: true },
+  { icon: MonitorIcon, label: "Trình duyệt tương thích", checked: true },
+  { icon: WifiHighIcon, label: "Kết nối Internet", checked: true },
+  { icon: CameraIcon, label: "Quyền truy cập Camera", checked: true },
+  { icon: MicrophoneIcon, label: "Quyền truy cập Microphone", checked: true },
 ];
 
 export function SystemCheckSection({

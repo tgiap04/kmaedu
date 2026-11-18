@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/antd/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/antd/tabs";
-import { Tag, Plus, MoreVertical, Edit, Trash2, Eye, ChevronLeft } from "lucide-react";
+import { TagIcon, PlusCircleIcon, DotsThreeCircleVerticalIcon, PencilSimpleLineIcon, TrashIcon, EyeIcon, CaretCircleLeftIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import {
   FlashcardSetLabel,
@@ -256,10 +256,10 @@ export function FlashcardLabelManager({
 
   if (loading) {
     return (
-      <Card className="!mb-6 overflow-hidden !rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+      <Card className="!mb-6 overflow-hidden !rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
         <CardHeader>
           <CardTitle className="!text-[16px] !font-bold text-ink flex items-center gap-2">
-            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><Tag className="size-[18px] stroke-[1.9]" aria-hidden /></span>
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><TagIcon className="size-[18px]" aria-hidden /></span>
             Quản lý nhãn
           </CardTitle>
         </CardHeader>
@@ -273,17 +273,17 @@ export function FlashcardLabelManager({
   }
 
   return (
-    <Card className="!mb-6 overflow-hidden !rounded-[20px] !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+    <Card className="!mb-6 overflow-hidden !rounded-lg !border-hairline !bg-canvas !shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <CardHeader>
         <CardTitle className="!text-[16px] !font-bold text-ink flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><Tag className="size-[18px] stroke-[1.9]" aria-hidden /></span>
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand"><TagIcon className="size-[18px]" aria-hidden /></span>
             Quản lý nhãn
           </div>
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
               <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
+                <PlusCircleIcon className="h-4 w-4 mr-2" />
                 Tạo nhãn
               </Button>
             </DialogTrigger>
@@ -367,7 +367,7 @@ export function FlashcardLabelManager({
           <TabsContent value="overview" className="mt-4">
             {labels.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <Tag className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <TagIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Chưa có nhãn nào</p>
                 <p className="text-sm mt-2">
                   Tạo nhãn để tổ chức thẻ ghi nhớ theo chủ đề
@@ -399,19 +399,19 @@ export function FlashcardLabelManager({
                               size="sm"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <MoreVertical className="h-4 w-4" />
+                              <DotsThreeCircleVerticalIcon className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             <DropdownMenuItem onClick={() => startEdit(label)}>
-                              <Edit className="h-4 w-4 mr-2" />
+                              <PencilSimpleLineIcon className="h-4 w-4 mr-2" />
                               Chỉnh sửa
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDeleteLabel(label.id)}
                               className="text-destructive"
                             >
-                              <Trash2 className="h-4 w-4 mr-2" />
+                              <TrashIcon className="h-4 w-4 mr-2" />
                               Xóa
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -432,7 +432,7 @@ export function FlashcardLabelManager({
 
           <TabsContent value="unlabeled" className="mt-4">
             <div className="text-center py-8 text-muted-foreground">
-              <Tag className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <TagIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Thẻ ghi nhớ chưa gán nhãn</p>
               <p className="text-sm mt-2">
                 Chọn một nhãn từ danh sách để xem thẻ ghi nhớ
@@ -444,7 +444,7 @@ export function FlashcardLabelManager({
         {/* Back button */}
         {selectedLabelId && (
           <Button variant="ghost" size="sm" className="mb-4" onClick={() => setSelectedLabelId(null)}>
-            <ChevronLeft className="h-4 w-4 mr-1" />
+            <CaretCircleLeftIcon className="h-4 w-4 mr-1" />
             Quay lại danh sách nhãn
           </Button>
         )}
@@ -473,7 +473,7 @@ export function FlashcardLabelManager({
                         {index + 1}.
                       </span>
                       <Button variant="ghost" size="sm" onClick={() => handleViewFlashcard(flashcard)}>
-                        <Eye className="h-4 w-4" />
+                        <EyeIcon className="h-4 w-4" />
                       </Button>
                     </div>
                     <div className="space-y-3">

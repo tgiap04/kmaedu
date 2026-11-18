@@ -1,6 +1,6 @@
-import type { LucideIcon } from "lucide-react";
+import { type Icon as AppIcon, DotsThreeVerticalIcon } from "@phosphor-icons/react";
+import { DecorativeIcons } from "@/components/icons/icon-defaults";
 import type { ReactNode } from "react";
-import { MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/antd/dropdown-menu";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ const toneClass: Record<RowTone, string> = {
 
 export interface RowAction {
   label: string;
-  icon: LucideIcon;
+  icon: AppIcon;
   onClick: () => void;
   /** Red text, for delete-like actions. */
   destructive?: boolean;
@@ -39,7 +39,7 @@ export function ItemRow({ icon, tone, title, titleAddon, meta, metric, action, m
   const ActionIcon = action.icon;
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 md:px-5">
-      <span className={cn("grid size-9 shrink-0 place-items-center rounded-lg [&_svg]:size-[18px] [&_svg]:stroke-[1.9]", toneClass[tone])}>{icon}</span>
+      <span className={cn("grid size-9 shrink-0 place-items-center rounded-lg [&_svg]:size-[18px]", toneClass[tone])}><DecorativeIcons>{icon}</DecorativeIcons></span>
 
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
@@ -55,7 +55,7 @@ export function ItemRow({ icon, tone, title, titleAddon, meta, metric, action, m
         type="button"
         onClick={action.onClick}
         className={cn(
-          "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full border px-3.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 sm:min-w-[112px]",
+          "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-3.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 sm:min-w-[112px]",
           action.variant === "neutral"
             ? "border-hairline bg-surface-soft text-body-strong hover:bg-surface-card"
             : "border-brand-border bg-brand-soft text-brand hover:bg-[#fde4e2]",
@@ -74,7 +74,7 @@ export function ItemRow({ icon, tone, title, titleAddon, meta, metric, action, m
               aria-label={`Tùy chọn cho ${title}`}
               className="grid size-8 shrink-0 place-items-center rounded-full text-body transition-colors hover:bg-surface-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             >
-              <MoreVertical className="size-4" aria-hidden />
+              <DotsThreeVerticalIcon className="size-4" aria-hidden />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -93,5 +93,5 @@ export function ItemRow({ icon, tone, title, titleAddon, meta, metric, action, m
 
 /** Red "PDF" badge on a pink tile, as in the mock's document rows. */
 export function PdfBadgeIcon() {
-  return <span className="grid h-6 w-5 place-items-center rounded-[4px] bg-brand text-[7px] font-bold tracking-tight text-white shadow-sm">PDF</span>;
+  return <span className="grid h-6 w-5 place-items-center rounded-lg bg-brand text-[7px] font-bold tracking-tight text-white shadow-sm">PDF</span>;
 }

@@ -1,4 +1,4 @@
-import { AlertCircle, Check, Download, FileText, Loader2, MoreVertical, Trash2 } from "lucide-react";
+import { WarningCircleIcon, CheckCircleIcon, CloudArrowDownIcon, FileTextIcon, CircleNotchIcon, DotsThreeCircleVerticalIcon, TrashIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -25,17 +25,17 @@ interface PDFHistoryListItemProps {
 const statusConfig = {
   completed: {
     label: "Hoàn thành",
-    icon: Check,
+    icon: CheckCircleIcon,
     className: "bg-brand-soft text-coral",
   },
   processing: {
     label: "Đang xử lý",
-    icon: Loader2,
+    icon: CircleNotchIcon,
     className: "bg-amber-50 text-amber-700",
   },
   failed: {
     label: "Thất bại",
-    icon: AlertCircle,
+    icon: WarningCircleIcon,
     className: "bg-surface-card text-body",
   },
 };
@@ -47,9 +47,9 @@ export function PDFHistoryListItem({ item, onDownload, onDelete }: PDFHistoryLis
 
   return (
     <div className="flex items-center gap-3 py-3.5">
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-soft">
-        <span className="flex size-7 items-center justify-center rounded-md bg-brand text-white shadow-soft">
-          <FileText className="size-4" aria-hidden />
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand-soft">
+        <span className="flex size-7 items-center justify-center rounded-lg bg-brand text-white shadow-soft">
+          <FileTextIcon className="size-4" aria-hidden />
         </span>
       </span>
 
@@ -62,7 +62,7 @@ export function PDFHistoryListItem({ item, onDownload, onDelete }: PDFHistoryLis
 
       <span
         className={cn(
-          "inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
+          "inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium",
           config.className,
         )}
       >
@@ -77,17 +77,17 @@ export function PDFHistoryListItem({ item, onDownload, onDelete }: PDFHistoryLis
             aria-label={`Tùy chọn cho ${item.fileName}`}
             className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           >
-            <MoreVertical className="size-4" aria-hidden />
+            <DotsThreeCircleVerticalIcon className="size-4" aria-hidden />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => onDownload?.(item.id)} className="cursor-pointer">
-            <Download className="mr-2 size-4" />
+            <CloudArrowDownIcon className="mr-2 size-4" />
             Tải xuống
           </DropdownMenuItem>
           {onDelete && (
             <DropdownMenuItem onClick={() => onDelete(item.id)} className="cursor-pointer text-red-600">
-              <Trash2 className="mr-2 size-4" />
+              <TrashIcon className="mr-2 size-4" />
               Xóa
             </DropdownMenuItem>
           )}

@@ -2,9 +2,13 @@ import { useEffect, type PropsWithChildren } from "react";
 import { ConfigProvider, theme as antTheme } from "antd";
 import { ThemeProvider } from "@/provider/ThemeProvider";
 import { ToastProvider } from "@/components/antd/toast";
+import { IconDefaultsProvider } from "@/components/icons/icon-defaults";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { AuthSyncBootstrap } from "@/components/auth/AuthSyncBootstrap";
 import { captureUtmSource } from "@/lib/utmSource";
+
+/** The one corner radius of the UI (px); keep in step with `--radius` in src/app/globals.css. */
+const UI_RADIUS = 15;
 
 // Light-only theme; colours mirror the CSS tokens in src/app/globals.css.
 const antdTheme = {
@@ -22,7 +26,8 @@ const antdTheme = {
     colorBorderSecondary: "#eef0f3",
     colorText: "#0f172a",
     colorTextSecondary: "#64748b",
-    borderRadius: 8,
+    borderRadius: UI_RADIUS,
+    borderRadiusLG: UI_RADIUS,
     controlHeight: 36,
     fontSize: 14,
     fontFamily: "inherit",
@@ -30,7 +35,7 @@ const antdTheme = {
   },
   components: {
     Button: {
-      borderRadius: 8,
+      borderRadius: UI_RADIUS,
       controlHeight: 34,
       controlHeightSM: 28,
       controlHeightLG: 40,
@@ -41,8 +46,10 @@ const antdTheme = {
       defaultShadow: "none",
       dangerShadow: "none",
     },
-    Tag: { borderRadiusSM: 9999 },
-    Modal: { borderRadiusLG: 12 },
+    Tag: { borderRadiusSM: UI_RADIUS },
+    // A 16px box at the derived small radius (7) reads as a radio; checkboxes stay visibly square.
+    Checkbox: { borderRadiusSM: 4 },
+    Modal: { borderRadiusLG: UI_RADIUS },
   },
 };
 
@@ -69,11 +76,13 @@ export function AppProviders({ children }: PropsWithChildren) {
         disableTransitionOnChange
       >
         <AntdConfigProvider>
-          <ToastProvider>
-            <AuthSyncBootstrap />
-            <GoogleAnalytics />
-            {children}
-          </ToastProvider>
+          <IconDefaultsProvider>
+            <ToastProvider>
+              <AuthSyncBootstrap />
+              <GoogleAnalytics />
+              {children}
+            </ToastProvider>
+          </IconDefaultsProvider>
         </AntdConfigProvider>
       </ThemeProvider>
   );

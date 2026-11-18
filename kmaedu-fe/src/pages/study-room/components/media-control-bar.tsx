@@ -1,4 +1,4 @@
-import { Pause, Play, RotateCcw, RotateCw } from "lucide-react";
+import { PauseIcon, PlayIcon, ArrowCounterClockwiseIcon, ArrowClockwiseIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button";
 import { useStudyRoomStore } from "@/stores/useStudyRoomStore";
 import { MediaState } from "@/types/studyRoom";
@@ -38,7 +38,7 @@ export function MediaControlBar({ actions, media }: Props) {
         onClick={() => seekBy(-15)}
         disabled={!media?.url}
       >
-        <RotateCcw className="h-4 w-4" />
+        <ArrowCounterClockwiseIcon className="h-4 w-4" />
       </Button>
       <Button
         variant="outline"
@@ -46,11 +46,11 @@ export function MediaControlBar({ actions, media }: Props) {
         onClick={() => seekBy(15)}
         disabled={!media?.url}
       >
-        <RotateCw className="h-4 w-4" />
+        <ArrowClockwiseIcon className="h-4 w-4" />
       </Button>
       {media?.playing ? (
         <Button variant="outline" size="icon" onClick={actions.pauseMedia}>
-          <Pause className="h-4 w-4" />
+          <PauseIcon className="h-4 w-4" />
         </Button>
       ) : (
         <Button
@@ -59,7 +59,7 @@ export function MediaControlBar({ actions, media }: Props) {
           onClick={onPlay}
           disabled={!media?.url && !hasItems}
         >
-          <Play className="h-4 w-4" />
+          <PlayIcon className="h-4 w-4" />
         </Button>
       )}
       <span className="ml-1 text-xs text-muted-foreground">

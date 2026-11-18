@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 /**
  * Shared look of the /k and admin sidebars (reference mock, 2026-11-13): a gradient brand card, section labels with a
  * trailing rule, roomy 15px items with 22px line icons, and the active item on a soft pink gradient with a red bar
- * on its left edge (an inset shadow, so the bar follows the rounded corners).
+ * on its left edge (an inset shadow, so the bar follows the rounded-lg corners).
  */
 export const SIDEBAR_WIDTH = 300;
 export const SIDEBAR_WIDTH_COLLAPSED = 72;
@@ -11,12 +11,12 @@ export const SIDEBAR_WIDTH_COLLAPSED = 72;
 export const sidebarShellClass = "border-r border-hairline bg-canvas";
 
 export const brandCardClass =
-  "relative overflow-hidden rounded-2xl bg-gradient-to-r from-canvas via-[#fff6f5] to-[#fde6e4] ring-1 ring-brand-border/60 shadow-[0_8px_24px_rgba(217,45,41,0.08)]";
+  "relative overflow-hidden rounded-lg bg-gradient-to-r from-canvas via-[#fff6f5] to-[#fde6e4] ring-1 ring-brand-border/60 shadow-[0_8px_24px_rgba(217,45,41,0.08)]";
 
 export function sidebarItemClass(active: boolean, collapsed = false) {
   return cn(
-    "group relative flex w-full items-center rounded-xl text-[15px] transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral",
-    "[&_svg]:h-[22px] [&_svg]:w-[22px] [&_svg]:stroke-[1.6]",
+    "group relative flex w-full items-center rounded-lg text-[15px] transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral",
+    "[&_svg]:h-[22px] [&_svg]:w-[22px]",
     collapsed ? "h-11 justify-center" : "h-11 gap-4 px-3",
     active
       ? "bg-gradient-to-r from-[#fde4e2] to-[#fef3f2] font-semibold text-brand-strong shadow-[inset_4px_0_0_var(--coral)]"
@@ -37,7 +37,7 @@ export const sidebarSectionLabelClass =
 
 /** Pink promo / call-to-action card at the bottom of the sidebar. */
 export const promoCardClass =
-  "group flex items-center gap-2.5 rounded-2xl bg-gradient-to-br from-[#fde8e6] to-[#fef6f5] p-3 transition-shadow duration-200 hover:shadow-[0_6px_18px_rgba(217,45,41,0.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral";
+  "group flex items-center gap-2.5 rounded-lg bg-gradient-to-br from-[#fde8e6] to-[#fef6f5] p-3 transition-shadow duration-200 hover:shadow-[0_6px_18px_rgba(217,45,41,0.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral";
 
 /** White outlined card (quick-search shortcut). */
-export const sidebarCardClass = "rounded-2xl border border-hairline bg-canvas";
+export const sidebarCardClass = "rounded-lg border border-hairline bg-canvas";

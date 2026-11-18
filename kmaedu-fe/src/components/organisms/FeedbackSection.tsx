@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { QuotesIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 
 interface Testimonial {
   id: number;
@@ -185,7 +185,7 @@ export default function FeedbackSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-8 sm:mb-12 md:mb-16"
         >
-          <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary font-medium text-xs sm:text-sm uppercase tracking-wider">
+          <span className="inline-block py-1 px-3 rounded-lg bg-primary/10 text-primary font-medium text-xs sm:text-sm uppercase tracking-wider">
             Người dùng nói gì
           </span>
           <h3 className="text-2xl sm:text-3xl md:text-4xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mt-3 sm:mt-4 px-4">
@@ -207,7 +207,7 @@ export default function FeedbackSection() {
                 } transition-all duration-300`}
               aria-label="Previous testimonial"
             >
-              <ChevronLeft size={20} className="w-4 h-4 sm:w-5 sm:h-5" />
+              <CaretLeftIcon size={20} className="w-4 h-4 sm:w-5 sm:h-5" />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -220,7 +220,7 @@ export default function FeedbackSection() {
                 } transition-all duration-300`}
               aria-label="Next testimonial"
             >
-              <ChevronRight size={20} className="w-4 h-4 sm:w-5 sm:h-5" />
+              <CaretRightIcon size={20} className="w-4 h-4 sm:w-5 sm:h-5" />
             </motion.button>
           </div>
 
@@ -255,14 +255,14 @@ export default function FeedbackSection() {
                   style={{ cursor: "grab" }}
                 >
                   <motion.div
-                    className="relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-6 h-full bg-canvas border border-border shadow-lg shadow-primary/5"
+                    className="relative overflow-hidden rounded-lg sm:rounded-lg p-4 sm:p-6 h-full bg-canvas border border-border shadow-lg shadow-primary/5"
                     whileHover={{
                       boxShadow:
                         "0 10px 15px -3px rgba(204, 120, 92, 0.1), 0 4px 6px -2px rgba(204, 120, 92, 0.05)",
                     }}
                   >
                     <div className="absolute -top-4 -left-4 opacity-10">
-                      <Quote
+                      <QuotesIcon
                         size={windowWidth < 640 ? 40 : 60}
                         className="text-primary"
                       />

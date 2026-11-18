@@ -1,18 +1,17 @@
-import type { LucideIcon } from "lucide-react";
-import { CalendarDays, Check, CircleHelp, CloudUpload, FileText, Filter, LoaderCircle, Network, Send, Sparkle } from "lucide-react";
+import { type Icon as AppIcon, CalendarDotsIcon, QuestionIcon, CloudArrowUpIcon, FileTextIcon, FunnelIcon, CircleNotchIcon, GraphIcon, PaperPlaneTiltIcon, SparkleIcon, CheckIcon } from "@phosphor-icons/react";
 import { describeGenerationSteps } from "@/lib/generation-progress/generation-steps";
 import type { GenerationStepState } from "@/lib/generation-progress/generation-steps";
 import { cn } from "@/lib/utils";
 import { useJobStore } from "@/stores/useAIGeneratorStore";
 
-const STEP_ICONS: Record<string, LucideIcon> = {
-  queued: Send,
-  uploading: CloudUpload,
-  processing_document: FileText,
-  waiting_graph: Network,
-  planning: CalendarDays,
-  generating: CircleHelp,
-  reviewing: Filter,
+const STEP_ICONS: Record<string, AppIcon> = {
+  queued: PaperPlaneTiltIcon,
+  uploading: CloudArrowUpIcon,
+  processing_document: FileTextIcon,
+  waiting_graph: GraphIcon,
+  planning: CalendarDotsIcon,
+  generating: QuestionIcon,
+  reviewing: FunnelIcon,
 };
 
 /** Curved four-point sparkle with a small companion dot, as in the design. */
@@ -31,7 +30,7 @@ function StatusDot({ state }: { state: GenerationStepState }) {
   if (state === "done") {
     return (
       <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_4px_10px_rgba(238,47,43,0.28)]">
-        <Check className="h-4 w-4" strokeWidth={3} />
+        <CheckIcon className="h-4 w-4" />
       </span>
     );
   }
@@ -39,7 +38,7 @@ function StatusDot({ state }: { state: GenerationStepState }) {
     // the spinner lives in the status slot: it turns into the check once the step is done
     return (
       <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white">
-        <LoaderCircle className="h-7 w-7 animate-spin text-brand motion-reduce:animate-none" strokeWidth={2.25} />
+        <CircleNotchIcon className="h-7 w-7 animate-spin text-brand motion-reduce:animate-none" />
       </span>
     );
   }
@@ -59,13 +58,13 @@ export function GenerationStepsList({ itemWord }: { itemWord: string }) {
       </p>
       <ol className="flex flex-col gap-1.5">
         {steps.map((step) => {
-          const Icon = STEP_ICONS[step.key] ?? Sparkle;
+          const Icon = STEP_ICONS[step.key] ?? SparkleIcon;
           return (
             <li
               key={step.key}
               aria-current={step.state === "active" ? "step" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-2xl px-3 transition-colors duration-200 @4xl:gap-4 @4xl:px-4",
+                "flex items-center gap-3 rounded-lg px-3 transition-colors duration-200 @4xl:gap-4 @4xl:px-4",
                 step.state === "active" ? "bg-brand-soft py-3.5" : "py-2.5",
               )}
             >
@@ -78,7 +77,6 @@ export function GenerationStepsList({ itemWord }: { itemWord: string }) {
                     step.state === "done" && "text-ink",
                     step.state === "pending" && "text-body",
                   )}
-                  strokeWidth={1.75}
                 />
               </span>
               <span className="min-w-0 flex-1">

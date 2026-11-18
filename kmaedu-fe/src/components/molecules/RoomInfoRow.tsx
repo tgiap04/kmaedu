@@ -1,8 +1,8 @@
-import { LucideIcon } from "lucide-react";
+import type { Icon as AppIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface RoomInfoRowProps {
-  icon: LucideIcon;
+  icon: AppIcon;
   label: string;
   value: string | number;
   iconColor?: string;

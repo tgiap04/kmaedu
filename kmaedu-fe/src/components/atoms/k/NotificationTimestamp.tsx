@@ -1,4 +1,4 @@
-import { Clock } from "lucide-react";
+import { ClockIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface NotificationTimestampProps {
@@ -18,7 +18,7 @@ export function NotificationTimestamp({
         "flex items-center gap-1 text-xs text-muted-foreground",
         className
       )}>
-      {showIcon && <Clock className="h-3 w-3" />}
+      {showIcon && <ClockIcon className="h-3 w-3" />}
       <span>{time}</span>
     </div>
   );

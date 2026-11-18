@@ -34,7 +34,7 @@ export function FlipCard({ front, back, className = "" }: FlipCardProps) {
           className="absolute inset-0"
           style={{ backfaceVisibility: "hidden" }}
         >
-          <div className="w-full h-full p-8 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary/30 flex items-center justify-center">
+          <div className="w-full h-full p-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary/30 flex items-center justify-center">
             <div className="text-center space-y-4">
               <div className="text-sm font-medium text-primary uppercase tracking-wide">
                 {front.label}
@@ -57,7 +57,7 @@ export function FlipCard({ front, back, className = "" }: FlipCardProps) {
             transform: "rotateY(180deg)",
           }}
         >
-          <div className="w-full h-full p-8 rounded-xl bg-gradient-to-br from-accent/20 to-primary/20 border-2 border-accent/30 flex items-center justify-center">
+          <div className="w-full h-full p-8 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border-2 border-accent/30 flex items-center justify-center">
             <div className="text-center space-y-4">
               <div className="text-sm font-medium text-accent uppercase tracking-wide">
                 {back.label}

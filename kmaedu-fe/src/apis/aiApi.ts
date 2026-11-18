@@ -80,6 +80,12 @@ export const aiApi = {
     return response.data;
   },
 
+  /** One page of the viewer's uploads (newest first) with their latest quiz/flashcard summary. */
+  getUploadsPage: async (page: number, size: number): Promise<RecentUpload[]> => {
+    const response = await api.get("/ai/recent-uploads", { params: { page, size } });
+    return response.data;
+  },
+
   getUploadDetail: async (uploadId: string): Promise<UploadDetail> => {
     const response = await api.get(`/ai/upload/${uploadId}`);
     return response.data;

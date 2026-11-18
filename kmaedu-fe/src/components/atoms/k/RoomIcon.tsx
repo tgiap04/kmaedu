@@ -1,8 +1,8 @@
-import { LucideIcon } from "lucide-react";
+import type { Icon as AppIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface RoomIconProps {
-  icon: LucideIcon;
+  icon: AppIcon;
   className?: string;
   variant?: "primary" | "success" | "warning" | "danger";
 }
@@ -26,7 +26,7 @@ export function RoomIcon({
         variantStyles[variant],
         className
       )}>
-      <Icon className="h-5 w-5" />
+      <Icon className="h-5 w-5" weight="duotone" />
     </div>
   );
 }

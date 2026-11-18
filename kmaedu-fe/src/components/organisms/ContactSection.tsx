@@ -2,14 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  Mail,
-  MapPin,
-  Phone,
-  Send,
-  Sparkles,
-} from "lucide-react";
+import { ArrowCircleRightIcon, EnvelopeSimpleIcon, MapPinIcon, PhoneIcon, PaperPlaneTiltIcon, SparkleIcon } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 
 export default function ContactSection() {
@@ -84,8 +77,8 @@ export default function ContactSection() {
             <div
               className={`transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
             >
-              <div className="inline-flex items-center gap-2 rounded-[9999px] border border-hairline bg-surface-card px-3 py-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-coral" />
+              <div className="inline-flex items-center gap-2 rounded-lg border border-hairline bg-surface-card px-3 py-1.5">
+                <SparkleIcon className="h-3.5 w-3.5 text-coral" />
                 <span className="text-[12px] font-medium uppercase tracking-[1.5px] text-ink">
                   {t("contact.badge")}
                 </span>
@@ -111,7 +104,7 @@ export default function ContactSection() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-7">
-              <div className="rounded-[16px] border border-hairline bg-surface-card p-8 sm:p-10">
+              <div className="rounded-lg border border-hairline bg-surface-card p-8 sm:p-10">
                 <h2 className="font-display text-[28px] font-medium leading-[1.15] tracking-[-0.015em] text-ink">
                   {t("contact.form.heading")}
                 </h2>
@@ -131,7 +124,7 @@ export default function ContactSection() {
                         onChange={handleChange}
                         placeholder={t("contact.form.namePlaceholder")}
                         required
-                        className="mt-1.5 h-11 w-full rounded-[8px] border border-hairline bg-canvas px-3 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
+                        className="mt-1.5 h-11 w-full rounded-lg border border-hairline bg-canvas px-3 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
                       />
                     </div>
                     <div>
@@ -145,7 +138,7 @@ export default function ContactSection() {
                         onChange={handleChange}
                         placeholder="email@example.com"
                         required
-                        className="mt-1.5 h-11 w-full rounded-[8px] border border-hairline bg-canvas px-3 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
+                        className="mt-1.5 h-11 w-full rounded-lg border border-hairline bg-canvas px-3 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
                       />
                     </div>
                   </div>
@@ -160,7 +153,7 @@ export default function ContactSection() {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder={t("contact.form.phonePlaceholder")}
-                      className="mt-1.5 h-11 w-full rounded-[8px] border border-hairline bg-canvas px-3 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
+                      className="mt-1.5 h-11 w-full rounded-lg border border-hairline bg-canvas px-3 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
                     />
                   </div>
 
@@ -175,16 +168,16 @@ export default function ContactSection() {
                       placeholder={t("contact.form.messagePlaceholder")}
                       required
                       rows={5}
-                      className="mt-1.5 w-full resize-none rounded-[8px] border border-hairline bg-canvas px-3 py-3 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
+                      className="mt-1.5 w-full resize-none rounded-lg border border-hairline bg-canvas px-3 py-3 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="inline-flex h-9 items-center gap-2 rounded-[8px] bg-brand-soft px-5 text-[14px] font-medium text-brand-strong transition-colors hover:bg-brand-soft-hover"
+                    className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand-soft px-5 text-[14px] font-medium text-brand-strong transition-colors hover:bg-brand-soft-hover"
                   >
                     {submitted ? t("contact.form.submitted") : t("contact.form.submit")}
-                    {!submitted && <Send className="h-4 w-4" />}
+                    {!submitted && <PaperPlaneTiltIcon className="h-4 w-4" />}
                   </button>
                 </form>
               </div>
@@ -193,25 +186,25 @@ export default function ContactSection() {
             <div className="lg:col-span-5">
               <div className="space-y-5">
                 <ContactCard
-                  icon={Mail}
+                  icon={EnvelopeSimpleIcon}
                   title={t("contact.card.email")}
                   value="togiap.dev@gmail.com"
                   href="mailto:togiap.dev@gmail.com"
                 />
                 <ContactCard
-                  icon={Phone}
+                  icon={PhoneIcon}
                   title={t("contact.card.phone")}
                   value="(+84) 123 456 789"
                   href="tel:+84123456789"
                 />
                 <ContactCard
-                  icon={MapPin}
+                  icon={MapPinIcon}
                   title={t("contact.card.address")}
                   value={t("contact.card.addressValue")}
                 />
               </div>
 
-              <div className="mt-8 rounded-[12px] border border-hairline bg-surface-card p-6">
+              <div className="mt-8 rounded-lg border border-hairline bg-surface-card p-6">
                 <p className="text-[12px] font-medium uppercase tracking-[1.5px] text-coral">
                   {t("contact.partnership.badge")}
                 </p>
@@ -226,7 +219,7 @@ export default function ContactSection() {
                   className="mt-4 inline-flex items-center gap-1.5 text-[14px] font-medium text-coral hover:text-coral-active"
                 >
                   {t("contact.partnership.cta")}
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowCircleRightIcon className="h-4 w-4" />
                 </Link>
               </div>
             </div>
@@ -249,9 +242,9 @@ function ContactCard({
   href?: string;
 }) {
   const content = (
-    <div className="flex items-start gap-4 rounded-[12px] border border-hairline bg-canvas p-5 transition-colors hover:border-coral/40">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-surface-card text-coral">
-        <Icon className="h-5 w-5" strokeWidth={1.75} />
+    <div className="flex items-start gap-4 rounded-lg border border-hairline bg-canvas p-5 transition-colors hover:border-coral/40">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-card text-coral">
+        <Icon className="h-5 w-5" />
       </div>
       <div>
         <p className="text-[12px] font-medium uppercase tracking-[1.5px] text-muted-foreground">

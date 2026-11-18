@@ -36,7 +36,7 @@ export function LogViewer({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className={`overflow-auto rounded-md border border-hairline bg-surface-dark p-3 font-mono text-[12px] leading-5 text-on-dark ${className}`}
+      className={`overflow-auto rounded-lg border border-hairline bg-surface-dark p-3 font-mono text-[12px] leading-5 text-on-dark ${className}`}
       style={{ minHeight: 360, maxHeight: 540 }}
     >
       {visible.length === 0

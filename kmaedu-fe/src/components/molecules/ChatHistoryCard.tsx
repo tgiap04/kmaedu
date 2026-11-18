@@ -6,17 +6,7 @@ import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
 import { ScrollArea } from "@/components/antd/scroll-area";
 import { cn } from "@/lib/utils";
-import {
-  MessageSquare,
-  MoreVertical,
-  Pencil,
-  Trash2,
-  Check,
-  X,
-  Plus,
-  Loader2,
-  History,
-} from "lucide-react";
+import { ChatCenteredTextIcon, DotsThreeCircleVerticalIcon, PencilSimpleIcon, TrashIcon, CheckCircleIcon, XCircleIcon, PlusCircleIcon, CircleNotchIcon, ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -112,7 +102,7 @@ export function ChatHistoryCard({
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <History className="w-4 h-4 text-primary" />
+              <ClockCounterClockwiseIcon className="w-4 h-4 text-primary" />
               Lịch sử chat
             </CardTitle>
             <Button
@@ -120,25 +110,25 @@ export function ChatHistoryCard({
               size="icon"
               className="h-8 w-8 text-primary hover:bg-primary/10"
               onClick={onCreateChat}>
-              <Plus className="w-4 h-4" />
+              <PlusCircleIcon className="w-4 h-4" />
             </Button>
           </div>
         </CardHeader>
         <CardContent className="-mt-8">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <CircleNotchIcon className="w-6 h-6 animate-spin text-primary" />
             </div>
           ) : chats.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <MessageSquare className="w-10 h-10 mx-auto mb-2 opacity-50" />
+              <ChatCenteredTextIcon className="w-10 h-10 mx-auto mb-2 opacity-50" />
               <p className="text-sm">Chưa có cuộc trò chuyện</p>
               <Button
                 variant="outline"
                 size="sm"
                 className="mt-3"
                 onClick={onCreateChat}>
-                <Plus className="w-4 h-4 mr-1" />
+                <PlusCircleIcon className="w-4 h-4 mr-1" />
                 Bắt đầu chat
               </Button>
             </div>
@@ -157,7 +147,7 @@ export function ChatHistoryCard({
                     onClick={() =>
                       editingId !== chat.id && onSelectChat(chat.id)
                     }>
-                    <MessageSquare
+                    <ChatCenteredTextIcon
                       className={cn(
                         "w-4 h-4 flex-shrink-0",
                         selectedChatId === chat.id
@@ -187,7 +177,7 @@ export function ChatHistoryCard({
                             e.stopPropagation();
                             saveEditing();
                           }}>
-                          <Check className="w-3 h-3 text-green-500" />
+                          <CheckCircleIcon className="w-3 h-3 text-green-500" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -197,7 +187,7 @@ export function ChatHistoryCard({
                             e.stopPropagation();
                             cancelEditing();
                           }}>
-                          <X className="w-3 h-3 text-red-500" />
+                          <XCircleIcon className="w-3 h-3 text-red-500" />
                         </Button>
                       </div>
                     ) : (
@@ -218,7 +208,7 @@ export function ChatHistoryCard({
                               size="icon"
                               className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={(e) => e.stopPropagation()}>
-                              <MoreVertical className="w-4 h-4" />
+                              <DotsThreeCircleVerticalIcon className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
@@ -229,7 +219,7 @@ export function ChatHistoryCard({
                                 e.stopPropagation();
                                 startEditing(chat);
                               }}>
-                              <Pencil className="w-4 h-4 mr-2" />
+                              <PencilSimpleIcon className="w-4 h-4 mr-2" />
                               Đổi tên
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -238,7 +228,7 @@ export function ChatHistoryCard({
                                 e.stopPropagation();
                                 confirmDelete(chat);
                               }}>
-                              <Trash2 className="w-4 h-4 mr-2" />
+                              <TrashIcon className="w-4 h-4 mr-2" />
                               Xóa
                             </DropdownMenuItem>
                           </DropdownMenuContent>

@@ -28,7 +28,7 @@ export function HighlightedWord({ word, size = "sm" }: HighlightedWordProps) {
       {prefixLen > 0 && (
         <span className="text-coral">{word.word.slice(0, prefixLen)}</span>
       )}
-      <span className={`rounded-[4px] bg-coral/10 font-bold text-ink ${rootPad}`}>
+      <span className={`rounded-lg bg-coral/10 font-bold text-ink ${rootPad}`}>
         {word.word.slice(prefixLen, prefixLen + rootLen)}
       </span>
       {suffixLen > 0 && (

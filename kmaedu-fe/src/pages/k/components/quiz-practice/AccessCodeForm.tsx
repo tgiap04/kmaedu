@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lock } from "lucide-react";
+import { LockSimpleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
 
@@ -19,14 +19,14 @@ export function AccessCodeForm({ title, submitting, error, locked, onSubmit }: A
 
   return (
     <form
-      className="mx-auto w-full max-w-sm space-y-4 p-6 rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]"
+      className="mx-auto w-full max-w-sm space-y-4 p-6 rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]"
       onSubmit={(e) => {
         e.preventDefault();
         if (ready) onSubmit(code);
       }}
     >
       <div className="flex items-center gap-2 text-ink">
-        <span className="grid size-9 place-items-center rounded-lg bg-brand-soft text-brand"><Lock className="size-[18px]" /></span>
+        <span className="grid size-9 place-items-center rounded-lg bg-brand-soft text-brand"><LockSimpleIcon className="size-[18px]" /></span>
         <h2 className="text-[16px] font-bold">Nhập mã để luyện tập</h2>
       </div>
       <p className="text-sm text-muted-foreground">

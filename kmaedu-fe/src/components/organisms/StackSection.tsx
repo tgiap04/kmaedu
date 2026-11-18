@@ -1,39 +1,22 @@
 import { Button } from "@/components/antd/button";
-import {
-  FaFileArchive,
-  FaFileWord,
-  FaFileExcel,
-  FaFileInvoice,
-  FaFileUpload,
-  FaFileVideo,
-  FaFileAudio,
-  FaFileCsv,
-  FaGoogleDrive,
-  FaDropbox,
-  FaFilePdf,
-  FaFileDownload,
-  FaFileExport,
-  FaFilePowerpoint,
-  FaFileSignature,
-  FaFileMedical,
-} from "react-icons/fa";
+import { FileArchiveIcon, FileDocIcon, FileXlsIcon, InvoiceIcon, FileArrowUpIcon, FileVideoIcon, FileAudioIcon, FileCsvIcon, GoogleDriveLogoIcon, DropboxLogoIcon, FilePdfIcon, FileArrowDownIcon, ExportIcon, FilePptIcon, SignatureIcon, FilePlusIcon } from "@phosphor-icons/react";
 
 const iconConfigs = [
-  { Icon: FaGoogleDrive, color: "#61DAFB" },
-  { Icon: FaFileArchive, color: "#FF9900" },
-  { Icon: FaDropbox, color: "#2496ED" },
-  { Icon: FaFileWord, color: "#339933" },
-  { Icon: FaFileDownload, color: "#000000" },
-  { Icon: FaFilePowerpoint, color: "#000000" },
-  { Icon: FaFileExport, color: "#764ABC" },
-  { Icon: FaFileSignature, color: "#3178C6" },
-  { Icon: FaFileExcel, color: "#181717" },
-  { Icon: FaFileInvoice, color: "#1DA1F2" },
-  { Icon: FaFileUpload, color: "#0077B5" },
-  { Icon: FaFileVideo, color: "#E1306C" },
-  { Icon: FaFileAudio, color: "#DB4437" },
-  { Icon: FaFileCsv, color: "#000000" },
-  { Icon: FaFileMedical, color: "#1877F2" },
+  { Icon: GoogleDriveLogoIcon, color: "#61DAFB" },
+  { Icon: FileArchiveIcon, color: "#FF9900" },
+  { Icon: DropboxLogoIcon, color: "#2496ED" },
+  { Icon: FileDocIcon, color: "#339933" },
+  { Icon: FileArrowDownIcon, color: "#000000" },
+  { Icon: FilePptIcon, color: "#000000" },
+  { Icon: ExportIcon, color: "#764ABC" },
+  { Icon: SignatureIcon, color: "#3178C6" },
+  { Icon: FileXlsIcon, color: "#181717" },
+  { Icon: InvoiceIcon, color: "#1DA1F2" },
+  { Icon: FileArrowUpIcon, color: "#0077B5" },
+  { Icon: FileVideoIcon, color: "#E1306C" },
+  { Icon: FileAudioIcon, color: "#DB4437" },
+  { Icon: FileCsvIcon, color: "#000000" },
+  { Icon: FilePlusIcon, color: "#1877F2" },
 ];
 
 export default function StackSection() {
@@ -42,7 +25,7 @@ export default function StackSection() {
   const iconsPerOrbit = Math.ceil(iconConfigs.length / orbitCount);
 
   return (
-    <section className="relative max-w-7xl mx-auto pl-10 flex items-center justify-between h-[30rem] border border-border bg-canvas overflow-hidden rounded-3xl ">
+    <section className="relative max-w-7xl mx-auto pl-10 flex items-center justify-between h-[30rem] border border-border bg-canvas overflow-hidden rounded-lg ">
       {/* Left side: Heading and Text */}
       <div className="w-1/2 z-10">
         <h1 className="text-4xl sm:text-6xl font-semibold mb-4 text-ink">
@@ -70,7 +53,7 @@ export default function StackSection() {
         <div className="relative w-[50rem] h-[50rem] translate-x-[30%] flex items-center justify-center">
           {/* Center Circle */}
           <div className="w-24 h-24 rounded-full bg-gray-50 shadow-lg flex items-center justify-center">
-            <FaFilePdf className="w-12 h-12 text-coral" />
+            <FilePdfIcon className="w-12 h-12 text-coral" />
           </div>
 
           {/* Generate Orbits */}

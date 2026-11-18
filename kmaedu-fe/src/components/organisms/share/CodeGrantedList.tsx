@@ -1,6 +1,6 @@
 "use client";
 
-import { Undo2, X } from "lucide-react";
+import { ArrowUUpLeftIcon, XCircleIcon } from "@phosphor-icons/react";
 import { Label } from "@/components/antd/label";
 import type { SharingPerson } from "@/lib/quiz-practice/sharing-types";
 
@@ -21,7 +21,7 @@ export function CodeGrantedList({ users, removedIds, onToggleRemove }: CodeGrant
         {users.map((u) => {
           const removed = removedIds.includes(u.id);
           return (
-            <li key={u.id} className="flex items-center justify-between rounded-md bg-muted px-2 py-1 text-sm">
+            <li key={u.id} className="flex items-center justify-between rounded-lg bg-muted px-2 py-1 text-sm">
               <span className={`truncate ${removed ? "text-muted-foreground line-through" : ""}`}>
                 {u.name || u.username} <span className="text-xs text-muted-foreground">@{u.username}</span>
               </span>
@@ -30,7 +30,7 @@ export function CodeGrantedList({ users, removedIds, onToggleRemove }: CodeGrant
                 className="ml-2 text-muted-foreground transition-colors hover:text-destructive"
                 aria-label={removed ? "Hoàn tác" : `Gỡ quyền của ${u.name || u.username}`}
               >
-                {removed ? <Undo2 className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                {removed ? <ArrowUUpLeftIcon className="h-3.5 w-3.5" /> : <XCircleIcon className="h-3.5 w-3.5" />}
               </button>
             </li>
           );

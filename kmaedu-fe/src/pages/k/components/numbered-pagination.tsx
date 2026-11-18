@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretCircleLeftIcon, CaretCircleRightIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { pillClass } from "@/components/k-page/section-card";
 
@@ -26,7 +26,7 @@ export function NumberedPagination({ page, totalPages, perPage, total, unit, onC
       </p>
       <div className="flex items-center gap-1.5">
         <button type="button" className={cn(pillClass, "disabled:opacity-50")} onClick={() => onChange((p) => Math.max(1, p - 1))} disabled={page === 1}>
-          <ChevronLeft className="size-4" aria-hidden />
+          <CaretCircleLeftIcon className="size-4" aria-hidden />
           Trước
         </button>
         {numbers.map((n) => (
@@ -45,7 +45,7 @@ export function NumberedPagination({ page, totalPages, perPage, total, unit, onC
         ))}
         <button type="button" className={cn(pillClass, "disabled:opacity-50")} onClick={() => onChange((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
           Sau
-          <ChevronRight className="size-4" aria-hidden />
+          <CaretCircleRightIcon className="size-4" aria-hidden />
         </button>
       </div>
     </div>

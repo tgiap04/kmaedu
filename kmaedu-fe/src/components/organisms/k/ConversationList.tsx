@@ -5,7 +5,7 @@ import {
   ConversationItem,
   type Conversation,
 } from "@/components/molecules/ConversationItem";
-import { Search, Plus } from "lucide-react";
+import { MagnifyingGlassIcon, PlusCircleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button";
 import { ConnectionStatus } from "@/components/atoms/k/ConnectionStatus";
 import { useState } from "react";
@@ -37,7 +37,7 @@ export function ConversationList({
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-foreground">Trò chuyện</h2>
           <Button size="icon" variant="ghost">
-            <Plus className="h-5 w-5" />
+            <PlusCircleIcon className="h-5 w-5" />
           </Button>
         </div>
 
@@ -51,7 +51,7 @@ export function ConversationList({
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Tìm kiếm cuộc trò chuyện..."

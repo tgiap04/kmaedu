@@ -1,15 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  BookOpen,
-  Calendar,
-  Eye,
-  FolderCheck,
-  Smile,
-  Sparkles,
-  Target,
-} from "lucide-react";
+import { ArrowCircleRightIcon, BookOpenIcon, CalendarBlankIcon, EyeIcon, FolderSimpleStarIcon, SmileyIcon, SparkleIcon, TargetIcon } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 
 export default function AboutSection() {
@@ -21,21 +12,21 @@ export default function AboutSection() {
   }, []);
 
   const stats = [
-    { icon: Calendar, value: t("about.stats.years.value"), label: t("about.stats.years.label") },
-    { icon: FolderCheck, value: t("about.stats.exams.value"), label: t("about.stats.exams.label") },
-    { icon: Smile, value: t("about.stats.satisfaction.value"), label: t("about.stats.satisfaction.label") },
+    { icon: CalendarBlankIcon, value: t("about.stats.years.value"), label: t("about.stats.years.label") },
+    { icon: FolderSimpleStarIcon, value: t("about.stats.exams.value"), label: t("about.stats.exams.label") },
+    { icon: SmileyIcon, value: t("about.stats.satisfaction.value"), label: t("about.stats.satisfaction.label") },
   ];
   const values = [
     {
-      icon: Target,
+      icon: TargetIcon,
       key: "learner",
     },
     {
-      icon: Eye,
+      icon: EyeIcon,
       key: "transparency",
     },
     {
-      icon: BookOpen,
+      icon: BookOpenIcon,
       key: "realDocs",
     },
   ];
@@ -79,8 +70,8 @@ export default function AboutSection() {
             <div
               className={`transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
             >
-              <div className="inline-flex items-center gap-2 rounded-[9999px] border border-hairline bg-surface-card px-3 py-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-coral" />
+              <div className="inline-flex items-center gap-2 rounded-lg border border-hairline bg-surface-card px-3 py-1.5">
+                <SparkleIcon className="h-3.5 w-3.5 text-coral" />
                 <span className="text-[12px] font-medium uppercase tracking-[1.5px] text-ink">
                   {t("about.badge")}
                 </span>
@@ -107,8 +98,8 @@ export default function AboutSection() {
           <div className="grid gap-8 md:grid-cols-3">
             {stats.map(({ icon: Icon, value, label }) => (
               <div key={label} className="text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[12px] bg-canvas text-coral">
-                  <Icon className="h-6 w-6" strokeWidth={1.75} />
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-canvas text-coral">
+                  <Icon className="h-6 w-6" />
                 </div>
                 <p className="font-display !mt-4 text-[36px] font-medium tracking-[-0.02em] text-ink">
                   {value}
@@ -123,7 +114,7 @@ export default function AboutSection() {
       <section className="bg-canvas landing-dot-paper py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-6 md:grid-cols-2">
-            <article className="rounded-[12px] bg-surface-card p-8 sm:p-10">
+            <article className="rounded-lg bg-surface-card p-8 sm:p-10">
               <p className="text-[12px] font-medium uppercase tracking-[1.5px] text-coral">
                 {t("about.mission.badge")}
               </p>
@@ -135,7 +126,7 @@ export default function AboutSection() {
               </p>
             </article>
 
-            <article className="rounded-[12px] bg-surface-card p-8 sm:p-10">
+            <article className="rounded-lg bg-surface-card p-8 sm:p-10">
               <p className="text-[12px] font-medium uppercase tracking-[1.5px] text-coral">
                 {t("about.vision.badge")}
               </p>
@@ -165,10 +156,10 @@ export default function AboutSection() {
             {values.map(({ icon: Icon, key }) => (
               <article
                 key={key}
-                className="flex flex-col rounded-[12px] border border-hairline bg-canvas p-8 transition-colors hover:border-coral/40"
+                className="flex flex-col rounded-lg border border-hairline bg-canvas p-8 transition-colors hover:border-coral/40"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-surface-card text-coral">
-                  <Icon className="h-5 w-5" strokeWidth={1.75} />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-card text-coral">
+                  <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="font-display !mt-6 text-[22px] font-medium leading-[1.3] tracking-[-0.01em] text-ink">
                   {t(`about.values.${key}.title`)}
@@ -184,7 +175,7 @@ export default function AboutSection() {
 
       <section className="bg-canvas landing-dot-paper py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-[16px] bg-coral px-8 py-14 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
+          <div className="overflow-hidden rounded-lg bg-coral px-8 py-14 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="font-display text-[36px] font-medium leading-[1.1] tracking-[-0.02em] text-white sm:text-[44px]">
                 {t("about.cta.headline")}
@@ -194,10 +185,10 @@ export default function AboutSection() {
               </p>
               <Link
                 to="/register"
-                className="mt-8 inline-flex h-12 items-center gap-2 rounded-[8px] bg-canvas px-6 text-[14px] font-medium text-ink transition-colors hover:bg-on-dark"
+                className="mt-8 inline-flex h-12 items-center gap-2 rounded-lg bg-canvas px-6 text-[14px] font-medium text-ink transition-colors hover:bg-on-dark"
               >
                 {t("about.cta.button")}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowCircleRightIcon className="h-4 w-4" />
               </Link>
             </div>
           </div>

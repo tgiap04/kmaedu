@@ -1,13 +1,13 @@
 import { Card } from "@/components/antd/card";
 import { CategoryIcon } from "@/components/atoms/k/CategoryIcon";
 import { Badge } from "@/components/antd/badge";
-import { LucideIcon } from "lucide-react";
+import type { Icon as AppIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export interface Category {
   id: string;
   name: string;
-  icon: LucideIcon;
+  icon: AppIcon;
   count: number;
   color?: string;
 }
@@ -37,7 +37,7 @@ export function CategoryItem({
           <CategoryIcon icon={category.icon} />
           <span className="font-medium text-foreground">{category.name}</span>
         </div>
-        <Badge variant="secondary" className="h-6 min-w-6 rounded-full px-2">
+        <Badge variant="secondary" className="h-6 min-w-6 rounded-lg px-2">
           {category.count}
         </Badge>
       </div>

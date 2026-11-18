@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { DragEvent, ReactNode } from "react";
-import { Upload } from "lucide-react";
+import { CloudArrowUpIcon } from "@phosphor-icons/react";
 import { ItemFileDetail } from "@/components/atoms/k/ItemFileDetail";
 import { cn } from "@/lib/utils";
 import { aiPanelClass, IconTile } from "./ai-tool-ui";
@@ -52,7 +52,7 @@ export function GeneratorUploadCard({ icon, title, subtitle, hasFile, fileName, 
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
             className={cn(
-              "flex flex-col items-center rounded-2xl border-2 border-dashed px-4 pb-6 pt-7 text-center transition-colors",
+              "flex flex-col items-center rounded-lg border-2 border-dashed px-4 pb-6 pt-7 text-center transition-colors",
               isDragging ? "border-brand bg-brand-soft" : "border-hairline bg-surface-soft/60",
               disabled && "pointer-events-none opacity-50",
             )}
@@ -64,9 +64,9 @@ export function GeneratorUploadCard({ icon, title, subtitle, hasFile, fileName, 
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={disabled}
-              className="mt-5 inline-flex h-11 min-w-[200px] items-center justify-center gap-2 rounded-full bg-brand px-6 text-[15px] font-semibold text-white shadow-[0_8px_18px_rgba(238,47,43,0.28)] transition-colors hover:bg-brand-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              className="mt-5 inline-flex h-11 min-w-[200px] items-center justify-center gap-2 rounded-lg bg-brand px-6 text-[15px] font-semibold text-white shadow-[0_8px_18px_rgba(238,47,43,0.28)] transition-colors hover:bg-brand-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
-              <Upload className="h-[18px] w-[18px]" />
+              <CloudArrowUpIcon className="h-[18px] w-[18px]" />
               Chọn file
             </button>
             <p className="mt-4 text-[12px] text-muted-foreground">Hỗ trợ: PDF, tối đa 5 MB và 50 trang</p>

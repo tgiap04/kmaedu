@@ -7,7 +7,7 @@ import OpenAIDark from "@/components/kokonutui/open-ai-dark";
 import MistralAI from "@/components/kokonutui/mistral";
 import DeepSeek from "@/components/kokonutui/deepseek";
 import { cn } from "@/lib/utils";
-import { Mic, Plus, CheckCircle2, Clock, Sparkles, Zap } from "lucide-react";
+import { MicrophoneIcon, PlusCircleIcon, CheckCircleIcon, ClockIcon, SparkleIcon, LightningIcon } from "@phosphor-icons/react";
 import {
   motion,
   useMotionValue,
@@ -130,7 +130,7 @@ function SpotlightFeature({ items }: { items: string[] }) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 * index }}
           className="flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
+          <CheckCircleIcon className="h-4 w-4 text-success flex-shrink-0" />
           <span className="text-sm text-body">
             {item}
           </span>
@@ -187,9 +187,9 @@ function CounterAnimation({
 
 function ChartAnimation({ value }: { value: number }) {
   return (
-    <div className="mt-2 w-full h-2 bg-surface-cream-strong rounded-full overflow-hidden">
+    <div className="mt-2 w-full h-2 bg-surface-cream-strong rounded-lg overflow-hidden">
       <motion.div
-        className="h-full bg-success rounded-full"
+        className="h-full bg-success rounded-lg"
         initial={{ width: 0 }}
         animate={{ width: `${value}%` }}
         transition={{ duration: 1.5, ease: "easeOut" }}
@@ -201,7 +201,7 @@ function ChartAnimation({ value }: { value: number }) {
 function IconsFeature() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
-      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-xl bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
+      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-lg bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
         <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
           <OpenAI className="w-5 h-5 sm:w-7 sm:h-7 transition-transform " />
           <OpenAIDark className="w-5 h-5 sm:w-7 sm:h-7 hidden transition-transform " />
@@ -210,7 +210,7 @@ function IconsFeature() {
           OpenAI
         </span>
       </motion.div>
-      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-xl bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
+      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-lg bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
         <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
           <Anthropic className="w-5 h-5 sm:w-7 sm:h-7 transition-transform " />
           <AnthropicDark className="w-5 h-5 sm:w-7 sm:h-7 hidden transition-transform " />
@@ -219,7 +219,7 @@ function IconsFeature() {
           Anthropic
         </span>
       </motion.div>
-      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-xl bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
+      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-lg bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
         <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
           <Google className="w-5 h-5 sm:w-7 sm:h-7 transition-transform " />
         </div>
@@ -227,7 +227,7 @@ function IconsFeature() {
           Google
         </span>
       </motion.div>
-      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-xl bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
+      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-lg bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
         <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
           <MistralAI className="w-5 h-5 sm:w-7 sm:h-7 transition-transform " />
         </div>
@@ -235,7 +235,7 @@ function IconsFeature() {
           Mistral
         </span>
       </motion.div>
-      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-xl bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
+      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-lg bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
         <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
           <DeepSeek className="w-5 h-5 sm:w-7 sm:h-7 transition-transform " />
         </div>
@@ -243,9 +243,9 @@ function IconsFeature() {
           DeepSeek
         </span>
       </motion.div>
-      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-xl bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
+      <motion.div className="flex flex-col items-center gap-2 p-2 sm:p-3 rounded-lg bg-gradient-to-b from-surface-soft to-surface-card border border-border group transition-all duration-300 hover:border-border">
         <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
-          <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground transition-transform " />
+          <PlusCircleIcon className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground transition-transform " />
         </div>
         <span className="text-xs font-medium text-center text-muted-foreground group-hover:text-ink">
           More
@@ -290,7 +290,7 @@ function TypingCodeFeature({ text }: { text: string }) {
       </div>
       <div
         ref={terminalRef}
-        className="bg-surface-dark text-on-dark p-2.5 sm:p-3 rounded-md text-[11px] sm:text-xs font-mono h-[120px] sm:h-[150px] overflow-y-auto">
+        className="bg-surface-dark text-on-dark p-2.5 sm:p-3 rounded-lg text-[11px] sm:text-xs font-mono h-[120px] sm:h-[150px] overflow-y-auto">
         <pre className="whitespace-pre-wrap">
           {displayedText}
           <span className="animate-pulse">|</span>
@@ -332,12 +332,12 @@ function MetricsFeature({
           transition={{ delay: 0.15 * index }}>
           <div className="flex justify-between items-center text-sm">
             <div className="text-body font-medium flex items-center gap-1.5">
-              {metric.label === "Uptime" && <Clock className="w-3.5 h-3.5" />}
+              {metric.label === "Uptime" && <ClockIcon className="w-3.5 h-3.5" />}
               {metric.label === "Response time" && (
-                <Zap className="w-3.5 h-3.5" />
+                <LightningIcon className="w-3.5 h-3.5" />
               )}
               {metric.label === "Cost reduction" && (
-                <Sparkles className="w-3.5 h-3.5" />
+                <SparkleIcon className="w-3.5 h-3.5" />
               )}
               {metric.label}
             </div>
@@ -346,9 +346,9 @@ function MetricsFeature({
               {metric.suffix}
             </div>
           </div>
-          <div className="h-1.5 w-full bg-surface-cream-strong rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-surface-cream-strong rounded-lg overflow-hidden">
             <motion.div
-              className={`h-full rounded-full ${getColorClass(metric.color)}`}
+              className={`h-full rounded-lg ${getColorClass(metric.color)}`}
               initial={{ width: 0 }}
               animate={{
                 width: `${Math.min(100, metric.value)}%`,
@@ -431,7 +431,7 @@ function AIInput_Voice() {
       <div className="relative max-w-xl w-full mx-auto flex items-center flex-col gap-2">
         <button
           className={cn(
-            "group w-16 h-16 rounded-xl flex items-center justify-center transition-colors",
+            "group w-16 h-16 rounded-lg flex items-center justify-center transition-colors",
             submitted
               ? "bg-none"
               : "bg-none hover:bg-black/10"
@@ -440,11 +440,11 @@ function AIInput_Voice() {
           onClick={handleClick}>
           {submitted ? (
             <div
-              className="w-6 h-6 rounded-sm animate-spin bg-black  cursor-pointer pointer-events-auto"
+              className="w-6 h-6 rounded-[4px] animate-spin bg-black  cursor-pointer pointer-events-auto"
               style={{ animationDuration: "3s" }}
             />
           ) : (
-            <Mic className="w-6 h-6 text-black/70" />
+            <MicrophoneIcon className="w-6 h-6 text-black/70" />
           )}
         </button>
 
@@ -526,15 +526,15 @@ function BentoCard({ item }: { item: BentoItem }) {
       }}>
       <div
         className={`
-                    group relative flex flex-col gap-4 h-full rounded-xl p-5
+                    group relative flex flex-col gap-4 h-full rounded-lg p-5
                     bg-gradient-to-b from-neutral-50/60 via-neutral-50/40 to-neutral-50/30
                    
                     border border-border
-                    before:absolute before:inset-0 before:rounded-xl
+                    before:absolute before:inset-0 before:rounded-lg
                     before:bg-gradient-to-b before:from-white/10 before:via-white/20 before:to-transparent
                    
                     before:opacity-100 before:transition-opacity before:duration-500
-                    after:absolute after:inset-0 after:rounded-xl after:bg-neutral-50/70 after:z-[-1]
+                    after:absolute after:inset-0 after:rounded-lg after:bg-neutral-50/70 after:z-[-1]
                     backdrop-blur-[4px]
                     shadow-[0_4px_20px_rgb(0,0,0,0.04)]
                     hover:border-border
@@ -650,7 +650,7 @@ export default function FeaturesSection() {
             </motion.div>
             <motion.div
               variants={fadeInUp}
-              className="md:col-span-1 rounded-xl overflow-hidden bg-gradient-to-b from-neutral-50/80 to-neutral-50 border border-border hover:border-border hover:shadow-lg hover:shadow-neutral-200/20 transition-all duration-300">
+              className="md:col-span-1 rounded-lg overflow-hidden bg-gradient-to-b from-neutral-50/80 to-neutral-50 border border-border hover:border-border hover:shadow-lg hover:shadow-neutral-200/20 transition-all duration-300">
               <div className="p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold tracking-tight text-ink">

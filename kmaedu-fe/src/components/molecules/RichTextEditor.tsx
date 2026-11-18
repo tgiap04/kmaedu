@@ -5,20 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
 import { useEffect, useState } from "react";
-import {
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Undo,
-  Redo,
-  Heading1,
-  Heading2,
-  Heading3,
-  Quote,
-  Code,
-  ImageIcon,
-} from "lucide-react";
+import { TextBIcon, TextItalicIcon, ListIcon, ListNumbersIcon, ArrowCounterClockwiseIcon, ArrowClockwiseIcon, TextHOneIcon, TextHTwoIcon, TextHThreeIcon, QuotesIcon, CodeIcon, ImageIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button";
 import { ImageUrlDialog } from "@/components/organisms/ImageUrlDialog";
 
@@ -61,7 +48,7 @@ export function RichTextEditor({
         inline: true,
         allowBase64: true,
         HTMLAttributes: {
-          class: "max-w-full h-auto rounded",
+          class: "max-w-full h-auto rounded-lg",
         },
       }),
     ],
@@ -122,7 +109,7 @@ export function RichTextEditor({
             }
             className={editor.isActive("bold") ? "bg-accent" : ""}
             title="Bold (Ctrl+B)">
-            <Bold className="h-4 w-4" />
+            <TextBIcon className="h-4 w-4" />
           </Button>
           <Button
             type="button"
@@ -134,7 +121,7 @@ export function RichTextEditor({
             }
             className={editor.isActive("italic") ? "bg-accent" : ""}
             title="Italic (Ctrl+I)">
-            <Italic className="h-4 w-4" />
+            <TextItalicIcon className="h-4 w-4" />
           </Button>
           <Button
             type="button"
@@ -144,7 +131,7 @@ export function RichTextEditor({
             disabled={disabled}
             className={editor.isActive("code") ? "bg-accent" : ""}
             title="Inline Code">
-            <Code className="h-4 w-4" />
+            <CodeIcon className="h-4 w-4" />
           </Button>
 
           <div className="w-px h-6 bg-border mx-1" />
@@ -162,7 +149,7 @@ export function RichTextEditor({
               editor.isActive("heading", { level: 1 }) ? "bg-accent" : ""
             }
             title="Heading 1">
-            <Heading1 className="h-4 w-4" />
+            <TextHOneIcon className="h-4 w-4" />
           </Button>
           <Button
             type="button"
@@ -176,7 +163,7 @@ export function RichTextEditor({
               editor.isActive("heading", { level: 2 }) ? "bg-accent" : ""
             }
             title="Heading 2">
-            <Heading2 className="h-4 w-4" />
+            <TextHTwoIcon className="h-4 w-4" />
           </Button>
           <Button
             type="button"
@@ -190,7 +177,7 @@ export function RichTextEditor({
               editor.isActive("heading", { level: 3 }) ? "bg-accent" : ""
             }
             title="Heading 3">
-            <Heading3 className="h-4 w-4" />
+            <TextHThreeIcon className="h-4 w-4" />
           </Button>
 
           <div className="w-px h-6 bg-border mx-1" />
@@ -204,7 +191,7 @@ export function RichTextEditor({
             disabled={disabled}
             className={editor.isActive("bulletList") ? "bg-accent" : ""}
             title="Bullet List">
-            <List className="h-4 w-4" />
+            <ListIcon className="h-4 w-4" />
           </Button>
           <Button
             type="button"
@@ -214,7 +201,7 @@ export function RichTextEditor({
             disabled={disabled}
             className={editor.isActive("orderedList") ? "bg-accent" : ""}
             title="Numbered List">
-            <ListOrdered className="h-4 w-4" />
+            <ListNumbersIcon className="h-4 w-4" />
           </Button>
 
           <div className="w-px h-6 bg-border mx-1" />
@@ -228,7 +215,7 @@ export function RichTextEditor({
             disabled={disabled}
             className={editor.isActive("blockquote") ? "bg-accent" : ""}
             title="Blockquote">
-            <Quote className="h-4 w-4" />
+            <QuotesIcon className="h-4 w-4" />
           </Button>
 
           <div className="w-px h-6 bg-border mx-1" />
@@ -254,7 +241,7 @@ export function RichTextEditor({
             onClick={() => editor.chain().focus().undo().run()}
             disabled={disabled || !editor.can().chain().focus().undo().run()}
             title="Undo (Ctrl+Z)">
-            <Undo className="h-4 w-4" />
+            <ArrowCounterClockwiseIcon className="h-4 w-4" />
           </Button>
           <Button
             type="button"
@@ -263,7 +250,7 @@ export function RichTextEditor({
             onClick={() => editor.chain().focus().redo().run()}
             disabled={disabled || !editor.can().chain().focus().redo().run()}
             title="Redo (Ctrl+Shift+Z)">
-            <Redo className="h-4 w-4" />
+            <ArrowClockwiseIcon className="h-4 w-4" />
           </Button>
         </div>
 

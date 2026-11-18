@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { BarChart3 } from "lucide-react";
+import { ChartBarIcon } from "@phosphor-icons/react";
 import { getExamAttemptDetailApi, getExamAttemptsBySessionApi, type ExamAttemptDetail, type ExamAttemptListItem } from "@/apis/examAttemptApi";
 import { getSessionCheatingStatsApi, getUserAttemptsWithLogsApi, type CheatingSessionStats, type UserAttemptWithLogs } from "@/apis/cheatingLogApi";
 import { getExamSessionByIdApi } from "@/apis/examSessionApi";
@@ -122,9 +122,9 @@ export default function ExamRoomSessionAnalyticsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-16 w-72 rounded-2xl" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>
-        <Skeleton className="h-96 rounded-[20px]" />
+        <Skeleton className="h-16 w-72 rounded-lg" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-28 rounded-lg" />)}</div>
+        <Skeleton className="h-96 rounded-lg" />
       </div>
     );
   }
@@ -132,7 +132,7 @@ export default function ExamRoomSessionAnalyticsPage() {
   return (
     <div>
       <PageHeader
-        icon={<BarChart3 />}
+        icon={<ChartBarIcon />}
         title="Thống kê phiên thi"
         subtitle={sessionInfo?.title}
         eyebrow={

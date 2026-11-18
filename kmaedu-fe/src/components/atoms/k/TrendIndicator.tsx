@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendUpIcon, TrendDownIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface TrendIndicatorProps {
@@ -17,9 +17,9 @@ export function TrendIndicator({ value, className }: TrendIndicatorProps) {
         className
       )}>
       {isPositive ? (
-        <TrendingUp className="h-3 w-3 mr-0.5" />
+        <TrendUpIcon className="h-3 w-3 mr-0.5" />
       ) : (
-        <TrendingDown className="h-3 w-3 mr-0.5" />
+        <TrendDownIcon className="h-3 w-3 mr-0.5" />
       )}
       {isPositive ? "+" : ""}
       {value}%

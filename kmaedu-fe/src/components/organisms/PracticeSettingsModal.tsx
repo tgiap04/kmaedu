@@ -13,7 +13,7 @@ import { Button } from "@/components/antd/button";
 import { Label } from "@/components/antd/label";
 import { Input } from "@/components/antd/input";
 import { RadioGroup, RadioGroupItem } from "@/components/antd/radio-group";
-import { Clock, Infinity as InfinityIcon } from "lucide-react";
+import { ClockIcon, InfinityIcon } from "@phosphor-icons/react";
 
 interface PracticeSettingsModalProps {
   open: boolean;
@@ -107,7 +107,7 @@ export function PracticeSettingsModal({
               <RadioGroupItem value="limited" id="limited" />
               <Label htmlFor="limited" className="flex-1 cursor-pointer">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
+                  <ClockIcon className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <div className="font-medium">Giới hạn thời gian</div>
                     <div className="text-sm text-muted-foreground">

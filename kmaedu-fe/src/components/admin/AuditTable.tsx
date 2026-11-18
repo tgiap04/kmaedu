@@ -191,7 +191,7 @@ export function AuditTable({
             }}
             expandable={{
               expandedRowRender: (row) => (
-                <pre className="m-0 max-w-full overflow-auto rounded bg-canvas p-3 font-mono text-xs text-ink/80">
+                <pre className="m-0 max-w-full overflow-auto rounded-lg bg-canvas p-3 font-mono text-xs text-ink/80">
                   {JSON.stringify(row.metadata ?? {}, null, 2)}
                 </pre>
               ),

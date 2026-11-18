@@ -1,6 +1,6 @@
 import { displayUserName } from "@/lib/user/display-user-name";
 import { useCallback, useEffect, useState } from "react";
-import { RefreshCw, Trophy } from "lucide-react";
+import { ArrowsClockwiseIcon, TrophyIcon } from "@phosphor-icons/react";
 import {
   Card,
   CardContent,
@@ -48,10 +48,10 @@ export function LeaderboardPanel({ roomId }: Props) {
     <Card className="flex h-full flex-col">
       <CardHeader className="flex shrink-0 items-center justify-between">
         <CardTitle className="flex items-center gap-2 !text-base">
-          <Trophy className="h-4 w-4 text-warning" /> Bảng tập trung
+          <TrophyIcon className="h-4 w-4 text-warning" /> Bảng tập trung
         </CardTitle>
         <Button variant="ghost" size="icon" onClick={load} loading={loading}>
-          <RefreshCw className="h-4 w-4" />
+          <ArrowsClockwiseIcon className="h-4 w-4" />
         </Button>
       </CardHeader>
       <CardContent className="min-h-0 flex-1 space-y-2 overflow-y-auto pb-4">

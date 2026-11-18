@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, RefreshCw, Settings } from "lucide-react";
+import { CopyIcon, ArrowsClockwiseIcon, GearSixIcon } from "@phosphor-icons/react";
 import {
   Dialog,
   DialogContent,
@@ -78,7 +78,7 @@ export function RoomSettingsMenu({ room, config, onClosed }: Props) {
   return (
     <>
       <Button variant="outline" size="icon" onClick={() => setOpen(true)}>
-        <Settings className="h-4 w-4" />
+        <GearSixIcon className="h-4 w-4" />
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent modalWidth={460}>
@@ -90,7 +90,7 @@ export function RoomSettingsMenu({ room, config, onClosed }: Props) {
             <div>
               <p className="mb-1 text-sm text-muted-foreground">Mã mời</p>
               <div className="flex items-center gap-2">
-                <span className="flex-1 rounded-md border border-hairline bg-canvas px-3 py-2 text-lg font-semibold tracking-[0.3em] text-ink">
+                <span className="flex-1 rounded-lg border border-hairline bg-canvas px-3 py-2 text-lg font-semibold tracking-[0.3em] text-ink">
                   {code || "------"}
                 </span>
                 <Button
@@ -101,10 +101,10 @@ export function RoomSettingsMenu({ room, config, onClosed }: Props) {
                     toast.success("Đã sao chép mã");
                   }}
                 >
-                  <Copy className="h-4 w-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </Button>
                 <Button variant="outline" size="icon" onClick={regenerate}>
-                  <RefreshCw className="h-4 w-4" />
+                  <ArrowsClockwiseIcon className="h-4 w-4" />
                 </Button>
               </div>
             </div>

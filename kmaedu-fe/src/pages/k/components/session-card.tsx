@@ -1,4 +1,4 @@
-import { AlertCircle, Calendar, History, Pin, PinOff, PlayCircle, Trophy } from "lucide-react"
+import { WarningCircleIcon, CalendarBlankIcon, ClockCounterClockwiseIcon, PushPinIcon, PushPinSlashIcon, PlayCircleIcon, TrophyIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button"
 import { cn } from "@/lib/utils"
 import type { SessionSummary } from "../my-exams-types"
@@ -34,17 +34,17 @@ export function SessionCard({
   onTogglePin: (s: SessionSummary) => void
 }) {
   return (
-    <article className="group relative flex h-[260px] flex-col rounded-[20px] border border-hairline bg-canvas p-5 shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-brand-border hover:shadow-[0_6px_24px_rgba(15,23,42,0.08)]">
+    <article className="group relative flex h-[260px] flex-col rounded-lg border border-hairline bg-canvas p-5 shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-brand-border hover:shadow-[0_6px_24px_rgba(15,23,42,0.08)]">
       {session.isPinned && (
         <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-brand-soft text-brand">
-          <Pin className="h-3 w-3" />
+          <PushPinIcon className="h-3 w-3" />
         </span>
       )}
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-50">
-            <Trophy className="h-[18px] w-[18px] text-amber-500" />
+            <TrophyIcon className="h-[18px] w-[18px] text-amber-500" />
           </div>
           <div className="min-w-0">
             <h3 className="font-body text-[15px] font-medium leading-snug text-ink line-clamp-2">
@@ -52,12 +52,12 @@ export function SessionCard({
             </h3>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
+                <CalendarBlankIcon className="h-3 w-3" />
                 {formatTimeAgo(session.lastAttemptAt)}
               </span>
               {session.totalViolations > 0 && (
                 <span className="flex items-center gap-1 text-error">
-                  <AlertCircle className="h-3 w-3" />
+                  <WarningCircleIcon className="h-3 w-3" />
                   {session.totalViolations} vi phạm
                 </span>
               )}
@@ -65,12 +65,12 @@ export function SessionCard({
           </div>
         </div>
         {session.hasInProgress ? (
-          <div className="inline-flex items-center rounded-pill bg-coral/10 px-2.5 font-medium text-brand-strong w-fit flex items-center gap-x-2">
-            <PlayCircle className="h-3 w-3" />
+          <div className="inline-flex items-center rounded-lg bg-coral/10 px-2.5 font-medium text-brand-strong w-fit flex items-center gap-x-2">
+            <PlayCircleIcon className="h-3 w-3" />
             <p className="whitespace-nowrap text-xs !mt-2.5">Đang làm</p>
           </div>
         ) : (
-          <div className="inline-flex items-center gap-1 rounded-pill bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success w-fit flex items-center gap-x-2">
+          <div className="inline-flex items-center gap-1 rounded-lg bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success w-fit flex items-center gap-x-2">
             <p className="whitespace-nowrap text-xs !mt-2.5">{session.attemptCount} lần thi</p>
           </div>
         )}
@@ -78,17 +78,17 @@ export function SessionCard({
 
       {/* Stats */}
       <div className="mt-4 grid grid-cols-3 gap-3">
-        <div className="rounded-xl border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
+        <div className="rounded-lg border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
           <p className={cn("text-lg font-semibold", session.bestScore !== null ? getScoreColor(session.bestScore) : "text-ink")}>
             {session.bestScore !== null ? session.bestScore.toFixed(1) : "—"}
           </p>
           <p className="text-[10px] text-muted-foreground">Điểm cao</p>
         </div>
-        <div className="rounded-xl border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
+        <div className="rounded-lg border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
           <p className="text-lg font-semibold text-ink">{session.attemptCount}</p>
           <p className="text-[10px] text-muted-foreground">Số lần thi</p>
         </div>
-        <div className="rounded-xl border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
+        <div className="rounded-lg border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
           <p className="text-lg font-semibold text-ink">{session.bestPercentage}%</p>
           <p className="text-[10px] text-muted-foreground">Tỷ lệ tốt</p>
         </div>
@@ -96,9 +96,9 @@ export function SessionCard({
 
       {/* Progress bar */}
       <div className="mt-3">
-        <div className="h-1 overflow-hidden rounded-pill bg-hairline">
+        <div className="h-1 overflow-hidden rounded-lg bg-hairline">
           <div
-            className="h-full rounded-pill bg-brand transition-all duration-300"
+            className="h-full rounded-lg bg-brand transition-all duration-300"
             style={{ width: `${session.bestPercentage}%` }}
           />
         </div>
@@ -109,7 +109,7 @@ export function SessionCard({
         <button
           onClick={() => onTogglePin(session)}
           className={cn(
-            "grid h-8 w-8 place-items-center rounded-md transition-colors",
+            "grid h-8 w-8 place-items-center rounded-lg transition-colors",
             session.isPinned
               ? "bg-coral/10 text-brand-strong hover:bg-coral/20"
               : "text-muted-foreground hover:bg-surface-card hover:text-ink",
@@ -117,7 +117,7 @@ export function SessionCard({
           aria-label={session.isPinned ? "Bỏ ghim" : "Ghim"}
           title={session.isPinned ? "Bỏ ghim" : "Ghim"}
         >
-          {session.isPinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
+          {session.isPinned ? <PushPinSlashIcon className="h-3.5 w-3.5" /> : <PushPinIcon className="h-3.5 w-3.5" />}
         </button>
         <div className="flex items-center gap-2">
           {session.hasInProgress && (
@@ -131,7 +131,7 @@ export function SessionCard({
               size="sm"
               className="h-8 px-3 text-xs"
             >
-              <PlayCircle className="mr-1.5 h-3.5 w-3.5" />
+              <PlayCircleIcon className="mr-1.5 h-3.5 w-3.5" />
               Tiếp tục
             </Button>
           )}
@@ -141,7 +141,7 @@ export function SessionCard({
             size="sm"
             className="h-8 px-3 text-xs"
           >
-            <History className="mr-1.5 h-3.5 w-3.5" />
+            <ClockCounterClockwiseIcon className="mr-1.5 h-3.5 w-3.5" />
             Lịch sử
           </Button>
         </div>

@@ -1,4 +1,4 @@
-import { BookOpen, FileText, Flame, Trophy, type LucideIcon } from "lucide-react";
+import { BookOpenIcon, FileTextIcon, FireIcon, TrophyIcon, type Icon as AppIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export type ActivityType = "exam_score" | "pdf_processed" | "flashcard_created" | "study_streak";
@@ -17,11 +17,11 @@ interface RecentActivityItemProps {
   item: RecentActivityItemData;
 }
 
-const activityConfig: Record<ActivityType, { icon: LucideIcon; iconColor: string }> = {
-  exam_score: { icon: Trophy, iconColor: "text-emerald-600" },
-  pdf_processed: { icon: FileText, iconColor: "text-brand" },
-  flashcard_created: { icon: BookOpen, iconColor: "text-amber-500" },
-  study_streak: { icon: Flame, iconColor: "text-amber-500" },
+const activityConfig: Record<ActivityType, { icon: AppIcon; iconColor: string }> = {
+  exam_score: { icon: TrophyIcon, iconColor: "text-emerald-600" },
+  pdf_processed: { icon: FileTextIcon, iconColor: "text-brand" },
+  flashcard_created: { icon: BookOpenIcon, iconColor: "text-amber-500" },
+  study_streak: { icon: FireIcon, iconColor: "text-amber-500" },
 };
 
 export function RecentActivityItem({ item }: RecentActivityItemProps) {

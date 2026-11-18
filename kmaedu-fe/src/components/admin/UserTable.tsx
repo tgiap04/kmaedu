@@ -10,7 +10,7 @@ import {
   Alert,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { SearchOutlined } from "@ant-design/icons";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -194,7 +194,7 @@ export function UserTable({ onAction }: UserTableProps) {
       <div className="flex flex-wrap items-end gap-3">
         <Input
           allowClear
-          prefix={<SearchOutlined />}
+          prefix={<MagnifyingGlassIcon size={16} className="text-muted-foreground" />}
           placeholder={t("users.filters.searchPlaceholder")}
           value={filters.search}
           onChange={(e) => {

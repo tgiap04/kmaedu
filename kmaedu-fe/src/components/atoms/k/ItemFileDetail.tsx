@@ -1,4 +1,4 @@
-import { FileText, X } from "lucide-react";
+import { FileTextIcon, XCircleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button";
 import {
   Item,
@@ -34,7 +34,7 @@ export function ItemFileDetail({
   return (
     <Item variant="outline" className="w-full">
       <ItemMedia>
-        <FileText className="size-5 text-primary" />
+        <FileTextIcon className="size-5 text-primary" />
       </ItemMedia>
       <ItemContent className="flex items-start justify-between">
         <ItemTitle className="text-sm font-medium line-clamp-2 break-words">
@@ -51,7 +51,7 @@ export function ItemFileDetail({
           onClick={onRemove}
           disabled={disabled}
           className="h-8 w-8 text-muted-foreground hover:text-destructive disabled:opacity-50 disabled:cursor-not-allowed">
-          <X className="size-4" />
+          <XCircleIcon className="size-4" />
         </Button>
       </ItemActions>
     </Item>

@@ -27,7 +27,7 @@ import { Label } from "@/components/antd/label";
 import { RichTextEditor } from "@/components/molecules/RichTextEditor";
 import { RadioGroup, RadioGroupItem } from "@/components/antd/radio-group";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { Plus, X, Tag } from "lucide-react";
+import { PlusCircleIcon, XCircleIcon, TagIcon } from "@phosphor-icons/react";
 import { Quizz } from "@/types/quizset";
 import { getQuizSetLabelsApi, QuizSetLabel } from "@/apis/quizsetApi";
 
@@ -201,7 +201,7 @@ export function QuestionEditorDialog({
       {quizSetId && labels.length > 0 && (
         <div className="space-y-2">
           <Label htmlFor="label" className="flex items-center gap-2">
-            <Tag className="h-4 w-4" />
+            <TagIcon className="h-4 w-4" />
             Nhãn (tùy chọn)
           </Label>
           <Select
@@ -274,7 +274,7 @@ export function QuestionEditorDialog({
                   size="sm"
                   onClick={() => handleRemoveOption(index)}
                   className="mt-2">
-                  <X className="h-4 w-4" />
+                  <XCircleIcon className="h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -287,7 +287,7 @@ export function QuestionEditorDialog({
             size="sm"
             onClick={handleAddOption}
             className="w-full">
-            <Plus className="mr-2 h-4 w-4" />
+            <PlusCircleIcon className="mr-2 h-4 w-4" />
             Thêm đáp án
           </Button>
         )}

@@ -1,5 +1,5 @@
 import { Button } from "antd";
-import { Network, List, Save, Zap } from "lucide-react";
+import { GraphIcon, ListIcon, FloppyDiskIcon, LightningIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface WordFamilyToolbarProps {
@@ -18,7 +18,7 @@ interface WordFamilyToolbarProps {
 
 const toggleClass = (active: boolean) =>
   cn(
-    "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
+    "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
     active ? "bg-canvas text-brand shadow-sm" : "text-body hover:text-ink",
   );
 
@@ -26,25 +26,25 @@ const toggleClass = (active: boolean) =>
 export function WordFamilyToolbar(p: WordFamilyToolbarProps) {
   return (
     <>
-      <div className="flex rounded-full border border-hairline bg-surface-soft p-0.5">
+      <div className="flex rounded-lg border border-hairline bg-surface-soft p-0.5">
         <button type="button" onClick={() => p.onViewModeChange("tree")} className={toggleClass(p.viewMode === "tree")}>
-          <Network className="size-3.5" aria-hidden />
+          <GraphIcon className="size-3.5" aria-hidden />
           Tree
         </button>
         <button type="button" onClick={() => p.onViewModeChange("list")} className={toggleClass(p.viewMode === "list")}>
-          <List className="size-3.5" aria-hidden />
+          <ListIcon className="size-3.5" aria-hidden />
           List
         </button>
       </div>
 
       {p.canGenerate && (
-        <Button icon={<Zap className="size-3.5" />} onClick={p.onGenerate} loading={p.generating}>
+        <Button icon={<LightningIcon className="size-3.5" />} onClick={p.onGenerate} loading={p.generating}>
           {p.generating ? "Đang sinh..." : "Sinh lại từ con"}
         </Button>
       )}
 
       {p.canSave && (
-        <Button icon={<Save className="size-3.5" />} onClick={p.onSave} disabled={p.isSaved || p.generating}>
+        <Button icon={<FloppyDiskIcon className="size-3.5" />} onClick={p.onSave} disabled={p.isSaved || p.generating}>
           {p.isSaved ? "Đã lưu" : "Lưu"}
         </Button>
       )}

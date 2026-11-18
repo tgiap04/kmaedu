@@ -1,19 +1,5 @@
 import { format } from "date-fns";
-import {
-  BarChart3,
-  Calendar,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  MoreHorizontal,
-  Pencil,
-  PlayCircle,
-  Plus,
-  Share2,
-  Timer,
-  Trash2,
-  Users,
-} from "lucide-react";
+import { ChartBarIcon, CalendarBlankIcon, CheckCircleIcon, CaretCircleLeftIcon, CaretCircleRightIcon, PencilSimpleIcon, PlayCircleIcon, PlusCircleIcon, ShareNetworkIcon, TimerIcon, TrashIcon, UsersThreeIcon, DotsThreeIcon } from "@phosphor-icons/react";
 import { Badge } from "@/components/antd/badge";
 import { Button } from "@/components/antd/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/antd/dropdown-menu";
@@ -48,30 +34,30 @@ function StatusBadge({ startTime, endTime }: { startTime: string; endTime: strin
   return <Badge variant="outline">Đã kết thúc</Badge>;
 }
 
-const countPill = "inline-flex items-center gap-1 rounded-full border border-hairline bg-surface-soft px-2.5 py-0.5 text-xs";
+const countPill = "inline-flex items-center gap-1 rounded-lg border border-hairline bg-surface-soft px-2.5 py-0.5 text-xs";
 
 export function RoomSessionsSection(p: Props) {
   const header = (
     <div className="flex flex-wrap items-center gap-2">
-      <span className={`${countPill} text-brand`}><Timer className="size-3" />{p.counts.upcoming} sắp tới</span>
-      <span className={`${countPill} text-emerald-600`}><PlayCircle className="size-3" />{p.counts.ongoing} đang thi</span>
-      <span className={`${countPill} text-muted-foreground`}><CheckCircle2 className="size-3" />{p.counts.completed} đã kết thúc</span>
+      <span className={`${countPill} text-brand`}><TimerIcon className="size-3" />{p.counts.upcoming} sắp tới</span>
+      <span className={`${countPill} text-emerald-600`}><PlayCircleIcon className="size-3" />{p.counts.ongoing} đang thi</span>
+      <span className={`${countPill} text-muted-foreground`}><CheckCircleIcon className="size-3" />{p.counts.completed} đã kết thúc</span>
     </div>
   );
 
   return (
-    <SectionCard icon={<Calendar />} title="Danh sách phiên thi" action={header} plain>
+    <SectionCard icon={<CalendarBlankIcon />} title="Danh sách phiên thi" action={header} plain>
       {p.loading ? (
         <div className="divide-y divide-hairline-soft"><RowsSkeleton rows={4} /></div>
       ) : p.sessions.length === 0 ? (
         <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-          <span className="grid size-12 place-items-center rounded-2xl bg-brand-soft text-brand"><Calendar className="size-6" /></span>
+          <span className="grid size-12 place-items-center rounded-lg bg-brand-soft text-brand"><CalendarBlankIcon className="size-6" /></span>
           <div>
             <p className="text-sm font-semibold text-ink">Chưa có phiên thi nào</p>
             <p className="mt-1 text-sm text-muted-foreground">Tạo phiên thi đầu tiên để bắt đầu tổ chức bài kiểm tra</p>
           </div>
           <Button onClick={p.onCreate}>
-            <Plus className="mr-2 h-4 w-4" />
+            <PlusCircleIcon className="mr-2 h-4 w-4" />
             Tạo phiên thi đầu tiên
           </Button>
         </div>
@@ -84,8 +70,8 @@ export function RoomSessionsSection(p: Props) {
                   <TableHead className="w-[220px] font-medium text-muted-foreground">Trạng thái</TableHead>
                   <TableHead className="font-medium text-muted-foreground">Thời gian bắt đầu</TableHead>
                   <TableHead className="font-medium text-muted-foreground">Thời gian kết thúc</TableHead>
-                  <TableHead className="text-center font-medium text-muted-foreground"><Users className="mr-1 inline h-4 w-4" />Thí sinh</TableHead>
-                  <TableHead className="text-center font-medium text-muted-foreground"><CheckCircle2 className="mr-1 inline h-4 w-4" />Bài làm</TableHead>
+                  <TableHead className="text-center font-medium text-muted-foreground"><UsersThreeIcon className="mr-1 inline h-4 w-4" />Thí sinh</TableHead>
+                  <TableHead className="text-center font-medium text-muted-foreground"><CheckCircleIcon className="mr-1 inline h-4 w-4" />Bài làm</TableHead>
                   <TableHead className="w-[100px] text-right font-medium text-muted-foreground">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
@@ -108,14 +94,14 @@ export function RoomSessionsSection(p: Props) {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full p-0" aria-label="Tùy chọn phiên thi"><MoreHorizontal className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full p-0" aria-label="Tùy chọn phiên thi"><DotsThreeIcon className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => p.onShare(session)}><Share2 className="mr-2 h-4 w-4" />Chia sẻ</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => p.onStats(session)}><BarChart3 className="mr-2 h-4 w-4" />Xem thống kê</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => p.onEdit(session)}><Pencil className="mr-2 h-4 w-4" />Chỉnh sửa</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => p.onShare(session)}><ShareNetworkIcon className="mr-2 h-4 w-4" />Chia sẻ</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => p.onStats(session)}><ChartBarIcon className="mr-2 h-4 w-4" />Xem thống kê</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => p.onEdit(session)}><PencilSimpleIcon className="mr-2 h-4 w-4" />Chỉnh sửa</DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => p.onDelete(session)} className="text-red-600 focus:text-red-600"><Trash2 className="mr-2 h-4 w-4" />Xóa</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => p.onDelete(session)} className="text-red-600 focus:text-red-600"><TrashIcon className="mr-2 h-4 w-4" />Xóa</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -129,12 +115,12 @@ export function RoomSessionsSection(p: Props) {
               <span className="text-sm text-muted-foreground">Trang {p.page} / {p.totalPages}</span>
               <div className="flex items-center gap-2">
                 <button type="button" className={`${pillClass} disabled:opacity-50`} onClick={() => p.onPageChange((prev) => prev - 1)} disabled={p.page === 1}>
-                  <ChevronLeft className="size-4" />
+                  <CaretCircleLeftIcon className="size-4" />
                   Trước
                 </button>
                 <button type="button" className={`${pillClass} disabled:opacity-50`} onClick={() => p.onPageChange((prev) => prev + 1)} disabled={p.page === p.totalPages}>
                   Sau
-                  <ChevronRight className="size-4" />
+                  <CaretCircleRightIcon className="size-4" />
                 </button>
               </div>
             </div>

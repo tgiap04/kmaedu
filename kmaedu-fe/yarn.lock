@@ -1001,15 +1001,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@heroicons/react@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "@heroicons/react@npm:2.2.0"
-  peerDependencies:
-    react: ">= 16 || ^19.0.0-rc"
-  checksum: 10c0/f8d3cf689b56716339c91df3542f3948115042d1e70e6bc940a3f3e347c0bc78b56aa563917fbd7ce097fe2f38ebb21bffb0db39be914cbc545a754bddae9ab4
-  languageName: node
-  linkType: hard
-
 "@humanfs/core@npm:^0.19.2":
   version: 0.19.2
   resolution: "@humanfs/core@npm:0.19.2"
@@ -1180,6 +1171,16 @@ __metadata:
   dependencies:
     pako: "npm:^1.0.10"
   checksum: 10c0/9c300c513c1089e561c0cccac01f396a24efb9b0e9c922a39248cb09dfced70c05b9facdfce11a7f22cbedb4129593630a18111b90a57ef34ea4c3df98f2ac1d
+  languageName: node
+  linkType: hard
+
+"@phosphor-icons/react@npm:2.1.10":
+  version: 2.1.10
+  resolution: "@phosphor-icons/react@npm:2.1.10"
+  peerDependencies:
+    react: ">= 16.8"
+    react-dom: ">= 16.8"
+  checksum: 10c0/9a469e1bdcabcd3db02eda13142d57be250847ebbeb82b33c8900580a6a23ed4f411dbb9b9deacef726ff3fa8ffc960c8868b518e448bd2cee654cedf3fa4bda
   languageName: node
   linkType: hard
 
@@ -2041,24 +2042,6 @@ __metadata:
   peerDependencies:
     eslint: ^9.0.0 || ^10.0.0
   checksum: 10c0/2cc6e592d5b2ab691290cc39ed377c0f6226667b367ffc6a0bf3a4bf6dd36b011d17c83f377600a48946f6bb037390b35a8b3c273b3c40d161c00b44512a129e
-  languageName: node
-  linkType: hard
-
-"@tabler/icons-react@npm:^3.35.0":
-  version: 3.41.1
-  resolution: "@tabler/icons-react@npm:3.41.1"
-  dependencies:
-    "@tabler/icons": "npm:3.41.1"
-  peerDependencies:
-    react: ">= 16"
-  checksum: 10c0/d103816d91df212ef6a4fc05e9f8d5f01deec2197d3accc4a398d325d1cfa8910e06b4daaf82cd08749f242c3908885ac60b21c4129b21094ece9fe0ecd46e4c
-  languageName: node
-  linkType: hard
-
-"@tabler/icons@npm:3.41.1":
-  version: 3.41.1
-  resolution: "@tabler/icons@npm:3.41.1"
-  checksum: 10c0/b1238157fe6e57c0202f1f7153621ad937a6f73ff7c0f0af5a71fcbdace18a3281cddd6632229029c3a3df7c530ae8bcefa75c18e35db4b65e7f884282762cf1
   languageName: node
   linkType: hard
 
@@ -5906,9 +5889,8 @@ __metadata:
     "@antfu/eslint-config": "npm:^5.4.1"
     "@eslint-react/eslint-plugin": "npm:^1.53.1"
     "@eslint/eslintrc": "npm:^3"
-    "@heroicons/react": "npm:^2.2.0"
     "@number-flow/react": "npm:^0.5.10"
-    "@tabler/icons-react": "npm:^3.35.0"
+    "@phosphor-icons/react": "npm:2.1.10"
     "@tailwindcss/postcss": "npm:^4"
     "@tiptap/extension-image": "npm:^3.11.1"
     "@tiptap/extension-placeholder": "npm:^3.10.4"
@@ -5940,14 +5922,12 @@ __metadata:
     jspdf: "npm:^4.2.1"
     jspdf-autotable: "npm:^5.0.2"
     katex: "npm:^0.16.27"
-    lucide-react: "npm:^0.544.0"
     motion: "npm:^12.23.22"
     next-themes: "npm:^0.4.6"
     pdf-lib: "npm:^1.17.1"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
     react-i18next: "npm:^17.0.8"
-    react-icons: "npm:^5.5.0"
     react-markdown: "npm:^10.1.0"
     react-router-dom: "npm:^7.17.0"
     react-type-animation: "npm:^3.2.0"
@@ -6161,15 +6141,6 @@ __metadata:
   dependencies:
     yallist: "npm:^3.0.2"
   checksum: 10c0/89b2ef2ef45f543011e38737b8a8622a2f8998cddf0e5437174ef8f1f70a8b9d14a918ab3e232cb3ba343b7abddffa667f0b59075b2b80e6b4d63c3de6127482
-  languageName: node
-  linkType: hard
-
-"lucide-react@npm:^0.544.0":
-  version: 0.544.0
-  resolution: "lucide-react@npm:0.544.0"
-  peerDependencies:
-    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/2503f8cf65e62915997073b6053423bf8091b9470cb397560b417ef2f1628ea162c49e821b787cf153afb86828482d941f051c3f2aa642a1fa58c3de227e0113
   languageName: node
   linkType: hard
 
@@ -7575,15 +7546,6 @@ __metadata:
     typescript:
       optional: true
   checksum: 10c0/4d13d396208927ed3c80eb62db011a98dae16d93fc951bb4cb220fc5a3a5dd2f0046244fdbd197f627f595230d6fa05cc5d1c6f52b6241acd63ff818dff63acb
-  languageName: node
-  linkType: hard
-
-"react-icons@npm:^5.5.0":
-  version: 5.6.0
-  resolution: "react-icons@npm:5.6.0"
-  peerDependencies:
-    react: "*"
-  checksum: 10c0/addba1ebfd45cdf7f69291d0c93df64fca1271cfdb66df657abd223e3451c73356b035f50e75858627dd182b02129596c79eaaaa45d32eb52658e443a992645c
   languageName: node
   linkType: hard
 

@@ -7,15 +7,7 @@ import { Card } from "@/components/antd/card";
 import { Checkbox } from "@/components/antd/checkbox";
 import { Button } from "@/components/antd/button";
 import { Skeleton } from "@/components/antd/skeleton";
-import {
-  Clock,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  RotateCcw,
-  Loader2,
-  Award,
-} from "lucide-react";
+import { ClockIcon, CheckCircleIcon, XCircleIcon, WarningCircleIcon, ArrowCounterClockwiseIcon, CircleNotchIcon, MedalIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -101,31 +93,31 @@ export function ExamRoomDetailTemplate({
   const getStatusBadge = (status: number, score: number, passingScore: number) => {
     if (status === 0) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-warning/15 text-warning">
-          <Loader2 className="h-3 w-3" />
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium bg-warning/15 text-warning">
+          <CircleNotchIcon className="h-3 w-3" />
           Đang thi
         </span>
       );
     }
     if (passingScore === 0) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-success/15 text-success">
-          <CheckCircle2 className="h-3 w-3" />
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium bg-success/15 text-success">
+          <CheckCircleIcon className="h-3 w-3" />
           Hoàn thành
         </span>
       );
     }
     if (score >= passingScore) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-success/15 text-success">
-          <CheckCircle2 className="h-3 w-3" />
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium bg-success/15 text-success">
+          <CheckCircleIcon className="h-3 w-3" />
           Đạt
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/15 text-destructive">
-        <XCircle className="h-3 w-3" />
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium bg-destructive/15 text-destructive">
+        <XCircleIcon className="h-3 w-3" />
         Chưa đạt
       </span>
     );
@@ -206,7 +198,7 @@ export function ExamRoomDetailTemplate({
             {/* Attempt History */}
             <Card className="p-6 !mt-3">
               <h3 className="mb-4 font-semibold text-foreground flex items-center gap-2">
-                <RotateCcw className="h-4 w-4" />
+                <ArrowCounterClockwiseIcon className="h-4 w-4" />
                 Lịch sử làm bài
               </h3>
 
@@ -218,7 +210,7 @@ export function ExamRoomDetailTemplate({
                 </div>
               ) : myAttempts.length === 0 ? (
                 <div className="flex flex-col items-center py-6 text-center">
-                  <Award className="h-10 w-10 text-muted-foreground/40 mb-2" />
+                  <MedalIcon className="h-10 w-10 text-muted-foreground/40 mb-2" />
                   <p className="text-sm text-muted-foreground">Chưa có lượt thi nào</p>
                   <p className="text-xs text-muted-foreground/60 mt-1">Bắt đầu lần đầu tiên của bạn</p>
                 </div>
@@ -234,7 +226,7 @@ export function ExamRoomDetailTemplate({
                     return (
                       <div
                         key={attempt.id}
-                        className="flex items-start gap-4 p-4 rounded-xl border border-border hover:border-hairline transition-colors"
+                        className="flex items-start gap-4 p-4 rounded-lg border border-border hover:border-hairline transition-colors"
                       >
                         {/* Status icon */}
                         <div className={cn(
@@ -246,11 +238,11 @@ export function ExamRoomDetailTemplate({
                               : "bg-destructive/15 text-destructive",
                         )}>
                           {attempt.status === 0 ? (
-                            <Loader2 className="h-5 w-5" />
+                            <CircleNotchIcon className="h-5 w-5" />
                           ) : passed || !hasPassingScore ? (
-                            <CheckCircle2 className="h-5 w-5" />
+                            <CheckCircleIcon className="h-5 w-5" />
                           ) : (
-                            <XCircle className="h-5 w-5" />
+                            <XCircleIcon className="h-5 w-5" />
                           )}
                         </div>
 
@@ -266,13 +258,13 @@ export function ExamRoomDetailTemplate({
                             <span>{attempt.correctAnswers}/{attempt.totalQuestions} đúng</span>
                             {attempt.timeSpentSeconds !== null && (
                               <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
+                                <ClockIcon className="h-3 w-3" />
                                 {formatDuration(attempt.timeSpentSeconds)}
                               </span>
                             )}
                             {attempt.violationCount > 0 && (
                               <span className="flex items-center gap-0.5 text-orange-500">
-                                <AlertCircle className="h-3 w-3" />
+                                <WarningCircleIcon className="h-3 w-3" />
                                 {attempt.violationCount} VP
                               </span>
                             )}
@@ -286,7 +278,7 @@ export function ExamRoomDetailTemplate({
                                 className="mt-3 w-full"
                                 onClick={() => onContinueAttempt(attempt.id)}
                               >
-                                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                <ArrowCounterClockwiseIcon className="h-3.5 w-3.5 mr-1.5" />
                                 Tiếp tục làm bài
                               </Button>
                             )

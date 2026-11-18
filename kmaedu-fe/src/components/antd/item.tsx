@@ -11,7 +11,7 @@ function ItemSeparator({ className, ...props }: React.ComponentProps<typeof Sepa
 }
 
 function Item({ className, variant = "default", size = "default", asChild = false, children, ...props }: React.ComponentProps<"div"> & { variant?: "default" | "outline" | "muted"; size?: "default" | "sm"; asChild?: boolean }) {
-  const classes = cn("group/item flex items-center border border-transparent text-sm rounded-md transition-colors flex-wrap outline-none", variant === "outline" && "border-border", variant === "muted" && "bg-muted/50", size === "default" ? "p-4 gap-4" : "py-3 px-4 gap-2.5", className);
+  const classes = cn("group/item flex items-center border border-transparent text-sm rounded-lg transition-colors flex-wrap outline-none", variant === "outline" && "border-border", variant === "muted" && "bg-muted/50", size === "default" ? "p-4 gap-4" : "py-3 px-4 gap-2.5", className);
   if (asChild && React.isValidElement(children)) {
     return React.cloneElement(children as React.ReactElement<any>, { className: cn((children as React.ReactElement<any>).props.className, classes) });
   }
@@ -19,7 +19,7 @@ function Item({ className, variant = "default", size = "default", asChild = fals
 }
 
 function ItemMedia({ className, variant = "default", ...props }: React.ComponentProps<"div"> & { variant?: "default" | "icon" | "image" }) {
-  return <div data-slot="item-media" data-variant={variant} className={cn("flex shrink-0 items-center justify-center gap-2", variant === "icon" && "size-8 border rounded-sm bg-muted", variant === "image" && "size-10 rounded-sm overflow-hidden [&_img]:size-full [&_img]:object-cover", className)} {...props} />;
+  return <div data-slot="item-media" data-variant={variant} className={cn("flex shrink-0 items-center justify-center gap-2", variant === "icon" && "size-8 border rounded-lg bg-muted", variant === "image" && "size-10 rounded-lg overflow-hidden [&_img]:size-full [&_img]:object-cover", className)} {...props} />;
 }
 
 function ItemContent({ className, ...props }: React.ComponentProps<"div">) {

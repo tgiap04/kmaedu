@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/antd/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretCircleLeftIcon, CaretCircleRightIcon } from "@phosphor-icons/react";
 import {
   PDFHistoryListItem,
   type PDFHistoryListItemData,
@@ -192,7 +192,7 @@ export default function PDFHistoryPage() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="h-8 border-hairline">
-                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  <CaretCircleLeftIcon className="h-4 w-4 mr-1" />
                   Trước
                 </Button>
                 <Button
@@ -202,7 +202,7 @@ export default function PDFHistoryPage() {
                   disabled={page === totalPages}
                   className="h-8 border-hairline">
                   Sau
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <CaretCircleRightIcon className="h-4 w-4 ml-1" />
                 </Button>
               </div>
             </div>

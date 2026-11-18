@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/antd/dropdown-menu";
 import { Button } from "@/components/antd/button";
-import { MoreVertical, Eye, Edit, Pin, Trash2 } from "lucide-react";
+import { DotsThreeCircleVerticalIcon, EyeIcon, PencilSimpleLineIcon, PushPinIcon, TrashIcon } from "@phosphor-icons/react";
 
 interface CardActionsMenuProps {
   isPinned?: boolean;
@@ -35,25 +35,25 @@ export function CardActionsMenu({
           size="icon"
           className={className || "h-8 w-8 hover:bg-primary/10"}
         >
-          <MoreVertical className="h-4 w-4" />
+          <DotsThreeCircleVerticalIcon className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         {onView && (
           <DropdownMenuItem onClick={onView}>
-            <Eye className="mr-2 h-4 w-4" />
+            <EyeIcon className="mr-2 h-4 w-4" />
             {viewLabel}
           </DropdownMenuItem>
         )}
         {onEdit && (
           <DropdownMenuItem onClick={onEdit}>
-            <Edit className="mr-2 h-4 w-4" />
+            <PencilSimpleLineIcon className="mr-2 h-4 w-4" />
             Chỉnh sửa
           </DropdownMenuItem>
         )}
         {onPin && (
           <DropdownMenuItem onClick={onPin}>
-            <Pin className="mr-2 h-4 w-4" />
+            <PushPinIcon className="mr-2 h-4 w-4" />
             {isPinned ? "Bỏ ghim" : "Ghim"}
           </DropdownMenuItem>
         )}
@@ -64,7 +64,7 @@ export function CardActionsMenu({
               className="text-destructive focus:text-destructive"
               onClick={onDelete}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <TrashIcon className="mr-2 h-4 w-4" />
               Xóa
             </DropdownMenuItem>
           </>

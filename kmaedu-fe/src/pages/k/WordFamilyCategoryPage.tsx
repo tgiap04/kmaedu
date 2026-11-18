@@ -7,7 +7,7 @@ import { RowsSkeleton, SectionCard, SectionMessage } from "@/components/k-page/s
 import { WordFamilyBreadcrumb } from "@/components/k/word-family/word-family-breadcrumb";
 import { useCan } from "@/hooks/useCan";
 import { WORD_FAMILY_ACTION_PERMISSIONS } from "@/lib/rbac/nav-items";
-import { ArrowUpRight, Languages, ListTree } from "lucide-react";
+import { ArrowCircleUpRightIcon, TranslateIcon, TreeViewIcon } from "@phosphor-icons/react";
 
 export default function WordFamilyCategoryPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -92,7 +92,7 @@ export default function WordFamilyCategoryPage() {
               ]}
             />
           }
-          icon={<Languages />}
+          icon={<TranslateIcon />}
           title={categoryName}
           subtitle={currentCategory?.category?.description}
           actions={
@@ -106,20 +106,20 @@ export default function WordFamilyCategoryPage() {
 
         <div className="space-y-4">
           {error && (
-            <div className="overflow-hidden rounded-[20px] border border-hairline bg-canvas">
+            <div className="overflow-hidden rounded-lg border border-hairline bg-canvas">
               <SectionMessage title={error} />
             </div>
           )}
 
           {generating && (
-            <div className="flex items-center gap-3 rounded-[20px] border border-brand-border bg-brand-soft px-5 py-3.5 text-sm text-ink">
+            <div className="flex items-center gap-3 rounded-lg border border-brand-border bg-brand-soft px-5 py-3.5 text-sm text-ink">
               <Spin size="small" />
               <span>Đang sinh word family, vui lòng đợi trong giây lát...</span>
             </div>
           )}
 
           <SectionCard
-            icon={<ListTree />}
+            icon={<TreeViewIcon />}
             title="Từ gốc"
             countLabel={`${currentCategory?.total ?? 0} từ gốc`}
             plain
@@ -143,7 +143,7 @@ export default function WordFamilyCategoryPage() {
                   <Link
                     key={rw.id}
                     to={`/k/word-family/${slug}/${rw.rootWord}`}
-                    className="group flex items-center gap-3 rounded-2xl border border-hairline bg-canvas px-3.5 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-border hover:shadow-[0_6px_18px_rgba(15,23,42,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                    className="group flex items-center gap-3 rounded-lg border border-hairline bg-canvas px-3.5 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-border hover:shadow-[0_6px_18px_rgba(15,23,42,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                   >
                     <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-sm font-bold text-brand">
                       {rw.rootWord.charAt(0).toUpperCase()}
@@ -151,7 +151,7 @@ export default function WordFamilyCategoryPage() {
                     <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink">
                       {rw.rootWord}
                     </span>
-                    <ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-brand" aria-hidden />
+                    <ArrowCircleUpRightIcon className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-brand" aria-hidden />
                   </Link>
                 ))}
               </div>

@@ -1,4 +1,4 @@
-import { Flag } from "lucide-react";
+import { FlagIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button";
 import { QuizOptionRow } from "@/components/molecules/QuizOptionRow";
 import { StandardMarkdownRenderer } from "@/components/molecules/StandardMarkdownRenderer";
@@ -17,14 +17,14 @@ interface QuestionPanelProps {
 
 export function QuestionPanel({ question, index, total, selected, marked, onSelect, onToggleMark }: QuestionPanelProps) {
   return (
-    <div className="rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+    <div className="rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
       <div className="p-5 md:p-6">
         <div className="mb-4 flex items-start justify-between">
           <h2 className="text-lg font-bold text-ink">
             Câu {index + 1}/{total}
           </h2>
           <Button variant={marked ? "default" : "outline"} size="sm" onClick={onToggleMark}>
-            <Flag className="mr-2 h-4 w-4" />
+            <FlagIcon className="mr-2 h-4 w-4" />
             {marked ? "Đã đánh dấu" : "Đánh dấu"}
           </Button>
         </div>

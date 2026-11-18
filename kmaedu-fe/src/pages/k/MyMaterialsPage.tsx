@@ -1,4 +1,4 @@
-import { Copy } from "lucide-react";
+import { BooksIcon } from "@phosphor-icons/react";
 import { PageHeader } from "@/components/k-page/page-header";
 import { useCan } from "@/hooks/useCan";
 import { MyDocumentsSection } from "./components/my-materials/my-documents-section";
@@ -11,7 +11,7 @@ export default function MyMaterialsPage() {
 
   return (
     <div className="relative text-foreground">
-      <PageHeader icon={<Copy aria-hidden />} title="Tài liệu học tập" subtitle="Khám phá và quản lý các tài liệu, bộ câu hỏi, flashcard của bạn" />
+      <PageHeader icon={<BooksIcon aria-hidden />} title="Tài liệu học tập" subtitle="Khám phá và quản lý các tài liệu, bộ câu hỏi, flashcard của bạn" />
 
       <div className="space-y-5">
         {canUseAiTool && <MyDocumentsSection />}

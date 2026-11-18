@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 
 export function ExamsPagination({
   page,
@@ -35,7 +35,7 @@ export function ExamsPagination({
         className="grid h-9 w-9 place-items-center rounded-full border border-hairline text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 hover:bg-surface-card hover:text-ink disabled:pointer-events-none disabled:opacity-40"
         aria-label="Trang trước"
       >
-        <ChevronLeft className="h-4 w-4" />
+        <CaretLeftIcon className="h-4 w-4" />
       </button>
       {getVisiblePages().map((p, i) =>
         p === "ellipsis" ? (
@@ -61,7 +61,7 @@ export function ExamsPagination({
         className="grid h-9 w-9 place-items-center rounded-full border border-hairline text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 hover:bg-surface-card hover:text-ink disabled:pointer-events-none disabled:opacity-40"
         aria-label="Trang sau"
       >
-        <ChevronRight className="h-4 w-4" />
+        <CaretRightIcon className="h-4 w-4" />
       </button>
     </nav>
   )

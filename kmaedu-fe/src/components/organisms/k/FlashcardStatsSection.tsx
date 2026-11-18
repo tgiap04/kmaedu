@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Layers, Target, Eye } from "lucide-react";
+import { EyeIcon, FoldersIcon, CardsIcon } from "@phosphor-icons/react";
 import { HistoryStatCard } from "@/components/molecules/HistoryStatCard";
 
 interface FlashcardStatsData {
@@ -21,19 +21,19 @@ const FlashcardStatsSectionComponent = ({ stats }: FlashcardStatsSectionProps) =
       <HistoryStatCard
         title="Tổng số nhóm"
         value={stats.totalGroups}
-        icon={Layers}
+        icon={FoldersIcon}
         tone="red"
       />
       <HistoryStatCard
         title="Tổng số thẻ"
         value={stats.totalCards}
-        icon={Target}
+        icon={CardsIcon}
         tone="amber"
       />
       <HistoryStatCard
         title="Tổng lượt xem"
         value={stats.totalViews}
-        icon={Eye}
+        icon={EyeIcon}
         tone="green"
       />
     </div>

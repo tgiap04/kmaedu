@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Users } from "lucide-react";
+import { UsersThreeIcon } from "@phosphor-icons/react";
 import { SectionCard, SectionMessage } from "@/components/k-page/section-card";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,7 @@ const RecentParticipantsListComponent = ({
   onViewAll: _onViewAll,
 }: RecentParticipantsListProps) => {
   return (
-    <SectionCard icon={<Users />} title="Thí sinh gần đây">
+    <SectionCard icon={<UsersThreeIcon />} title="Thí sinh gần đây">
       {participants.length === 0 ? (
         <SectionMessage title="Chưa có thí sinh gần đây" />
       ) : (

@@ -26,7 +26,7 @@ export function QuizResultList({ questions }: { questions: Quizz[] }) {
     <div className="flex flex-1 flex-col gap-3">
       <ResultPager current={current} total={questions.length} unit="Câu" onPrev={() => goTo(current - 1)} onNext={() => goTo(current + 1)} />
 
-      <div ref={listRef} className="relative max-h-[620px] min-h-[360px] flex-1 overflow-y-auto rounded-2xl border border-hairline-soft px-3 py-2 md:px-6">
+      <div ref={listRef} className="relative max-h-[620px] min-h-[360px] flex-1 overflow-y-auto rounded-lg border border-hairline-soft px-3 py-2 md:px-6">
         {questions.map((question, index) => {
           const answerIndex = resolveAnswerIndex(question.answer, question.options);
           return (
@@ -54,7 +54,7 @@ export function QuizResultList({ questions }: { questions: Quizz[] }) {
                       <div
                         key={optionIndex}
                         className={cn(
-                          "flex min-h-[44px] items-center gap-3 rounded-xl border px-4 py-2.5 text-[14px] leading-snug",
+                          "flex min-h-[44px] items-center gap-3 rounded-lg border px-4 py-2.5 text-[14px] leading-snug",
                           isCorrect ? "border-brand-border bg-brand-soft text-ink" : "border-hairline bg-canvas text-body",
                         )}
                       >

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Copy, Eye, Link2, Pin, PinOff, Play } from "lucide-react";
+import { CopyIcon, EyeIcon, LinkSimpleIcon, PushPinIcon, PushPinSlashIcon, PlayIcon } from "@phosphor-icons/react";
 import { togglePinFlashcardApi, type RecentFlashcardSet } from "@/apis/studentMaterialsApi";
 import { useToast } from "@/components/antd/toast";
 import { formatCompactCount, formatTimeAgo } from "@/lib/history/history-format";
@@ -55,7 +55,7 @@ export function MyFlashcardsSection() {
 
   return (
     <SectionCard
-      icon={<Copy />}
+      icon={<CopyIcon />}
       title="Flashcard của tôi"
       countLabel={data ? `${data.total} bộ thẻ` : undefined}
       action={canExpand ? <ViewAllButton expanded={expanded} onToggle={() => { setExpanded(!expanded); setPage(1); }} /> : undefined}
@@ -72,21 +72,21 @@ export function MyFlashcardsSection() {
           {sets.map((set) => (
             <ItemRow
               key={set.id}
-              icon={<Copy />}
+              icon={<CopyIcon />}
               tone="indigo"
               title={set.title}
-              titleAddon={set.isPinned ? <Pin className="size-3.5 shrink-0 text-brand" aria-label="Đã ghim" /> : undefined}
+              titleAddon={set.isPinned ? <PushPinIcon className="size-3.5 shrink-0 text-brand" aria-hidden={false} role="img" aria-label="Đã ghim" /> : undefined}
               meta={[`${set.flashcardCount} thẻ`, `Xem ${formatTimeAgo(set.lastViewedAt)}`]}
               metric={
                 <>
-                  <Eye aria-hidden />
+                  <EyeIcon aria-hidden />
                   {formatCompactCount(set.viewCount)} lượt xem
                 </>
               }
-              action={{ label: "Học ngay", icon: Play, onClick: () => navigate(`/study-flashcard/${set.id}`) }}
+              action={{ label: "Học ngay", icon: PlayIcon, onClick: () => navigate(`/study-flashcard/${set.id}`) }}
               menu={[
-                { label: set.isPinned ? "Bỏ ghim" : "Ghim", icon: set.isPinned ? PinOff : Pin, onClick: () => void togglePin(set) },
-                { label: "Sao chép liên kết", icon: Link2, onClick: () => void copyLink(set.id) },
+                { label: set.isPinned ? "Bỏ ghim" : "Ghim", icon: set.isPinned ? PushPinSlashIcon : PushPinIcon, onClick: () => void togglePin(set) },
+                { label: "Sao chép liên kết", icon: LinkSimpleIcon, onClick: () => void copyLink(set.id) },
               ]}
             />
           ))}

@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { SparkleIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import {
   RecentActivityItem,
@@ -21,12 +21,12 @@ const RecentActivitySectionComponent = ({
   const displayActivities = activities.slice(0, maxItems);
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-brand-border/60 bg-gradient-to-r from-brand-soft via-[#fff6f5] to-brand-soft p-5 shadow-soft">
+    <section className="relative overflow-hidden rounded-lg border border-brand-border/60 bg-gradient-to-r from-brand-soft via-[#fff6f5] to-brand-soft p-5 shadow-soft">
       <div className="flex items-center gap-6">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-canvas text-brand shadow-soft">
-              <Sparkles className="size-5" aria-hidden />
+              <SparkleIcon className="size-5" aria-hidden />
             </span>
             <div className="min-w-0">
               <h2 className="text-lg font-semibold text-ink">Hoạt động gần đây</h2>
@@ -60,7 +60,7 @@ const RecentActivitySectionComponent = ({
             aria-label="Xem tất cả hoạt động"
             className="hidden size-10 shrink-0 items-center justify-center rounded-full bg-canvas text-brand shadow-raised transition-transform hover:translate-x-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 sm:flex"
           >
-            <ArrowRight className="size-5" aria-hidden />
+            <ArrowRightIcon className="size-5" aria-hidden />
           </Link>
         )}
       </div>

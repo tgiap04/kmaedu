@@ -55,7 +55,7 @@ export function ConversationItem({
         </div>
 
         {conversation.unreadCount && conversation.unreadCount > 0 && (
-          <Badge className="h-5 min-w-5 rounded-full bg-primary px-1.5 text-xs">
+          <Badge className="h-5 min-w-5 rounded-lg bg-primary px-1.5 text-xs">
             {conversation.unreadCount > 99 ? "99+" : conversation.unreadCount}
           </Badge>
         )}

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-import { Layers, WandSparkles } from "lucide-react";
+import { StackIcon, MagicWandIcon } from "@phosphor-icons/react";
 import { useFlashcardGeneratorStore } from "@/stores/useAIGeneratorStore";
 import { DialogAddExam, DialogAddExamType } from "@/components/organisms/k/DialogAddExam";
 import { useGenerationGuard } from "@/hooks/useGenerationGuard";
@@ -57,7 +57,7 @@ export function FlashcardGenerator({ aside }: { aside?: ReactNode }) {
     <div className="grid w-full gap-5 lg:grid-cols-[400px_minmax(0,1fr)]">
       <div className="flex flex-col gap-4">
         <GeneratorUploadCard
-          icon={<WandSparkles />}
+          icon={<MagicWandIcon />}
           title="Tạo flashcard thông minh"
           subtitle="Biến tài liệu thành bộ thẻ ghi nhớ chỉ trong vài giây"
           hasFile={hasFile}
@@ -92,7 +92,7 @@ export function FlashcardGenerator({ aside }: { aside?: ReactNode }) {
 
       <ResultPanel
         ref={resultRef}
-        icon={<Layers />}
+        icon={<StackIcon />}
         title="Xem trước flashcard"
         countLabel={hasResult ? `${generatedCards.length} thẻ flashcard` : undefined}
         keyword={isNarrow ? keyword : undefined}
@@ -116,7 +116,7 @@ export function FlashcardGenerator({ aside }: { aside?: ReactNode }) {
           <FlashcardResultPreview cards={generatedCards} current={currentCard} onChange={goToCard} />
         ) : (
           <ResultEmptyState
-            icon={<Layers />}
+            icon={<StackIcon />}
             title="Chưa có flashcard nào"
             description="Bộ thẻ AI tạo từ tài liệu của bạn sẽ hiện ở đây."
             steps={[

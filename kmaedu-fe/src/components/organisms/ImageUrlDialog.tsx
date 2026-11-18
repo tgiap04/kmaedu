@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
 import { Label } from "@/components/antd/label";
-import { Loader2, ImageIcon, Upload, Link2 } from "lucide-react";
+import { CircleNotchIcon, ImageIcon, CloudArrowUpIcon, LinkSimpleIcon } from "@phosphor-icons/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/antd/tabs";
 import { mediaApi } from "@/apis/mediaApi";
 import { toast } from "@/components/antd/toast";
@@ -139,11 +139,11 @@ export function ImageUrlDialog({
           onValueChange={(v) => setActiveTab(v as "url" | "upload")}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="url" className="gap-2">
-              <Link2 className="h-4 w-4" />
+              <LinkSimpleIcon className="h-4 w-4" />
               URL
             </TabsTrigger>
             <TabsTrigger value="upload" className="gap-2">
-              <Upload className="h-4 w-4" />
+              <CloudArrowUpIcon className="h-4 w-4" />
               Upload
             </TabsTrigger>
           </TabsList>
@@ -176,7 +176,7 @@ export function ImageUrlDialog({
                     <img
                       src={url}
                       alt="Preview"
-                      className="max-w-full max-h-40 mx-auto rounded object-contain"
+                      className="max-w-full max-h-40 mx-auto rounded-lg object-contain"
                       onError={() => setPreviewError(true)}
                     />
                   ) : (
@@ -210,7 +210,7 @@ export function ImageUrlDialog({
                 variant="outline"
                 className="w-full"
                 onClick={() => fileInputRef.current?.click()}>
-                <Upload className="h-4 w-4 mr-2" />
+                <CloudArrowUpIcon className="h-4 w-4 mr-2" />
                 {selectedFile ? selectedFile.name : "Chọn file..."}
               </Button>
             </div>
@@ -222,7 +222,7 @@ export function ImageUrlDialog({
                   <img
                     src={uploadPreview}
                     alt="Preview"
-                    className="max-w-full max-h-40 mx-auto rounded object-contain"
+                    className="max-w-full max-h-40 mx-auto rounded-lg object-contain"
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -250,7 +250,7 @@ export function ImageUrlDialog({
             <Button
               onClick={handleUpload}
               disabled={!selectedFile || isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
               Upload & Chèn
             </Button>
           )}

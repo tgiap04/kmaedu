@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Drawer } from "antd";
-import { X } from "lucide-react";
+import { XCircleIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 type SheetContextValue = {
@@ -55,8 +55,8 @@ function SheetContent({ side = "right", className, children, ...props }: React.C
   const placement = side === "top" || side === "bottom" || side === "left" ? side : "right";
   return (
     <Drawer open={context.open} onClose={() => context.onOpenChange?.(false)} placement={placement} className={className} closable={false} {...(props as any)}>
-      <button type="button" className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100" onClick={() => context.onOpenChange?.(false)}>
-        <X className="h-4 w-4" />
+      <button type="button" className="absolute right-4 top-4 rounded-lg opacity-70 hover:opacity-100" onClick={() => context.onOpenChange?.(false)}>
+        <XCircleIcon className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </button>
       {children}

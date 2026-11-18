@@ -1,5 +1,5 @@
 import { ExamMetricCard } from "@/components/molecules/ExamMetricCard";
-import { Clock, FileText, Award, RotateCcw } from "lucide-react";
+import { ClockIcon, FileTextIcon, MedalIcon, ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 
 interface ExamInfo {
   title: string;
@@ -28,28 +28,28 @@ export function ExamHeaderSection({ examInfo }: ExamHeaderSectionProps) {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <ExamMetricCard
-          icon={Clock}
+          icon={ClockIcon}
           label="Thời gian"
           value={`${examInfo.duration} phút`}
           iconColor="text-primary"
           iconBgColor="bg-primary/10"
         />
         <ExamMetricCard
-          icon={FileText}
+          icon={FileTextIcon}
           label="Tổng số câu hỏi"
           value={`${examInfo.totalQuestions} câu`}
           iconColor="text-blue-500"
           iconBgColor="bg-blue-500/10"
         />
         <ExamMetricCard
-          icon={Award}
+          icon={MedalIcon}
           label="Điểm đạt"
           value={`${examInfo.passingScore}%`}
           iconColor="text-green-500"
           iconBgColor="bg-green-500/10"
         />
         <ExamMetricCard
-          icon={RotateCcw}
+          icon={ArrowCounterClockwiseIcon}
           label="Lượt thi"
           value={examInfo.attempts}
           iconColor="text-orange-500"

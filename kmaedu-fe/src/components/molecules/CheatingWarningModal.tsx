@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { WarningIcon } from "@phosphor-icons/react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -37,7 +37,7 @@ export function CheatingWarningModal({
       <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-            <AlertTriangle className="h-5 w-5" />
+            <WarningIcon className="h-5 w-5" />
             Cảnh báo vi phạm!
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">

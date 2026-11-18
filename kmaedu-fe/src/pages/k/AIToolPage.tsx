@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { FileText, HelpCircle, Layers } from "lucide-react";
+import { FileTextIcon, QuestionIcon, StackIcon } from "@phosphor-icons/react";
 import type { Config, DriveStep } from "driver.js";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
@@ -35,8 +35,8 @@ function getAvailableTourSteps(steps: DriveStep[]) {
 }
 
 const MODES = [
-  { key: "test", label: "Đề kiểm tra", icon: FileText, tour: undefined },
-  { key: "flashcard", label: "Flashcard", icon: Layers, tour: "ai-tool-flashcard-tab" },
+  { key: "test", label: "Đề kiểm tra", icon: FileTextIcon, tour: undefined },
+  { key: "flashcard", label: "Flashcard", icon: StackIcon, tour: "ai-tool-flashcard-tab" },
 ] as const;
 
 function AIGeneratorContent() {
@@ -145,7 +145,7 @@ function AIGeneratorContent() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="tablist" aria-label="Loại học liệu" className="inline-flex rounded-full border border-hairline bg-canvas p-1" data-tour="ai-tool-tabs">
+        <div role="tablist" aria-label="Loại học liệu" className="inline-flex rounded-lg border border-hairline bg-canvas p-1" data-tour="ai-tool-tabs">
           {MODES.map(({ key, label, icon: Icon, tour }) => {
             const active = activeTab === key;
             return (
@@ -158,7 +158,7 @@ function AIGeneratorContent() {
                 onClick={() => handleTabChange(key)}
                 disabled={isAnyGenerating && !active}
                 className={cn(
-                  "inline-flex h-10 items-center gap-2 rounded-full px-5 text-[14px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                  "inline-flex h-10 items-center gap-2 rounded-lg px-5 text-[14px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                   active ? "bg-brand-soft text-brand-strong" : "text-body hover:text-ink",
                 )}
               >
@@ -171,9 +171,9 @@ function AIGeneratorContent() {
         <button
           type="button"
           onClick={() => startAiToolTour(true)}
-          className="inline-flex h-10 items-center gap-2 rounded-full border border-hairline bg-canvas px-4 text-[13px] font-medium text-body transition-colors hover:border-brand-border hover:text-ink"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-hairline bg-canvas px-4 text-[13px] font-medium text-body transition-colors hover:border-brand-border hover:text-ink"
         >
-          <HelpCircle className="h-4 w-4" />
+          <QuestionIcon className="h-4 w-4" />
           Hướng dẫn nhanh
         </button>
       </div>

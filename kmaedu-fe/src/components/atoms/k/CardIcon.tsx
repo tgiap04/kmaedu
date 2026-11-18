@@ -1,8 +1,8 @@
-import { LucideIcon } from "lucide-react";
+import type { Icon as AppIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface CardIconProps {
-  icon: LucideIcon;
+  icon: AppIcon;
   className?: string;
   variant?: "gradient" | "primary" | "purple" | "custom";
 }
@@ -22,12 +22,12 @@ export function CardIcon({
   return (
     <div
       className={cn(
-        "flex items-center justify-center rounded-xl p-3",
+        "flex items-center justify-center rounded-lg p-3",
         variantStyles[variant],
         className,
       )}
     >
-      <Icon className="h-6 w-6 text-primary" />
+      <Icon className="h-6 w-6 text-primary" weight="duotone" />
     </div>
   );
 }

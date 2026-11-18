@@ -1,4 +1,4 @@
-import { AlertTriangle, BarChart3, ChevronDown, ChevronUp, Clock, Trophy, Users } from "lucide-react";
+import { WarningIcon, ChartBarIcon, CaretCircleDownIcon, CaretCircleUpIcon, ClockIcon, TrophyIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { ExamAttemptListItem } from "@/apis/examAttemptApi";
 import { Badge } from "@/components/antd/badge";
@@ -27,17 +27,17 @@ export function formatDuration(seconds: number) {
 export function AnalyticsStats({ completed, avgScore, passed, violations }: { completed: number; avgScore: number; passed: number; violations: number }) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <HistoryStatCard icon={Users} title="Thí sinh hoàn thành" value={completed} tone="red" />
-      <HistoryStatCard icon={BarChart3} title="Điểm trung bình" value={`${avgScore.toFixed(1)}%`} tone="green" />
-      <HistoryStatCard icon={Trophy} title="Đạt yêu cầu" value={`${passed}/${completed}`} tone="amber" />
-      <HistoryStatCard icon={AlertTriangle} title="Lượt vi phạm" value={violations} tone="blue" />
+      <HistoryStatCard icon={UsersThreeIcon} title="Thí sinh hoàn thành" value={completed} tone="red" />
+      <HistoryStatCard icon={ChartBarIcon} title="Điểm trung bình" value={`${avgScore.toFixed(1)}%`} tone="green" />
+      <HistoryStatCard icon={TrophyIcon} title="Đạt yêu cầu" value={`${passed}/${completed}`} tone="amber" />
+      <HistoryStatCard icon={WarningIcon} title="Lượt vi phạm" value={violations} tone="blue" />
     </div>
   );
 }
 
 export function ScoreDistributionCard({ data }: { data: Array<{ range: string; label: string; count: number }> }) {
   return (
-    <SectionCard icon={<BarChart3 />} title="Phân bố điểm số" plain>
+    <SectionCard icon={<ChartBarIcon />} title="Phân bố điểm số" plain>
       <div className="h-64 p-4 md:p-5">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
@@ -55,7 +55,7 @@ export function ScoreDistributionCard({ data }: { data: Array<{ range: string; l
 
 export function ViolationsCard({ data }: { data: Array<{ name: string; value: number; type: string }> }) {
   return (
-    <SectionCard icon={<AlertTriangle />} title="Thống kê vi phạm" plain>
+    <SectionCard icon={<WarningIcon />} title="Thống kê vi phạm" plain>
       <div className="h-64 p-4 md:p-5">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -86,14 +86,14 @@ function SortLabel({ label, active, order }: { label: string; active: boolean; o
   return (
     <div className="flex items-center gap-1">
       {label}
-      {active && (order === "desc" ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />)}
+      {active && (order === "desc" ? <CaretCircleDownIcon className="h-4 w-4" /> : <CaretCircleUpIcon className="h-4 w-4" />)}
     </div>
   );
 }
 
 export function RankingCard({ attempts, passingScore, sortField, sortOrder, onSort, onViewDetail }: RankingProps) {
   return (
-    <SectionCard icon={<Trophy />} title="Bảng xếp hạng thí sinh" countLabel={`${attempts.length} thí sinh`} plain>
+    <SectionCard icon={<TrophyIcon />} title="Bảng xếp hạng thí sinh" countLabel={`${attempts.length} thí sinh`} plain>
       {attempts.length === 0 ? (
         <SectionMessage title="Chưa có thí sinh nào hoàn thành bài thi" />
       ) : (
@@ -120,7 +120,7 @@ export function RankingCard({ attempts, passingScore, sortField, sortOrder, onSo
                     <TableCell><p className="whitespace-nowrap font-medium text-ink">{displayUserName(attempt.user)}</p></TableCell>
                     <TableCell className="whitespace-nowrap"><span className="font-bold">{attempt.score.toFixed(1)}%</span><span className="ml-1 text-xs text-muted-foreground">({attempt.correctAnswers}/{attempt.totalQuestions})</span></TableCell>
                     <TableCell>{passed ? <Badge variant="default" className="bg-green-500">Đạt</Badge> : <Badge variant="destructive">Chưa đạt</Badge>}</TableCell>
-                    <TableCell><div className="flex items-center gap-1"><Clock className="h-3 w-3" />{formatDuration(attempt.timeSpentSeconds)}</div></TableCell>
+                    <TableCell><div className="flex items-center gap-1"><ClockIcon className="h-3 w-3" />{formatDuration(attempt.timeSpentSeconds)}</div></TableCell>
                     <TableCell>{(attempt.violationCount || 0) > 0 ? <Badge variant="outline" className="border-red-500 text-red-500">{attempt.violationCount}</Badge> : <span className="text-muted-foreground">0</span>}</TableCell>
                     <TableCell className="text-right"><button type="button" className={pillClass} onClick={() => onViewDetail(attempt.userId)}>Xem</button></TableCell>
                   </TableRow>

@@ -3,16 +3,7 @@
 import { useState, useRef, KeyboardEvent } from "react";
 import { Button } from "@/components/antd/button";
 import { cn } from "@/lib/utils";
-import {
-  Send,
-  Mic,
-  MicOff,
-  Image as ImageIcon,
-  FileText,
-  Loader2,
-  X,
-  ChevronDown,
-} from "lucide-react";
+import { PaperPlaneTiltIcon, MicrophoneIcon, MicrophoneSlashIcon, ImageIcon, FileTextIcon, CircleNotchIcon, XCircleIcon, CaretCircleDownIcon } from "@phosphor-icons/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -100,14 +91,14 @@ export function ChatInputBar({
           <img
             src={uploadedImageUrl}
             alt="Upload preview"
-            className="w-12 h-12 object-cover rounded"
+            className="w-12 h-12 object-cover rounded-lg"
           />
           <Button
             variant="ghost"
             size="icon"
             className="h-6 w-6 hover:bg-red-500/20"
             onClick={onClearImage}>
-            <X className="w-4 h-4" />
+            <XCircleIcon className="w-4 h-4" />
           </Button>
         </div>
       )}
@@ -115,7 +106,7 @@ export function ChatInputBar({
       {/* Input Container - Glass Effect */}
       <div
         className={cn(
-          "flex items-center gap-2 p-2 rounded-xl",
+          "flex items-center gap-2 p-2 rounded-lg",
           "bg-white/10",
           "backdrop-blur-xl",
           "border border-border",
@@ -165,7 +156,7 @@ export function ChatInputBar({
             onClick={() => imageInputRef.current?.click()}
             disabled={disabled || isProcessing || isUploadingImage}>
             {isUploadingImage ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <CircleNotchIcon className="w-5 h-5 animate-spin" />
             ) : (
               <ImageIcon className="w-5 h-5" />
             )}
@@ -180,9 +171,9 @@ export function ChatInputBar({
                 className="h-9 w-9 text-muted-foreground hover:text-foreground cursor-pointer"
                 disabled={disabled || isProcessing || isUploadingPdf}>
                 {isUploadingPdf ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <CircleNotchIcon className="w-5 h-5 animate-spin" />
                 ) : (
-                  <FileText className="w-5 h-5" />
+                  <FileTextIcon className="w-5 h-5" />
                 )}
               </Button>
             </DropdownMenuTrigger>
@@ -190,11 +181,11 @@ export function ChatInputBar({
               align="end"
               className="bg-background/95 backdrop-blur-xl border-border">
               <DropdownMenuItem onClick={onUploadPdf}>
-                <FileText className="w-4 h-4 mr-2" />
+                <FileTextIcon className="w-4 h-4 mr-2" />
                 Tải file mới
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onSelectRecentFile}>
-                <ChevronDown className="w-4 h-4 mr-2" />
+                <CaretCircleDownIcon className="w-4 h-4 mr-2" />
                 File gần đây
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -213,9 +204,9 @@ export function ChatInputBar({
             onClick={toggleMic}
             disabled={disabled || isProcessing}>
             {isListening ? (
-              <MicOff className="w-5 h-5" />
+              <MicrophoneSlashIcon className="w-5 h-5" />
             ) : (
-              <Mic className="w-5 h-5" />
+              <MicrophoneIcon className="w-5 h-5" />
             )}
           </Button>
 
@@ -234,10 +225,10 @@ export function ChatInputBar({
               (!inputValue.trim() && !transcript.trim())
             }>
             {isProcessing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <CircleNotchIcon className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                Send <Send className="w-4 h-4 ml-1" />
+                Send <PaperPlaneTiltIcon className="w-4 h-4 ml-1" />
               </>
             )}
           </Button>

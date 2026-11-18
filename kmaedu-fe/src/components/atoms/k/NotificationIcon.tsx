@@ -1,11 +1,4 @@
-import {
-  AlertTriangle,
-  MessageSquare,
-  Wrench,
-  UserPlus,
-  Calendar,
-  LucideIcon,
-} from "lucide-react";
+import { WarningIcon, ChatCenteredTextIcon, WrenchIcon, UserPlusIcon, CalendarBlankIcon, type Icon as AppIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface NotificationIconProps {
@@ -13,27 +6,27 @@ interface NotificationIconProps {
   className?: string;
 }
 
-const iconMap: Record<string, { icon: LucideIcon; bgClass: string }> = {
+const iconMap: Record<string, { icon: AppIcon; bgClass: string }> = {
   security: {
-    icon: AlertTriangle,
+    icon: WarningIcon,
     bgClass: "bg-red-100 text-red-600",
   },
   message: {
-    icon: MessageSquare,
+    icon: ChatCenteredTextIcon,
     bgClass: "bg-red-100 text-primary",
   },
   system: {
-    icon: Wrench,
+    icon: WrenchIcon,
     bgClass:
       "bg-yellow-100 text-yellow-600",
   },
   team: {
-    icon: UserPlus,
+    icon: UserPlusIcon,
     bgClass:
       "bg-orange-100 text-orange-600",
   },
   meeting: {
-    icon: Calendar,
+    icon: CalendarBlankIcon,
     bgClass:
       "bg-yellow-100 text-yellow-600",
   },

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Copy, DoorOpen, Plus } from "lucide-react";
+import { ArrowCircleLeftIcon, CheckCircleIcon, CopyIcon, DoorOpenIcon, PlusCircleIcon } from "@phosphor-icons/react";
 import { toast } from "@/components/antd/toast";
 import { Button } from "@/components/antd/button";
 import {
@@ -150,20 +150,20 @@ export default function ManageExamRoomDetailPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-16 w-72 rounded-2xl" />
-        <Skeleton className="h-28 w-full rounded-2xl" />
-        <Skeleton className="h-[320px] w-full rounded-[20px]" />
+        <Skeleton className="h-16 w-72 rounded-lg" />
+        <Skeleton className="h-28 w-full rounded-lg" />
+        <Skeleton className="h-[320px] w-full rounded-lg" />
       </div>
     );
   }
 
   if (!currentExamRoom) {
     return (
-      <SectionCard icon={<DoorOpen />} title="Phòng thi" plain>
+      <SectionCard icon={<DoorOpenIcon />} title="Phòng thi" plain>
         <SectionMessage title="Không tìm thấy phòng thi" hint="Phòng thi có thể đã bị xóa." />
         <div className="flex justify-center pb-6">
           <Button variant="outline" onClick={() => navigate("/k/manage-exam-room")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowCircleLeftIcon className="mr-2 h-4 w-4" />
             Quay lại danh sách
           </Button>
         </div>
@@ -181,7 +181,7 @@ export default function ManageExamRoomDetailPage() {
     <div>
       <div>
         <PageHeader
-          icon={<DoorOpen />}
+          icon={<DoorOpenIcon />}
           title={currentExamRoom.title}
           subtitle="Chi tiết phòng thi và các phiên thi liên quan"
           eyebrow={
@@ -201,7 +201,7 @@ export default function ManageExamRoomDetailPage() {
           }
           actions={
             <Button onClick={openCreate} size="lg">
-              <Plus className="mr-2 h-4 w-4" />
+              <PlusCircleIcon className="mr-2 h-4 w-4" />
               Tạo phiên thi
             </Button>
           }
@@ -236,10 +236,10 @@ export default function ManageExamRoomDetailPage() {
                 type="text"
                 readOnly
                 value={selectedSessionId ? `${window.location.origin}/exam-session/${selectedSessionId}` : ""}
-                className="flex-1 rounded-md border border-hairline bg-surface-soft px-3 py-2 text-sm text-ink"
+                className="flex-1 rounded-lg border border-hairline bg-surface-soft px-3 py-2 text-sm text-ink"
               />
               <Button variant="outline" size="sm" className="border-hairline" onClick={handleCopyLink}>
-                {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+                {copied ? <CheckCircleIcon className="h-4 w-4 text-success" /> : <CopyIcon className="h-4 w-4" />}
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">Chia sẻ link này để mọi người có thể truy cập phiên thi.</p>

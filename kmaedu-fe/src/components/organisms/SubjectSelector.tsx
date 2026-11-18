@@ -7,120 +7,65 @@ import { ScrollArea } from "@/components/antd/scroll-area";
 import { Badge } from "@/components/antd/badge";
 import { Skeleton } from "@/components/antd/skeleton";
 import { cn } from "@/lib/utils";
-import {
-  ChevronRight,
-  GraduationCap,
-  Search,
-  X,
-  Calculator,
-  Microscope,
-  BookOpen,
-  MonitorSpeaker,
-  Languages,
-  Settings,
-  TrendingUp,
-  Scale,
-  Palette,
-  Activity,
-  UserCheck,
-  Plus,
-  Divide,
-  Sigma,
-  FunctionSquare,
-  Atom,
-  FlaskConical,
-  Dna,
-  Leaf,
-  Book,
-  Clock,
-  Map,
-  Shield,
-  DollarSign,
-  Monitor,
-  HardDrive,
-  Globe,
-  Bot,
-  Flag,
-  Zap,
-  Wrench,
-  Radio,
-  BarChart3,
-  Building2,
-  Receipt,
-  Megaphone,
-  Scroll,
-  Briefcase,
-  Users,
-  Building,
-  Presentation,
-  Laptop,
-  Music,
-  Theater,
-  Brain,
-  Dumbbell,
-  Heart,
-  TestTube,
-  Sparkles,
-  Lightbulb,
-} from "lucide-react";
+import { CaretCircleRightIcon, GraduationCapIcon, MagnifyingGlassIcon, XCircleIcon, CalculatorIcon, MicroscopeIcon, BookOpenIcon, MonitorPlayIcon, TranslateIcon, GearSixIcon, TrendUpIcon, ScalesIcon, PaletteIcon, PulseIcon, UserCheckIcon, PlusCircleIcon, DivideIcon, SigmaIcon, FunctionIcon, AtomIcon, FlaskIcon, DnaIcon, LeafIcon, BookIcon, ClockIcon, MapTrifoldIcon, ShieldIcon, CurrencyDollarIcon, MonitorIcon, HardDrivesIcon, GlobeIcon, RobotIcon, FlagIcon, LightningIcon, WrenchIcon, RadioIcon, ChartBarIcon, BuildingsIcon, ReceiptIcon, MegaphoneIcon, ScrollIcon, BriefcaseIcon, UsersThreeIcon, BuildingIcon, PresentationIcon, LaptopIcon, MusicNotesIcon, MaskHappyIcon, BrainIcon, BarbellIcon, HeartIcon, TestTubeIcon, SparkleIcon, LightbulbIcon } from "@phosphor-icons/react";
 import { Input } from "@/components/antd/input";
 import { subjectApi, Subject, SubjectCategory } from "@/apis/subjectApi";
 
 // Icon mapping for dynamic rendering
 const iconMap = {
   // Categories
-  Calculator,
-  Microscope,
-  BookOpen,
-  MonitorSpeaker,
-  Languages,
-  Settings,
-  TrendingUp,
-  Scale,
-  Palette,
-  Activity,
-  UserCheck,
+  Calculator: CalculatorIcon,
+  Microscope: MicroscopeIcon,
+  BookOpen: BookOpenIcon,
+  MonitorSpeaker: MonitorPlayIcon,
+  Languages: TranslateIcon,
+  Settings: GearSixIcon,
+  TrendingUp: TrendUpIcon,
+  Scale: ScalesIcon,
+  Palette: PaletteIcon,
+  Activity: PulseIcon,
+  UserCheck: UserCheckIcon,
 
   // Subjects
-  Plus,
-  Divide,
-  Sigma,
-  FunctionSquare,
-  Atom,
-  FlaskConical,
-  Dna,
-  Leaf,
-  Book,
-  Clock,
-  Map,
-  Shield,
-  DollarSign,
-  Monitor,
-  HardDrive,
-  Globe,
-  Bot,
-  Flag,
-  Zap,
-  Wrench,
-  Radio,
-  BarChart3,
-  Building2,
-  Receipt,
-  Megaphone,
-  Scroll,
-  Briefcase,
-  Users,
-  Building,
-  Presentation,
-  Laptop,
-  Music,
-  Theater,
-  Brain,
-  Dumbbell,
-  Heart,
-  TestTube,
-  Sparkles,
-  Lightbulb,
+  Plus: PlusCircleIcon,
+  Divide: DivideIcon,
+  Sigma: SigmaIcon,
+  FunctionSquare: FunctionIcon,
+  Atom: AtomIcon,
+  FlaskConical: FlaskIcon,
+  Dna: DnaIcon,
+  Leaf: LeafIcon,
+  Book: BookIcon,
+  Clock: ClockIcon,
+  Map: MapTrifoldIcon,
+  Shield: ShieldIcon,
+  DollarSign: CurrencyDollarIcon,
+  Monitor: MonitorIcon,
+  HardDrive: HardDrivesIcon,
+  Globe: GlobeIcon,
+  Bot: RobotIcon,
+  Flag: FlagIcon,
+  Zap: LightningIcon,
+  Wrench: WrenchIcon,
+  Radio: RadioIcon,
+  BarChart3: ChartBarIcon,
+  Building2: BuildingsIcon,
+  Receipt: ReceiptIcon,
+  Megaphone: MegaphoneIcon,
+  Scroll: ScrollIcon,
+  Briefcase: BriefcaseIcon,
+  Users: UsersThreeIcon,
+  Building: BuildingIcon,
+  Presentation: PresentationIcon,
+  Laptop: LaptopIcon,
+  Music: MusicNotesIcon,
+  Theater: MaskHappyIcon,
+  Brain: BrainIcon,
+  Dumbbell: BarbellIcon,
+  Heart: HeartIcon,
+  TestTube: TestTubeIcon,
+  Sparkles: SparkleIcon,
+  Lightbulb: LightbulbIcon,
 } as const;
 
 interface SubjectSelectorProps {
@@ -192,7 +137,7 @@ export function SubjectSelector({
         <Skeleton className="h-10 w-full" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
+            <Skeleton key={i} className="h-24 rounded-lg" />
           ))}
         </div>
       </div>
@@ -203,7 +148,7 @@ export function SubjectSelector({
     <div className={cn("space-y-4", className)}>
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="Tìm kiếm môn học..."
           value={searchQuery}
@@ -217,7 +162,7 @@ export function SubjectSelector({
             className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
             onClick={() => setSearchQuery("")}
           >
-            <X className="w-4 h-4" />
+            <XCircleIcon className="w-4 h-4" />
           </Button>
         )}
       </div>
@@ -231,7 +176,7 @@ export function SubjectSelector({
               <button
                 onClick={() => handleCategoryClick(category.id)}
                 className={cn(
-                  "w-full flex items-center justify-between p-3 rounded-xl transition-all",
+                  "w-full flex items-center justify-between p-3 rounded-lg transition-all",
                   "bg-gradient-to-r from-muted/50 to-transparent",
                   "hover:from-muted hover:to-muted/30",
                   "border border-border/50",
@@ -244,7 +189,7 @@ export function SubjectSelector({
                     style={{ backgroundColor: `${category.color}20` }}
                   >
                     {renderIcon(category.icon, "w-5 h-5 text-current") || (
-                      <BookOpen className="w-5 h-5" />
+                      <BookOpenIcon className="w-5 h-5" />
                     )}
                   </div>
                   <div className="text-left">
@@ -254,7 +199,7 @@ export function SubjectSelector({
                     </p>
                   </div>
                 </div>
-                <ChevronRight
+                <CaretCircleRightIcon
                   className={cn(
                     "w-5 h-5 text-muted-foreground transition-transform",
                     expandedCategoryId === category.id && "rotate-90"
@@ -282,7 +227,7 @@ export function SubjectSelector({
                           style={{ backgroundColor: `${subject.color}20` }}
                         >
                           {renderIcon(subject.icon, "w-5 h-5 text-current") || (
-                            <BookOpen className="w-5 h-5" />
+                            <BookOpenIcon className="w-5 h-5" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -313,7 +258,7 @@ export function SubjectSelector({
       {/* Empty State */}
       {filteredCategories.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <GraduationCap className="w-12 h-12 text-muted-foreground/50 mb-4" />
+          <GraduationCapIcon className="w-12 h-12 text-muted-foreground/50 mb-4" />
           <p className="text-muted-foreground">
             Không tìm thấy môn học nào phù hợp
           </p>

@@ -1,4 +1,4 @@
-import { CheckCircle2, AlertTriangle } from "lucide-react";
+import { CheckCircleIcon, WarningIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface InstructionItemProps {
@@ -10,7 +10,7 @@ export function InstructionItem({
   text,
   type = "check",
 }: InstructionItemProps) {
-  const Icon = type === "check" ? CheckCircle2 : AlertTriangle;
+  const Icon = type === "check" ? CheckCircleIcon : WarningIcon;
   const iconColor = type === "check" ? "text-green-500" : "text-orange-500";
 
   return (

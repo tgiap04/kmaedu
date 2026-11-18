@@ -16,7 +16,7 @@ export function NotificationBadge({
     <Badge
       variant="secondary"
       className={cn(
-        "h-5 min-w-5 rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground",
+        "h-5 min-w-5 rounded-lg bg-primary px-1.5 text-xs font-semibold text-primary-foreground",
         className
       )}>
       {count > 99 ? "99+" : count}

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, History, Link2, Play } from "lucide-react";
+import { FileTextIcon, ClockCounterClockwiseIcon, LinkSimpleIcon, PlayIcon } from "@phosphor-icons/react";
 import { useToast } from "@/components/antd/toast";
 import { lastAttemptLabel } from "@/lib/quiz-practice/last-attempt-label";
 import { displayUserName } from "@/lib/user/display-user-name";
@@ -35,7 +35,7 @@ export function SharedQuizSection() {
 
   return (
     <SectionCard
-      icon={<FileText />}
+      icon={<FileTextIcon />}
       title="Bộ câu hỏi được chia sẻ"
       countLabel={data ? `${data.total} bộ câu hỏi` : undefined}
       action={canExpand ? <ViewAllButton expanded={expanded} onToggle={() => { setExpanded(!expanded); setPage(1); }} /> : undefined}
@@ -52,18 +52,18 @@ export function SharedQuizSection() {
           {sets.map((set, index) => (
             <ItemRow
               key={set.id}
-              icon={<FileText />}
+              icon={<FileTextIcon />}
               tone={index % 2 === 0 ? "cyan" : "amber"}
               title={set.title}
               meta={[`${set.questionCount} câu hỏi`, `Chia sẻ bởi ${displayUserName(set.owner, "Ẩn danh")}`]}
               metric={
                 <>
-                  <History aria-hidden />
+                  <ClockCounterClockwiseIcon aria-hidden />
                   {lastAttemptLabel(set.lastAttempt) ?? "Chưa luyện tập"}
                 </>
               }
-              action={{ label: "Luyện tập", icon: Play, onClick: () => navigate(`/k/practice-quiz/${set.id}`) }}
-              menu={[{ label: "Sao chép liên kết", icon: Link2, onClick: () => void copyLink(set.id) }]}
+              action={{ label: "Luyện tập", icon: PlayIcon, onClick: () => navigate(`/k/practice-quiz/${set.id}`) }}
+              menu={[{ label: "Sao chép liên kết", icon: LinkSimpleIcon, onClick: () => void copyLink(set.id) }]}
             />
           ))}
           {expanded && <SectionPager page={page} totalPages={data.totalPages} onChange={setPage} />}

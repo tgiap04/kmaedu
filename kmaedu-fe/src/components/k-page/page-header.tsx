@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import { DecorativeIcons } from "@/components/icons/icon-defaults";
 
 interface PageHeaderProps {
-  /** A lucide icon element, drawn in the pink gradient tile. */
+  /** An icon element, drawn two-tone in the pink gradient tile. */
   icon: ReactNode;
   title: string;
   subtitle?: ReactNode;
@@ -17,8 +18,8 @@ export function PageHeader({ icon, title, subtitle, actions, eyebrow }: PageHead
     <header className="mb-6">
       {eyebrow && <div className="mb-3">{eyebrow}</div>}
       <div className="flex flex-wrap items-center gap-4">
-        <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#fde4e2] to-[#fef3f2] text-brand shadow-[0_8px_20px_rgba(238,47,43,0.12)] [&_svg]:size-7 [&_svg]:stroke-[1.9]">
-          {icon}
+        <span className="grid size-16 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[#fde4e2] to-[#fef3f2] text-brand shadow-[0_8px_20px_rgba(238,47,43,0.12)] [&_svg]:size-7">
+          <DecorativeIcons>{icon}</DecorativeIcons>
         </span>
         <div className="min-w-0 flex-1">
           <h1 className="break-words text-3xl font-bold tracking-tight text-ink lg:text-4xl">{title}</h1>

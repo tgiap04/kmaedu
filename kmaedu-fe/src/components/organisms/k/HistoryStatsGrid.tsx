@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { BookOpen, ClipboardList, Clock, FileText } from "lucide-react";
+import { FilePdfIcon, ExamIcon, CardsIcon, TimerIcon } from "@phosphor-icons/react";
 import { HistoryStatCard } from "@/components/molecules/HistoryStatCard";
 import { useCan } from "@/hooks/useCan";
 
@@ -25,28 +25,28 @@ const HistoryStatsGridComponent = ({ stats }: HistoryStatsGridProps) => {
       <HistoryStatCard
         title="Tổng PDF đã xử lý"
         value={stats.totalPDFs}
-        icon={FileText}
+        icon={FilePdfIcon}
         tone="red"
         to={canPdf ? "/k/history/pdf" : undefined}
       />
       <HistoryStatCard
         title="Đề thi đã tạo"
         value={stats.examsCreated}
-        icon={ClipboardList}
+        icon={ExamIcon}
         tone="amber"
         to={canManageExam ? "/k/manage-exam" : undefined}
       />
       <HistoryStatCard
         title="Bộ Flashcard"
         value={stats.flashcardSets}
-        icon={BookOpen}
+        icon={CardsIcon}
         tone="green"
         to={canStudyFlashcards ? "/k/my-materials" : undefined}
       />
       <HistoryStatCard
         title="Giờ học tổng cộng"
         value={stats.totalStudyHours}
-        icon={Clock}
+        icon={TimerIcon}
         tone="blue"
       />
     </div>

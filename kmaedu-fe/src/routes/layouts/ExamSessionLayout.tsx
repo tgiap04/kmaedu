@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowCircleLeftIcon } from "@phosphor-icons/react";
 import Logo from "@/components/atoms/Logo";
 import ProfileDropdown from "@/components/atoms/ProfileDropdown";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -39,7 +39,7 @@ export function ExamSessionLayout({ children }: PropsWithChildren) {
               className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-hairline bg-surface-soft text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink"
               aria-label="Về trang quản lý kỳ thi"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowCircleLeftIcon className="h-4 w-4" />
             </button>
             <Link to="/k/my-exams" className="flex items-center">
               <Logo sizeLogo={36} sizeText={18} />

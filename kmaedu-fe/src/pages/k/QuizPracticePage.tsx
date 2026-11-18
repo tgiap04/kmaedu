@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Dumbbell, Play } from "lucide-react";
+import { CaretCircleLeftIcon, CaretCircleRightIcon, BarbellIcon, PlayIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button";
 import { PageHeader } from "@/components/k-page/page-header";
 import { pillClass, RowsSkeleton, SectionCard, SectionMessage } from "@/components/k-page/section-card";
@@ -39,7 +39,7 @@ export default function QuizPracticePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        icon={<Dumbbell />}
+        icon={<BarbellIcon />}
         title={title}
         subtitle="Luyện tập trắc nghiệm, đáp án hiện sau khi bạn nộp bài"
         actions={
@@ -50,13 +50,13 @@ export default function QuizPracticePage() {
       />
 
       {s.phase === "loading" && (
-        <SectionCard icon={<Dumbbell />} title="Đang tải bộ câu hỏi">
+        <SectionCard icon={<BarbellIcon />} title="Đang tải bộ câu hỏi">
           <RowsSkeleton rows={3} />
         </SectionCard>
       )}
 
       {s.phase === "unavailable" && (
-        <SectionCard icon={<Dumbbell />} title="Luyện tập">
+        <SectionCard icon={<BarbellIcon />} title="Luyện tập">
           <SectionMessage title={s.problem ?? "Bộ câu hỏi không tồn tại hoặc bạn chưa được cấp quyền truy cập."} />
         </SectionCard>
       )}
@@ -66,7 +66,7 @@ export default function QuizPracticePage() {
       )}
 
       {s.phase === "intro" && (
-        <SectionCard icon={<Dumbbell />} title="Luyện tập" countLabel={`${s.access?.questionCount ?? 0} câu hỏi`} plain>
+        <SectionCard icon={<BarbellIcon />} title="Luyện tập" countLabel={`${s.access?.questionCount ?? 0} câu hỏi`} plain>
         <Tabs defaultValue="practice" className="px-4 pb-4 md:px-5">
           <TabsList>
             <TabsTrigger value="practice">Luyện tập</TabsTrigger>
@@ -78,7 +78,7 @@ export default function QuizPracticePage() {
               <p className="text-sm text-muted-foreground">Nếu bạn đang làm dở, bài sẽ được tiếp tục từ chỗ dừng.</p>
               {s.problem && <p className="text-sm text-destructive">{s.problem}</p>}
               <Button onClick={s.start} disabled={s.busy}>
-                <Play className="mr-1.5 h-4 w-4" />
+                <PlayIcon className="mr-1.5 h-4 w-4" />
                 {s.busy ? "Đang tải..." : "Bắt đầu / Tiếp tục"}
               </Button>
             </div>
@@ -104,13 +104,13 @@ export default function QuizPracticePage() {
             />
             <div className="flex items-center justify-between">
               <Button variant="outline" onClick={() => s.go(s.progress.currentIndex - 1)} disabled={s.progress.currentIndex === 0}>
-                <ChevronLeft className="mr-1 h-4 w-4" />
+                <CaretCircleLeftIcon className="mr-1 h-4 w-4" />
                 Câu trước
               </Button>
               {s.progress.currentIndex < s.questions.length - 1 ? (
                 <Button onClick={() => s.go(s.progress.currentIndex + 1)}>
                   Câu sau
-                  <ChevronRight className="ml-1 h-4 w-4" />
+                  <CaretCircleRightIcon className="ml-1 h-4 w-4" />
                 </Button>
               ) : (
                 <Button onClick={() => setConfirmSubmit(true)} disabled={s.busy}>

@@ -1,4 +1,4 @@
-import { Heart, MessageSquare, Share, Download } from "lucide-react";
+import { HeartIcon, ChatCenteredTextIcon, ExportIcon, CloudArrowDownIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/antd/button";
 
 interface PostStatsProps {
@@ -25,7 +25,7 @@ export function PostStats({
         size="sm"
         onClick={onLike}
         className="h-8 gap-2 px-3 text-muted-foreground hover:text-foreground">
-        <Heart className="h-4 w-4" />
+        <HeartIcon className="h-4 w-4" />
         <span className="text-sm">{likes} thích</span>
       </Button>
 
@@ -34,7 +34,7 @@ export function PostStats({
         size="sm"
         onClick={onComment}
         className="h-8 gap-2 px-3 text-muted-foreground hover:text-foreground">
-        <MessageSquare className="h-4 w-4" />
+        <ChatCenteredTextIcon className="h-4 w-4" />
         <span className="text-sm">{comments} bình luận</span>
       </Button>
 
@@ -44,7 +44,7 @@ export function PostStats({
           size="sm"
           onClick={onShare}
           className="h-8 gap-2 px-3 text-muted-foreground hover:text-foreground">
-          <Share className="h-4 w-4" />
+          <ExportIcon className="h-4 w-4" />
           <span className="text-sm">Chia sẻ</span>
         </Button>
       )}
@@ -55,7 +55,7 @@ export function PostStats({
           size="sm"
           onClick={onDownload}
           className="h-8 gap-2 px-3 text-muted-foreground hover:text-foreground">
-          <Download className="h-4 w-4" />
+          <CloudArrowDownIcon className="h-4 w-4" />
           <span className="text-sm">Tải xuống</span>
         </Button>
       )}

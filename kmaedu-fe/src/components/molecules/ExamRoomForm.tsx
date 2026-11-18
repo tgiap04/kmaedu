@@ -12,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/antd/select";
-import { Loader2 } from "lucide-react";
+import { CircleNotchIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { pickableQuizSetId } from "@/lib/exam-room/quiz-set-choice";
 
 /**
  * Interface cho dữ liệu form ExamRoom
@@ -62,6 +63,8 @@ export function ExamRoomForm({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // A quiz set deleted since the room was made is not an option any more: treat it as not chosen.
+  const quizSetId = pickableQuizSetId(formData.quizSetId, quizSets);
 
   // Load initial data nếu có (cho edit mode)
   useEffect(() => {
@@ -87,7 +90,7 @@ export function ExamRoomForm({
       newErrors.description = "Mô tả không được vượt quá 1000 ký tự";
     }
 
-    if (!formData.quizSetId) {
+    if (!quizSetId) {
       newErrors.quizSetId = "Vui lòng chọn bộ đề thi";
     }
 
@@ -102,7 +105,7 @@ export function ExamRoomForm({
     e.preventDefault();
 
     if (validateForm()) {
-      onSubmit(formData);
+      onSubmit({ ...formData, quizSetId });
     }
   };
 
@@ -157,7 +160,7 @@ export function ExamRoomForm({
           Bộ đề thi <span className="text-red-500">*</span>
         </Label>
         <Select
-          value={formData.quizSetId || initialData?.quizSetId}
+          value={quizSetId || undefined}
           onValueChange={(value) => {
             setFormData({ ...formData, quizSetId: value });
             if (errors.quizSetId) {
@@ -175,7 +178,7 @@ export function ExamRoomForm({
           <SelectContent>
             {isLoadingQuizSets ? (
               <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <CircleNotchIcon className="h-4 w-4 animate-spin" />
                 <span className="ml-2 text-sm">Đang tải...</span>
               </div>
             ) : quizSets.length === 0 ? (
@@ -222,8 +225,8 @@ export function ExamRoomForm({
           disabled={isLoading}>
           Hủy
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <Button type="submit" disabled={isLoading || isLoadingQuizSets}>
+          {isLoading && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
           {submitLabel}
         </Button>
       </div>

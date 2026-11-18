@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/antd/dialog";
-import { AlertTriangle, Plus, Minus, Shuffle, Target, Tag } from "lucide-react";
+import { WarningIcon, PlusCircleIcon, MinusCircleIcon, ShuffleIcon, TargetIcon, TagIcon } from "@phosphor-icons/react";
 import {
   QUESTION_SELECTION_MODE,
   LabelQuestionConfig,
@@ -202,7 +202,7 @@ export function QuestionConfigSection({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5" />
+          <TargetIcon className="h-5 w-5" />
           Cấu hình câu hỏi
         </CardTitle>
       </CardHeader>
@@ -276,7 +276,7 @@ export function QuestionConfigSection({
                 onClick={() => setShowLabelConfig(true)}
                 disabled={disabled || loadingLabels}
               >
-                <Tag className="h-4 w-4 mr-2" />
+                <TagIcon className="h-4 w-4 mr-2" />
                 Cấu hình chi tiết
               </Button>
             </div>
@@ -332,7 +332,7 @@ export function QuestionConfigSection({
                             }
                             disabled={disabled || config.count <= 0}
                           >
-                            <Minus className="h-3 w-3" />
+                            <MinusCircleIcon className="h-3 w-3" />
                           </Button>
                           <Input
                             type="number"
@@ -359,7 +359,7 @@ export function QuestionConfigSection({
                               disabled || config.count >= availableCount
                             }
                           >
-                            <Plus className="h-3 w-3" />
+                            <PlusCircleIcon className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
@@ -381,7 +381,7 @@ export function QuestionConfigSection({
         <div className="flex items-center justify-between rounded-lg border p-4">
           <div className="space-y-0.5">
             <Label className="flex items-center gap-2">
-              <Shuffle className="h-4 w-4" />
+              <ShuffleIcon className="h-4 w-4" />
               Xáo trộn thứ tự câu hỏi
             </Label>
             <p className="text-xs text-muted-foreground">
@@ -398,7 +398,7 @@ export function QuestionConfigSection({
         {/* Validation Error */}
         {validationError && (
           <div className="flex items-center gap-2 p-3 border border-red-200 bg-red-50 rounded-lg text-red-800">
-            <AlertTriangle className="h-4 w-4" />
+            <WarningIcon className="h-4 w-4" />
             <span className="text-sm">{validationError}</span>
           </div>
         )}
@@ -409,7 +409,7 @@ export function QuestionConfigSection({
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Tag className="h-5 w-5" />
+              <TagIcon className="h-5 w-5" />
               Cấu hình câu hỏi theo nhãn
             </DialogTitle>
             <DialogDescription>

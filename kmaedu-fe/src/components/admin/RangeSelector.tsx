@@ -42,7 +42,7 @@ export function RangeSelector({ value, onChange, className }: RangeSelectorProps
             aria-selected={active}
             onClick={() => onChange(opt.value)}
             className={cn(
-              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+              "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
               active
                 ? "bg-brand-soft text-brand-strong"
                 : "text-ink/70 hover:bg-surface-card hover:text-ink",

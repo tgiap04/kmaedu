@@ -1,13 +1,5 @@
 import { memo, useRef, useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  GripVertical,
-  ListMusic,
-  Play,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { CaretCircleLeftIcon, CaretCircleRightIcon, DotsSixVerticalIcon, PlaylistIcon, PlayIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
 import {
   Card,
   CardContent,
@@ -89,7 +81,7 @@ function PlaylistPanelBase({ actions, myRole }: Props) {
     <Card>
       <CardHeader className="flex items-center justify-between">
         <CardTitle className="flex items-center gap-2 !text-base">
-          <ListMusic className="h-4 w-4" /> Danh sách phát
+          <PlaylistIcon className="h-4 w-4" /> Danh sách phát
         </CardTitle>
         {canControl && (
           <div className="flex items-center gap-1">
@@ -99,7 +91,7 @@ function PlaylistPanelBase({ actions, myRole }: Props) {
               onClick={actions.playlistPrev}
               disabled={playlist.items.length === 0}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <CaretCircleLeftIcon className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
@@ -107,7 +99,7 @@ function PlaylistPanelBase({ actions, myRole }: Props) {
               onClick={actions.playlistNext}
               disabled={playlist.items.length === 0}
             >
-              <ChevronRight className="h-4 w-4" />
+              <CaretCircleRightIcon className="h-4 w-4" />
             </Button>
           </div>
         )}
@@ -133,7 +125,7 @@ function PlaylistPanelBase({ actions, myRole }: Props) {
                   }`}
                 >
                   {canControl && (
-                    <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground" />
+                    <DotsSixVerticalIcon className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground" />
                   )}
                   <button
                     type="button"
@@ -142,7 +134,7 @@ function PlaylistPanelBase({ actions, myRole }: Props) {
                     disabled={!canControl}
                   >
                     <div className="flex items-center gap-2">
-                      {isNow && <Play className="h-3 w-3 shrink-0 text-primary" />}
+                      {isNow && <PlayIcon className="h-3 w-3 shrink-0 text-primary" />}
                       <span className="truncate text-sm text-ink">
                         {item.title || item.url}
                       </span>
@@ -157,7 +149,7 @@ function PlaylistPanelBase({ actions, myRole }: Props) {
                       onClick={() => actions.removePlaylistItem(item.id)}
                       className="p-1 text-muted-foreground hover:text-destructive"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <TrashIcon className="h-4 w-4" />
                     </button>
                   )}
                 </div>
@@ -179,7 +171,7 @@ function PlaylistPanelBase({ actions, myRole }: Props) {
               onPressEnter={add}
             />
             <Button size="icon" onClick={add} disabled={!url.trim()}>
-              <Plus className="h-4 w-4" />
+              <PlusCircleIcon className="h-4 w-4" />
             </Button>
           </div>
         )}

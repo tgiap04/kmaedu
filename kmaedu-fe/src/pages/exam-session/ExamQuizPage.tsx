@@ -4,17 +4,7 @@ import { useNavigate, useParams, useLocation, useSearchParams } from "react-rout
 import { Button } from "@/components/antd/button";
 import { Card, CardContent } from "@/components/antd/card";
 import { Progress } from "@/components/antd/progress";
-import {
-  AlertTriangle,
-  BarChart3,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Flag,
-  Loader2,
-  XCircle,
-} from "lucide-react";
+import { WarningIcon, ChartBarIcon, CheckCircleIcon, CaretCircleLeftIcon, CaretCircleRightIcon, ClockIcon, FlagIcon, CircleNotchIcon, XCircleIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { setRedirectBackTarget } from "@/lib/authRedirect";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -446,7 +436,7 @@ export default function ExamQuizPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+          <CircleNotchIcon className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
           <p className="text-muted-foreground">Đang kiểm tra đăng nhập...</p>
         </div>
       </div>
@@ -457,7 +447,7 @@ export default function ExamQuizPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+          <CircleNotchIcon className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
           <p className="text-muted-foreground">Đang tải bài thi...</p>
         </div>
       </div>
@@ -468,7 +458,7 @@ export default function ExamQuizPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <XCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
+          <XCircleIcon className="h-16 w-16 text-destructive mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">Không thể tải bài thi</h1>
           <p className="text-muted-foreground mb-4">{error}</p>
           <Button onClick={() => navigate(`/exam-session/${examSessionId}`)}>Quay lại</Button>
@@ -481,7 +471,7 @@ export default function ExamQuizPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <XCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <XCircleIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">Không có câu hỏi</h1>
           <p className="text-muted-foreground mb-4">Bài thi này chưa có câu hỏi nào</p>
           <Button onClick={handleExit}>Quay lại</Button>
@@ -510,7 +500,7 @@ export default function ExamQuizPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Button variant="ghost" size="sm" onClick={() => setShowDetailedResults(false)} className="!p-2">
-                    <ChevronLeft className="h-4 w-4" />
+                    <CaretCircleLeftIcon className="h-4 w-4" />
                   </Button>
                   <div>
                     <h1 className="text-base font-semibold">Xem lại kết quả</h1>
@@ -520,7 +510,7 @@ export default function ExamQuizPage() {
                 <div className="flex items-center gap-3">
                   {/* Score count — mirrors answered-count pill from quiz mode */}
                   <div className="flex items-center gap-2 text-sm">
-                    <div className="w-4 h-4 rounded bg-success" />
+                    <div className="w-4 h-4 rounded-lg bg-success" />
                     <span className="text-muted-foreground">{correctAnswersCount}/{totalQuestions}</span>
                   </div>
                 </div>
@@ -579,7 +569,7 @@ export default function ExamQuizPage() {
                 <Card className="sticky !p-0">
                   <CardContent className="pt-6 !pb-0 !px-0 flex flex-col" style={{ maxHeight: "calc(100vh - 24rem)" }}>
                     <h3 className="font-semibold mb-4 flex items-center px-4">
-                      <BarChart3 className="h-4 w-4 mr-2" />
+                      <ChartBarIcon className="h-4 w-4 mr-2" />
                       Danh sách câu hỏi
                     </h3>
 
@@ -594,7 +584,7 @@ export default function ExamQuizPage() {
                             key={q.id}
                             onClick={() => setReviewQuestionIndex(index)}
                             className={cn(
-                              "aspect-square rounded-md text-sm font-medium transition-colors",
+                              "aspect-square rounded-lg text-sm font-medium transition-colors",
                               isCurrent && "ring-2 ring-primary ring-offset-2",
                               qIsCorrect && "bg-success text-white",
                               !qIsCorrect && qUserAnswer && "bg-destructive text-white",
@@ -609,17 +599,17 @@ export default function ExamQuizPage() {
 
                     <div className="pt-4 mt-2 border-t space-y-2 text-sm shrink-0 bg-background !p-3 !rounded-lg">
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-success rounded" />
+                        <div className="w-4 h-4 bg-success rounded-lg" />
                         <span className="text-muted-foreground">Đúng</span>
                         <span className="ml-auto font-semibold">{correctAnswersCount}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-destructive rounded" />
+                        <div className="w-4 h-4 bg-destructive rounded-lg" />
                         <span className="text-muted-foreground">Sai</span>
                         <span className="ml-auto font-semibold">{resultData.questions.filter((q) => q.userAnswer && q.userAnswer !== q.answer).length}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-muted rounded border" />
+                        <div className="w-4 h-4 bg-muted rounded-lg border" />
                         <span className="text-muted-foreground">Chưa trả lời</span>
                         <span className="ml-auto font-semibold">{resultData.questions.filter((q) => !q.userAnswer).length}</span>
                       </div>
@@ -639,7 +629,7 @@ export default function ExamQuizPage() {
             <div className="container max-w-7xl mx-auto px-4 py-3">
               <div className="flex items-center justify-between">
                 <Button variant="outline" onClick={() => setReviewQuestionIndex((prev) => prev - 1)} disabled={reviewQuestionIndex === 0}>
-                  <ChevronLeft className="h-4 w-4 mr-2" />
+                  <CaretCircleLeftIcon className="h-4 w-4 mr-2" />
                   Câu trước
                 </Button>
 
@@ -649,7 +639,7 @@ export default function ExamQuizPage() {
                   disabled={reviewQuestionIndex === totalQuestions - 1}
                 >
                   Câu sau
-                  <ChevronRight className="h-4 w-4 ml-2" />
+                  <CaretCircleRightIcon className="h-4 w-4 ml-2" />
                 </Button>
               </div>
             </div>
@@ -664,7 +654,7 @@ export default function ExamQuizPage() {
           <CardContent className="pt-6">
             <div className="text-center space-y-6">
               <div className="flex justify-center">
-                {passed ? <CheckCircle2 className="h-20 w-20 text-success" /> : <XCircle className="h-20 w-20 text-destructive" />}
+                {passed ? <CheckCircleIcon className="h-20 w-20 text-success" /> : <XCircleIcon className="h-20 w-20 text-destructive" />}
               </div>
 
               <div>
@@ -700,7 +690,7 @@ export default function ExamQuizPage() {
               <div className="flex gap-4 justify-center flex-wrap">
                 {resultData.showAnswers && resultData.questions && (
                   <Button onClick={() => { setShowDetailedResults(true); setReviewQuestionIndex(0); }} variant="default">
-                    <BarChart3 className="h-4 w-4 mr-2" />
+                    <ChartBarIcon className="h-4 w-4 mr-2" />
                     Xem chi tiết
                   </Button>
                 )}
@@ -746,7 +736,7 @@ export default function ExamQuizPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Button variant="ghost" size="sm" onClick={handleExit} className="!p-2">
-                  <ChevronLeft className="h-4 w-4" />
+                  <CaretCircleLeftIcon className="h-4 w-4" />
                 </Button>
                 <div>
                   <h1 className="text-base font-semibold">Bài thi</h1>
@@ -755,7 +745,7 @@ export default function ExamQuizPage() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 text-sm">
-                  <div className="w-4 h-4 rounded bg-primary" />
+                  <div className="w-4 h-4 rounded-lg bg-primary" />
                   <span className="text-muted-foreground">{answeredCount}/{totalQuestions}</span>
                 </div>
                 <div
@@ -764,7 +754,7 @@ export default function ExamQuizPage() {
                     remainingTime !== null && remainingTime <= 60 ? "bg-destructive/10 text-destructive animate-pulse" : "bg-muted",
                   )}
                 >
-                  <Clock className="h-4 w-4" />
+                  <ClockIcon className="h-4 w-4" />
                   {remainingTime !== null ? (
                     <span>
                       {formatTimeLabel(remainingTime)}
@@ -800,7 +790,7 @@ export default function ExamQuizPage() {
                         className="!p-4"
                         onClick={handleMarkForReview}
                       >
-                        <Flag className="h-4 w-4 mr-2" />
+                        <FlagIcon className="h-4 w-4 mr-2" />
                         {markedForReview.has(currentQuestion.id) ? "Đã đánh dấu" : "Đánh dấu"}
                       </Button>
                     </div>
@@ -832,7 +822,7 @@ export default function ExamQuizPage() {
               <Card className="sticky !p-0">
                 <CardContent className="pt-6 !pb-0 !px-0 flex flex-col" style={{ maxHeight: "calc(100vh - 24rem)" }}>
                   <h3 className="font-semibold mb-4 flex items-center">
-                    <BarChart3 className="h-4 w-4 mr-2" />
+                    <ChartBarIcon className="h-4 w-4 mr-2" />
                     Danh sách câu hỏi
                   </h3>
 
@@ -847,14 +837,14 @@ export default function ExamQuizPage() {
                           key={q.id}
                           onClick={() => setCurrentQuestionIndex(index)}
                           className={cn(
-                            "aspect-square rounded-md text-sm font-medium transition-colors relative",
+                            "aspect-square rounded-lg text-sm font-medium transition-colors relative",
                             isCurrent && "ring-2 ring-primary ring-offset-2",
                             isAnswered && !isCurrent && "bg-primary text-primary-foreground",
                             !isAnswered && !isCurrent && "bg-muted hover:bg-muted/80",
                           )}
                         >
                           {index + 1}
-                          {isMarked && <Flag className="h-3 w-3 absolute top-1 right-1 size-8" />}
+                          {isMarked && <FlagIcon className="h-3 w-3 absolute top-1 right-1 size-8" />}
                         </button>
                       );
                     })}
@@ -862,17 +852,17 @@ export default function ExamQuizPage() {
 
                   <div className="pt-4 mt-2 border-t space-y-2 text-sm shrink-0 bg-background !p-2 !rounded-lg">
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-primary rounded" />
+                      <div className="w-4 h-4 bg-primary rounded-lg" />
                       <span className="text-muted-foreground">Đã trả lời</span>
                       <span className="ml-auto font-semibold">{answeredCount}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-muted rounded" />
+                      <div className="w-4 h-4 bg-muted rounded-lg" />
                       <span className="text-muted-foreground">Chưa trả lời</span>
                       <span className="ml-auto font-semibold">{totalQuestions - answeredCount}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Flag className="h-4 w-4 text-warning" />
+                      <FlagIcon className="h-4 w-4 text-warning" />
                       <span className="text-muted-foreground">Đánh dấu</span>
                       <span className="ml-auto font-semibold">{markedForReview.size}</span>
                     </div>
@@ -881,7 +871,7 @@ export default function ExamQuizPage() {
                   {remainingTime !== null && remainingTime <= 300 && remainingTime > 0 && (
                     <div className="mt-3 p-3 bg-warning/10 border border-warning/30 rounded-lg shrink-0">
                       <div className="flex items-center gap-2 text-warning text-sm">
-                        <AlertTriangle className="h-4 w-4" />
+                        <WarningIcon className="h-4 w-4" />
                         <span>Còn {Math.ceil(remainingTime / 60)} phút</span>
                       </div>
                     </div>
@@ -901,7 +891,7 @@ export default function ExamQuizPage() {
           <div className="container max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               <Button variant="outline" onClick={() => setCurrentQuestionIndex((prev) => prev - 1)} disabled={currentQuestionIndex === 0}>
-                <ChevronLeft className="h-4 w-4 mr-2" />
+                <CaretCircleLeftIcon className="h-4 w-4 mr-2" />
                 Câu trước
               </Button>
 
@@ -913,7 +903,7 @@ export default function ExamQuizPage() {
                 ) : (
                   <Button onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}>
                     Câu sau
-                    <ChevronRight className="h-4 w-4 ml-2" />
+                    <CaretCircleRightIcon className="h-4 w-4 ml-2" />
                   </Button>
                 )}
               </div>

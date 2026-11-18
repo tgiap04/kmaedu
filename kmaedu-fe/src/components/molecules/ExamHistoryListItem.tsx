@@ -1,4 +1,4 @@
-import { ChevronRight, ListChecks } from "lucide-react";
+import { CaretCircleRightIcon, ListChecksIcon } from "@phosphor-icons/react";
 import { scoreTone, type ScoreTone } from "@/lib/history/history-format";
 import { cn } from "@/lib/utils";
 
@@ -48,17 +48,17 @@ export function ExamHistoryListItem({ item, onClick }: ExamHistoryListItemProps)
 
   const body = (
     <>
-      <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-xl", iconTone(item.id))}>
-        <ListChecks className="size-5" aria-hidden />
+      <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-lg", iconTone(item.id))}>
+        <ListChecksIcon className="size-5" aria-hidden />
       </span>
       <div className="min-w-0 flex-1 text-left">
         <p className="truncate text-[15px] font-semibold text-ink" title={item.examTitle}>{item.examTitle}</p>
         <p className="mt-0.5 truncate text-xs text-muted-foreground">{meta}</p>
       </div>
-      <span className={cn("shrink-0 rounded-full px-3 py-1 text-sm font-semibold", SCORE_PILL[scoreTone(percentage)])}>
+      <span className={cn("shrink-0 rounded-lg px-3 py-1 text-sm font-semibold", SCORE_PILL[scoreTone(percentage)])}>
         {percentage}%
       </span>
-      {onClick && <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden />}
+      {onClick && <CaretCircleRightIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden />}
     </>
   );
 

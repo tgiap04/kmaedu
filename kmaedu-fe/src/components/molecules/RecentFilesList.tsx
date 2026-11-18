@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { History, FolderOpen, Loader2 } from "lucide-react";
+import { ClockCounterClockwiseIcon, FolderOpenIcon, CircleNotchIcon } from "@phosphor-icons/react";
 import { RecentUpload } from "@/apis/aiApi";
 import { RecentFileItem } from "@/components/atoms/k/RecentFileItem";
 import { ScrollArea } from "@/components/antd/scroll-area";
@@ -69,8 +69,8 @@ export function RecentFilesList({
       <div className={cn("flex min-h-[320px] min-w-0 flex-col", className)}>
         <div className="space-y-3 border-b border-border/50 pb-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-gradient-to-br from-primary/20 to-primary/5">
-              <History className="h-5 w-5 text-primary" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-gradient-to-br from-primary/20 to-primary/5">
+              <ClockCounterClockwiseIcon className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0">
               <h2 className="text-base font-semibold text-foreground">
@@ -91,13 +91,13 @@ export function RecentFilesList({
 
         {isLoading ? (
           <div className="flex flex-1 flex-col items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="mb-3 h-8 w-8 animate-spin" />
+            <CircleNotchIcon className="mb-3 h-8 w-8 animate-spin" />
             <p className="text-sm">Đang tải...</p>
           </div>
         ) : recentUploads.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-border bg-black/5">
-              <FolderOpen className="h-8 w-8 text-muted-foreground" />
+              <FolderOpenIcon className="h-8 w-8 text-muted-foreground" />
             </div>
             <p className="text-sm text-muted-foreground">Chưa có file nào</p>
             <p className="mt-1 text-xs text-muted-foreground/60">

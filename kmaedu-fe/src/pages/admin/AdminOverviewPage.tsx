@@ -28,12 +28,12 @@ const EMPTY_SOURCES = {
 
 function ErrorBlock({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl bg-surface-card p-8 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-lg bg-surface-card p-8 text-center">
       <p className="text-sm text-ink/70">{message}</p>
       <button
         type="button"
         onClick={onRetry}
-        className="rounded-md border border-hairline bg-canvas px-4 py-1.5 text-sm font-medium text-ink hover:bg-surface-cream-strong"
+        className="rounded-lg border border-hairline bg-canvas px-4 py-1.5 text-sm font-medium text-ink hover:bg-surface-cream-strong"
       >
         Thử lại
       </button>

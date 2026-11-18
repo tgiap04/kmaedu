@@ -13,18 +13,7 @@ import { Input } from "@/components/antd/input";
 import { Label } from "@/components/antd/label";
 import { Switch } from "@/components/antd/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/antd/tabs";
-import {
-  Loader2,
-  Calendar,
-  Clock,
-  Lock,
-  Users,
-  RefreshCw,
-  Eye,
-  Key,
-  UserPlus,
-  Trophy,
-} from "lucide-react";
+import { CircleNotchIcon, CalendarBlankIcon, ClockIcon, LockSimpleIcon, UsersThreeIcon, ArrowsClockwiseIcon, EyeIcon, KeyIcon, UserPlusIcon, TrophyIcon } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { ExamSessionBasic } from "@/types/examRoom";
 import {
@@ -317,7 +306,7 @@ export function ExamSessionFormModal({
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
+            <CalendarBlankIcon className="h-5 w-5" />
             {mode === "create" ? "Tạo phiên thi mới" : "Chỉnh sửa phiên thi"}
           </DialogTitle>
           <DialogDescription>
@@ -331,7 +320,7 @@ export function ExamSessionFormModal({
           {/* Start Time */}
           <div className="space-y-2">
             <Label htmlFor="startTime" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+              <ClockIcon className="h-4 w-4" />
               Thời gian bắt đầu <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -349,7 +338,7 @@ export function ExamSessionFormModal({
           {/* End Time */}
           <div className="space-y-2">
             <Label htmlFor="endTime" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+              <ClockIcon className="h-4 w-4" />
               Thời gian kết thúc
             </Label>
             <Input
@@ -367,7 +356,7 @@ export function ExamSessionFormModal({
           {/* Access Configuration */}
           <div className="space-y-3">
             <Label className="flex items-center gap-2">
-              <Lock className="h-4 w-4" />
+              <LockSimpleIcon className="h-4 w-4" />
               Quyền truy cập
             </Label>
             <Tabs
@@ -382,18 +371,18 @@ export function ExamSessionFormModal({
                   value="public"
                   className="flex items-center gap-1.5"
                 >
-                  <Users className="h-3.5 w-3.5" />
+                  <UsersThreeIcon className="h-3.5 w-3.5" />
                   Công khai
                 </TabsTrigger>
                 <TabsTrigger value="code" className="flex items-center gap-1.5">
-                  <Key className="h-3.5 w-3.5" />
+                  <KeyIcon className="h-3.5 w-3.5" />
                   Mã số
                 </TabsTrigger>
                 <TabsTrigger
                   value="whitelist"
                   className="flex items-center gap-1.5"
                 >
-                  <UserPlus className="h-3.5 w-3.5" />
+                  <UserPlusIcon className="h-3.5 w-3.5" />
                   Whitelist
                 </TabsTrigger>
               </TabsList>
@@ -434,7 +423,7 @@ export function ExamSessionFormModal({
                       disabled={isFormLoading}
                       title="Tạo mã ngẫu nhiên"
                     >
-                      <RefreshCw className="h-4 w-4" />
+                      <ArrowsClockwiseIcon className="h-4 w-4" />
                     </Button>
                   </div>
                   {errors.accessCode && (
@@ -477,7 +466,7 @@ export function ExamSessionFormModal({
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
               <Label className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
+                <EyeIcon className="h-4 w-4" />
                 Xem đáp án sau khi nộp
               </Label>
               <p className="text-xs text-muted-foreground">
@@ -536,7 +525,7 @@ export function ExamSessionFormModal({
           {/* Passing Score */}
           <div className="space-y-2">
             <Label htmlFor="passingScore" className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
+              <TrophyIcon className="h-4 w-4" />
               Điểm đạt (%)
             </Label>
             <div className="">
@@ -571,7 +560,7 @@ export function ExamSessionFormModal({
             </Button>
             <Button onClick={handleFormSubmit} disabled={isFormLoading}>
               {isFormLoading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />
               )}
               {mode === "create" ? "Tạo phiên thi" : "Lưu thay đổi"}
             </Button>

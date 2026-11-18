@@ -25,7 +25,7 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/antd/input-otp";
-import { KeyRound, Loader2, Lock, XCircle } from "lucide-react";
+import { KeyIcon, CircleNotchIcon, LockSimpleIcon, XCircleIcon } from "@phosphor-icons/react";
 import { toast } from "@/components/antd/toast";
 import { cn } from "@/lib/utils";
 import { setRedirectBackTarget } from "@/lib/authRedirect";
@@ -181,7 +181,7 @@ export default function ExamSessionPage() {
       <div className="flex flex-1 items-center justify-center p-4">
         <Card className="max-w-md">
           <CardContent className="flex flex-col items-center py-12 text-center">
-            <XCircle className="h-16 w-16 text-red-500 mb-4" />
+            <XCircleIcon className="h-16 w-16 text-red-500 mb-4" />
             <h2 className="text-xl font-semibold mb-2">Không tìm thấy phiên thi</h2>
             <p className="text-muted-foreground mb-4">
               Phiên thi này có thể đã bị xóa hoặc không tồn tại.
@@ -207,7 +207,7 @@ export default function ExamSessionPage() {
           >
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <KeyRound className="h-5 w-5" />
+                <KeyIcon className="h-5 w-5" />
                 Nhập mã truy cập
               </DialogTitle>
               <DialogDescription>
@@ -250,7 +250,7 @@ export default function ExamSessionPage() {
                 <Button className="flex-1" onClick={handleVerifyCode} disabled={verifying || accessCode.length !== 6}>
                   {verifying ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <CircleNotchIcon className="h-4 w-4 mr-2 animate-spin" />
                       Đang xác thực...
                     </>
                   ) : (
@@ -270,7 +270,7 @@ export default function ExamSessionPage() {
       <div className="flex flex-1 items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="flex flex-col items-center py-12 text-center">
-            <Lock className="h-16 w-16 text-orange-500 mb-4" />
+            <LockSimpleIcon className="h-16 w-16 text-orange-500 mb-4" />
             <h2 className="text-xl font-semibold mb-2">Phiên thi riêng tư</h2>
             <p className="text-muted-foreground mb-6">Bạn không có quyền truy cập phiên thi này.</p>
             <Button onClick={handleGoHome}>Về trang chủ</Button>
@@ -285,7 +285,7 @@ export default function ExamSessionPage() {
       <div className="flex flex-1 items-center justify-center p-4">
         <Card className="max-w-md">
           <CardContent className="flex flex-col items-center py-12 text-center">
-            <XCircle className="h-16 w-16 text-red-500 mb-4" />
+            <XCircleIcon className="h-16 w-16 text-red-500 mb-4" />
             <p className="text-muted-foreground mb-4">{loadError}</p>
             <Button variant="outline" onClick={handleGoHome}>
               Về trang chủ
@@ -312,7 +312,7 @@ export default function ExamSessionPage() {
   if (!stats) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <CircleNotchIcon className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }

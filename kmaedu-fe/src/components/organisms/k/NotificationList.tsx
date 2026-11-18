@@ -5,7 +5,7 @@ import {
   type NotificationItemData,
 } from "@/components/molecules/NotificationItem";
 import { Button } from "@/components/antd/button";
-import { Filter, MoreVertical } from "lucide-react";
+import { FunnelIcon, DotsThreeCircleVerticalIcon } from "@phosphor-icons/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,12 +51,12 @@ export function NotificationList({
 
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-9 w-9">
-              <Filter className="h-4 w-4" />
+              <FunnelIcon className="h-4 w-4" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <MoreVertical className="h-4 w-4" />
+                  <DotsThreeCircleVerticalIcon className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

@@ -1,18 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import {
-  LayoutDashboard,
-  BarChart3,
-  Users,
-  ShieldCheck,
-  ScrollText,
-  History,
-  BookOpen,
-  ToggleLeft,
-  ArrowLeft,
-  ChevronRight,
-  LayoutGrid,
-} from "lucide-react";
+import { SquaresFourIcon, ChartBarIcon, UsersThreeIcon, ShieldCheckIcon, ScrollIcon, ClockCounterClockwiseIcon, BookOpenIcon, ToggleLeftIcon, ArrowCircleLeftIcon, CaretCircleRightIcon, ArrowLeftIcon } from "@phosphor-icons/react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import ProfileDropdown from "@/components/atoms/ProfileDropdown";
 import { HeaderWaves, NotificationBell, dashboardHeaderClass } from "@/components/organisms/nav/header-parts";
@@ -37,14 +25,14 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/admin", labelKey: "nav.overview", icon: <LayoutDashboard className="h-[22px] w-[22px]" />, end: true },
-  { to: "/admin/stats", labelKey: "nav.stats", icon: <BarChart3 className="h-[22px] w-[22px]" /> },
-  { to: "/admin/users", labelKey: "nav.users", icon: <Users className="h-[22px] w-[22px]" /> },
-  { to: "/admin/roles", labelKey: "nav.roles", icon: <ShieldCheck className="h-[22px] w-[22px]" /> },
-  { to: "/admin/logs", labelKey: "nav.logs", icon: <ScrollText className="h-[22px] w-[22px]" /> },
-  { to: "/admin/audit", labelKey: "nav.audit", icon: <History className="h-[22px] w-[22px]" /> },
-  { to: "/admin/word-family", labelKey: "nav.wordFamily", icon: <BookOpen className="h-[22px] w-[22px]" /> },
-  { to: "/admin/page-config", labelKey: "nav.pageConfig", icon: <ToggleLeft className="h-[22px] w-[22px]" /> },
+  { to: "/admin", labelKey: "nav.overview", icon: <SquaresFourIcon className="h-[22px] w-[22px]" />, end: true },
+  { to: "/admin/stats", labelKey: "nav.stats", icon: <ChartBarIcon className="h-[22px] w-[22px]" /> },
+  { to: "/admin/users", labelKey: "nav.users", icon: <UsersThreeIcon className="h-[22px] w-[22px]" /> },
+  { to: "/admin/roles", labelKey: "nav.roles", icon: <ShieldCheckIcon className="h-[22px] w-[22px]" /> },
+  { to: "/admin/logs", labelKey: "nav.logs", icon: <ScrollIcon className="h-[22px] w-[22px]" /> },
+  { to: "/admin/audit", labelKey: "nav.audit", icon: <ClockCounterClockwiseIcon className="h-[22px] w-[22px]" /> },
+  { to: "/admin/word-family", labelKey: "nav.wordFamily", icon: <BookOpenIcon className="h-[22px] w-[22px]" /> },
+  { to: "/admin/page-config", labelKey: "nav.pageConfig", icon: <ToggleLeftIcon className="h-[22px] w-[22px]" /> },
 ];
 
 export function AdminLayout() {
@@ -97,15 +85,15 @@ export function AdminLayout() {
         </nav>
         <div className="shrink-0 px-4 pb-4">
           <Link to={workspaceHref} className={promoCardClass}>
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-canvas text-coral shadow-[0_2px_8px_rgba(217,45,41,0.12)]">
-              <LayoutGrid className="h-5 w-5" />
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-canvas text-coral shadow-[0_2px_8px_rgba(217,45,41,0.12)]">
+              <SquaresFourIcon className="h-5 w-5" />
             </span>
             <span className="min-w-0 flex-1 leading-snug">
               <span className="block whitespace-nowrap text-[13px] font-semibold text-ink">{t("nav.workspace")}</span>
               <span className="block truncate text-[11.5px] text-body">{t("nav.workspaceHint")}</span>
             </span>
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-canvas text-coral shadow-[0_2px_8px_rgba(15,23,42,0.08)] transition-transform duration-200 group-hover:translate-x-0.5">
-              <ArrowLeft className="h-4 w-4 rotate-180" strokeWidth={2.4} />
+              <ArrowLeftIcon className="h-4 w-4 rotate-180" />
             </span>
           </Link>
         </div>
@@ -117,18 +105,18 @@ export function AdminLayout() {
           <div className="relative flex h-[76px] items-center gap-4 px-4 md:px-8">
             <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-[14px]">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-hairline bg-canvas text-brand-strong shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                <ShieldCheck className="h-5 w-5" />
+                <ShieldCheckIcon className="h-5 w-5" />
               </span>
               <span className="hidden text-muted-foreground sm:inline">{t("nav.consoleCaption")}</span>
-              <ChevronRight aria-hidden className="hidden h-4 w-4 shrink-0 text-muted-soft sm:inline" />
+              <CaretCircleRightIcon aria-hidden className="hidden h-4 w-4 shrink-0 text-muted-soft sm:inline" />
               <span className="truncate font-semibold text-ink" aria-current="page">{currentTitle}</span>
             </nav>
             <div className="ml-auto flex items-center gap-3">
               <Link
                 to={workspaceHref}
-                className="inline-flex h-9 items-center gap-1.5 rounded-full border border-brand-border bg-brand-soft px-3 text-xs font-medium text-brand-strong transition-colors hover:bg-brand-soft-hover md:hidden"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand-border bg-brand-soft px-3 text-xs font-medium text-brand-strong transition-colors hover:bg-brand-soft-hover md:hidden"
               >
-                <ArrowLeft className="h-3.5 w-3.5" />
+                <ArrowCircleLeftIcon className="h-3.5 w-3.5" />
                 {t("nav.workspaceShort")}
               </Link>
               <NotificationBell />

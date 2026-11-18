@@ -14,18 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/antd/dialog";
-import {
-  ChevronLeft,
-  ChevronRight,
-  X,
-  Eye,
-  Lock,
-  Volume2,
-  VolumeX,
-  Home,
-  RotateCcw,
-  Shuffle,
-} from "lucide-react";
+import { CaretCircleLeftIcon, CaretCircleRightIcon, EyeIcon, LockSimpleIcon, SpeakerHighIcon, SpeakerSlashIcon, HouseIcon, ArrowCounterClockwiseIcon, ShuffleIcon, XIcon } from "@phosphor-icons/react";
 import { StandardMarkdownRenderer } from "@/components/molecules/StandardMarkdownRenderer";
 import { cn } from "@/lib/utils";
 import { setRedirectBackTarget } from "@/lib/authRedirect";
@@ -244,7 +233,7 @@ export default function FlashcardStudyPage() {
       <div className="fixed inset-0 flex items-center justify-center bg-canvas">
         <div className="max-w-sm px-6 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-card">
-            <Lock className="h-6 w-6 text-muted-foreground" />
+            <LockSimpleIcon className="h-6 w-6 text-muted-foreground" />
           </div>
           <h1 className="font-display text-2xl tracking-tight text-ink">Không có quyền truy cập</h1>
           <p className="mt-2 text-sm text-body">
@@ -259,7 +248,7 @@ export default function FlashcardStudyPage() {
             </div>
           )}
           <Button onClick={() => navigate("/")} className="mt-6">
-            <Home className="mr-2 h-4 w-4" />
+            <HouseIcon className="mr-2 h-4 w-4" />
             Về trang chủ
           </Button>
         </div>
@@ -275,7 +264,7 @@ export default function FlashcardStudyPage() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Lock className="h-5 w-5 text-coral" />
+                <LockSimpleIcon className="h-5 w-5 text-coral" />
                 Yêu cầu mã truy cập
               </DialogTitle>
               <DialogDescription>
@@ -333,7 +322,7 @@ export default function FlashcardStudyPage() {
       <div className="fixed inset-0 flex items-center justify-center bg-canvas">
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-card">
-            <X className="h-6 w-6 text-muted-foreground" />
+            <XIcon className="h-6 w-6 text-muted-foreground" />
           </div>
           <h1 className="font-display text-2xl tracking-tight text-ink">Không có thẻ</h1>
           <p className="mt-2 text-sm text-body">Bộ flashcard này chưa có thẻ nào</p>
@@ -356,10 +345,10 @@ export default function FlashcardStudyPage() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/k")}
-              className="grid h-9 w-9 place-items-center rounded-md border border-hairline text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-hairline text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink"
               aria-label="Về trang chủ"
             >
-              <Home className="h-4 w-4" />
+              <HouseIcon className="h-4 w-4" />
             </button>
             <div className="min-w-0">
               <h1 className="truncate font-display text-lg tracking-tight text-ink sm:text-xl">
@@ -387,28 +376,28 @@ export default function FlashcardStudyPage() {
               </div>
             )}
             <span className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex">
-              <Eye className="h-3.5 w-3.5" />
+              <EyeIcon className="h-3.5 w-3.5" />
               {viewCount.toLocaleString()}
             </span>
             <button
               onClick={handleShuffle}
-              className="grid h-9 w-9 place-items-center rounded-md border border-hairline text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-hairline text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink"
               aria-label="Xáo trộn"
               title="Xáo trộn thẻ"
             >
-              <Shuffle className="h-4 w-4" />
+              <ShuffleIcon className="h-4 w-4" />
             </button>
             <button
               onClick={() => setSettings((prev) => ({ ...prev, soundEffects: !prev.soundEffects }))}
               className={cn(
-                "grid h-9 w-9 place-items-center rounded-md border border-hairline transition-colors",
+                "grid h-9 w-9 place-items-center rounded-lg border border-hairline transition-colors",
                 settings.soundEffects
                   ? "border-coral/30 bg-coral/10 text-brand-strong"
                   : "text-muted-foreground hover:bg-surface-card hover:text-ink"
               )}
               aria-label={settings.soundEffects ? "Tắt âm thanh" : "Bật âm thanh"}
             >
-              {settings.soundEffects ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              {settings.soundEffects ? <SpeakerHighIcon className="h-4 w-4" /> : <SpeakerSlashIcon className="h-4 w-4" />}
             </button>
           </div>
         </div>
@@ -427,7 +416,7 @@ export default function FlashcardStudyPage() {
         <div className="w-full max-w-xl">
           {/* Card counter */}
           <div className="mb-4 flex items-center justify-between">
-            <span className="rounded-pill bg-surface-card px-3 py-1 text-xs font-medium text-muted-foreground">
+            <span className="rounded-lg bg-surface-card px-3 py-1 text-xs font-medium text-muted-foreground">
               {currentCardIndex + 1} / {totalCards}
             </span>
             <span className="text-xs text-muted-foreground">
@@ -453,7 +442,7 @@ export default function FlashcardStudyPage() {
                 className="flex min-h-[340px] flex-col items-center justify-center rounded-lg border border-hairline bg-surface-card p-10 sm:min-h-[400px] sm:p-14"
                 style={{ backfaceVisibility: "hidden" }}
               >
-                <span className="mb-6 inline-flex items-center gap-1.5 rounded-pill bg-canvas px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                <span className="mb-6 inline-flex items-center gap-1.5 rounded-lg bg-canvas px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Câu hỏi
                 </span>
                 <StandardMarkdownRenderer
@@ -461,7 +450,7 @@ export default function FlashcardStudyPage() {
                   className="text-center font-display text-xl leading-relaxed tracking-tight text-ink sm:text-2xl"
                 />
                 <div className="mt-auto pt-8 flex items-center gap-1.5 text-[11px] text-muted-soft">
-                  <RotateCcw className="h-3 w-3" />
+                  <ArrowCounterClockwiseIcon className="h-3 w-3" />
                   Nhấp hoặc Space để lật
                 </div>
               </div>
@@ -474,7 +463,7 @@ export default function FlashcardStudyPage() {
                   transform: "rotateY(180deg)",
                 }}
               >
-                <span className="mb-6 inline-flex items-center gap-1.5 rounded-pill bg-coral/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-brand-strong">
+                <span className="mb-6 inline-flex items-center gap-1.5 rounded-lg bg-coral/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-brand-strong">
                   Câu trả lời
                 </span>
                 <StandardMarkdownRenderer
@@ -482,7 +471,7 @@ export default function FlashcardStudyPage() {
                   className="text-center text-lg leading-relaxed text-ink sm:text-xl"
                 />
                 <div className="mt-auto pt-8 flex items-center gap-1.5 text-[11px] text-muted-soft">
-                  <RotateCcw className="h-3 w-3" />
+                  <ArrowCounterClockwiseIcon className="h-3 w-3" />
                   Nhấp hoặc Space để quay lại
                 </div>
               </div>
@@ -499,9 +488,9 @@ export default function FlashcardStudyPage() {
             size="sm"
             onClick={handlePrevious}
             disabled={currentCardIndex === 0}
-            className="h-10 gap-1.5 rounded-md border-hairline px-4"
+            className="h-10 gap-1.5 rounded-lg border-hairline px-4"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <CaretCircleLeftIcon className="h-4 w-4" />
             <span className="hidden sm:inline">Trước</span>
           </Button>
 
@@ -542,10 +531,10 @@ export default function FlashcardStudyPage() {
             size="sm"
             onClick={handleNext}
             disabled={currentCardIndex === totalCards - 1}
-            className="h-10 gap-1.5 rounded-md border-hairline px-4"
+            className="h-10 gap-1.5 rounded-lg border-hairline px-4"
           >
             <span className="hidden sm:inline">Sau</span>
-            <ChevronRight className="h-4 w-4" />
+            <CaretCircleRightIcon className="h-4 w-4" />
           </Button>
         </div>
       </footer>

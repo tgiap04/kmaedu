@@ -28,6 +28,8 @@ export type CredentialSetHistoryToQuizset = {
 export type ResponseSetQuizzesToQuizset = {
   message?: string;
   createdCount: number;
+  /** set-quizzes-to-quizset: ids of the new questions, in the order they were sent. */
+  createdQuestionIds?: string[];
   updatedCount?: number;
   skippedCount?: number;
 };

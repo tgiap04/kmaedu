@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Copy, Check } from "lucide-react";
+import { CopyIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 
 export default function WaysToStudy() {
@@ -100,9 +100,9 @@ export default function WaysToStudy() {
                                     aria-label={t("devs.copy")}
                                 >
                                     {copied ? (
-                                        <Check className="w-4 h-4 text-success" />
+                                        <CheckCircleIcon className="w-4 h-4 text-success" />
                                     ) : (
-                                        <Copy className="w-4 h-4" />
+                                        <CopyIcon className="w-4 h-4" />
                                     )}
                                 </button>
                             </div>

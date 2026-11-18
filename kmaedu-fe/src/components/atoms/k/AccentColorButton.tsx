@@ -1,5 +1,5 @@
 import { Button } from "@/components/antd/button";
-import { Check } from "lucide-react";
+import { CheckIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface AccentColorButtonProps {
@@ -29,7 +29,7 @@ export function AccentColorButton({
         ...(isSelected && { borderColor: color }),
       }}
       title={colorName}>
-      {isSelected && <Check className="h-5 w-5 text-white drop-shadow-md" />}
+      {isSelected && <CheckIcon className="h-5 w-5 text-white drop-shadow-md" />}
     </Button>
   );
 }

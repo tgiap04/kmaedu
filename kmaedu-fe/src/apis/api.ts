@@ -4,6 +4,7 @@ import axios, {
   InternalAxiosRequestConfig,
   AxiosRequestConfig,
 } from "axios";
+import { validationMessage } from "@/lib/api-error-message";
 import { getOrCreateDeviceId } from "@/lib/deviceId";
 import { MODEL_UNAVAILABLE_MESSAGE } from "@/types/ai";
 import { env } from "@/lib/env";
@@ -248,6 +249,8 @@ api.interceptors.response.use(
         message?: string;
         error?: string;
         detail?: string | { message?: string; code?: string };
+        /** Field problems the backend adds to "Validation failed". */
+        details?: unknown;
       };
       const errorData = error.response.data as ErrorResponseData;
 
@@ -274,7 +277,7 @@ api.interceptors.response.use(
 
       if (errorData.message) {
         console.log("Backend Error:", errorData.message);
-        return Promise.reject(toApiError(errorData.message, error));
+        return Promise.reject(toApiError(validationMessage({ message: errorData.message, details: errorData.details }), error));
       }
 
       if (errorData.error) {

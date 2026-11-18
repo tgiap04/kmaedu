@@ -1,4 +1,4 @@
-import { Clock } from "lucide-react";
+import { ClockIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface CountdownTimerProps {
@@ -29,7 +29,7 @@ export function CountdownTimer({
         className
       )}>
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-purple-500">
-        <Clock className="h-8 w-8 text-white" />
+        <ClockIcon className="h-8 w-8 text-white" />
       </div>
       <div className="text-center">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>

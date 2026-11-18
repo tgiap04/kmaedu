@@ -1,5 +1,5 @@
 import { Badge } from "@/components/antd/badge";
-import { Crown } from "lucide-react";
+import { CrownIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface ContributorBadgeProps {
@@ -17,7 +17,7 @@ export function ContributorBadge({ rank, className }: ContributorBadgeProps) {
         "h-5 w-5 rounded-full border-0 bg-yellow-100 p-0",
         className
       )}>
-      <Crown className="h-3 w-3 text-yellow-600" />
+      <CrownIcon className="h-3 w-3 text-yellow-600" />
     </Badge>
   );
 }

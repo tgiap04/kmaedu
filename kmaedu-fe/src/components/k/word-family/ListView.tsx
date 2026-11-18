@@ -1,6 +1,6 @@
 import { Checkbox } from "antd";
 import type { WordFamilyWord } from "@/types/wordFamily";
-import { CaretDownOutlined, CaretRightOutlined } from "@ant-design/icons";
+import { CaretCircleDownIcon, CaretCircleRightIcon } from "@phosphor-icons/react";
 
 interface ListViewProps {
   words: WordFamilyWord[];
@@ -46,16 +46,16 @@ export function ListView({
               <button
                 type="button"
                 onClick={() => onToggleExpand(idx)}
-                className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md text-left text-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg text-left text-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
               >
                 {expandedWords.has(idx) ? (
-                  <CaretDownOutlined className="text-muted-foreground" />
+                  <CaretCircleDownIcon size={14} className="text-muted-foreground" />
                 ) : (
-                  <CaretRightOutlined className="text-muted-foreground" />
+                  <CaretCircleRightIcon size={14} className="text-muted-foreground" />
                 )}
                 <span className="font-semibold text-ink">{word.word}</span>
                 {word.pos && (
-                  <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
+                  <span className="rounded-lg bg-brand-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
                     {word.pos}
                   </span>
                 )}
@@ -63,7 +63,7 @@ export function ListView({
             </div>
 
             {expandedWords.has(idx) && (
-              <div className="ml-9 mt-1.5 space-y-2 rounded-xl border border-hairline-soft bg-surface-soft px-3.5 py-3 text-[13px] leading-relaxed">
+              <div className="ml-9 mt-1.5 space-y-2 rounded-lg border border-hairline-soft bg-surface-soft px-3.5 py-3 text-[13px] leading-relaxed">
                 <p className="flex gap-2">
                   <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Nghĩa

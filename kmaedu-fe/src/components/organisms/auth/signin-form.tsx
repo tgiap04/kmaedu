@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { IconBrandGoogle } from "@tabler/icons-react";
-import { Eye, EyeOff } from "lucide-react";
+import { GoogleLogoIcon, EyeIcon, EyeSlashIcon  } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/stores/useAuthStore";
 import Logo from "@/components/atoms/Logo";
@@ -39,7 +38,7 @@ export function SigninForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas landing-dot-paper p-4">
       <div className="w-full max-w-md">
-        <div className="rounded-[16px] border border-hairline bg-canvas p-8 shadow-[0_18px_48px_rgba(20,20,19,0.08)]">
+        <div className="rounded-lg border border-hairline bg-canvas p-8 shadow-[0_18px_48px_rgba(20,20,19,0.08)]">
           <div className="mb-8 text-center">
             <div className="mx-auto mb-5 flex justify-center">
               <Logo sizeLogo={36} sizeText={22} />
@@ -59,7 +58,7 @@ export function SigninForm() {
               </label>
               <input
                 name="credential"
-                className="h-10 w-full rounded-[8px] border border-hairline bg-canvas px-3 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
+                className="h-10 w-full rounded-lg border border-hairline bg-canvas px-3 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
                 placeholder={t("login.credential.placeholder")}
               />
             </div>
@@ -80,7 +79,7 @@ export function SigninForm() {
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  className="h-10 w-full rounded-[8px] border border-hairline bg-canvas px-3 pr-12 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
+                  className="h-10 w-full rounded-lg border border-hairline bg-canvas px-3 pr-12 text-[14px] text-ink placeholder:text-muted-foreground focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/15"
                   placeholder={t("login.password.placeholder")}
                 />
                 <button
@@ -88,14 +87,14 @@ export function SigninForm() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-ink"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeSlashIcon size={16} /> : <EyeIcon size={16} />}
                 </button>
               </div>
             </div>
 
             <button
               type="submit"
-              className="flex h-9 w-full items-center justify-center gap-2 rounded-[8px] bg-brand-soft px-4 text-[14px] font-medium text-brand-strong transition-colors hover:bg-brand-soft-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-brand-soft px-4 text-[14px] font-medium text-brand-strong transition-colors hover:bg-brand-soft-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t("login.submit")}
             </button>
@@ -110,11 +109,11 @@ export function SigninForm() {
           </div>
 
           <button
-            className="flex h-9 w-full items-center justify-center gap-2 rounded-[8px] border border-hairline bg-canvas text-[14px] font-medium text-body transition-colors hover:bg-surface-soft disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-hairline bg-canvas text-[14px] font-medium text-body transition-colors hover:bg-surface-soft disabled:opacity-50 disabled:cursor-not-allowed"
             type="button"
             onClick={() => loginWithGoogle?.()}
           >
-            <IconBrandGoogle className="h-4 w-4" />
+            <GoogleLogoIcon className="h-4 w-4" />
             <span>Google</span>
           </button>
 

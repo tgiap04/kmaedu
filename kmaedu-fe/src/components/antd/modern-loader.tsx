@@ -92,7 +92,7 @@ const ModernLoader: React.FC<ModernLoaderProps> = ({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
-        className="relative bg-background h-[300px] rounded-2xl shadow-2xl overflow-hidden border border-border"
+        className="relative bg-background h-[300px] rounded-lg shadow-2xl overflow-hidden border border-border"
       >
         <div className="px-4 py-3 flex items-center z-10 relative">
           <div className="flex items-center gap-1.5">
@@ -149,7 +149,7 @@ const ModernLoader: React.FC<ModernLoaderProps> = ({
                             initial={{ width: 0 }}
                             animate={{ width: seg.width }}
                             transition={{ duration: 0.25, ease: "easeOut" }}
-                            className={cn("h-3 rounded-sm opacity-50", seg.color)}
+                            className={cn("h-3 rounded-lg opacity-50", seg.color)}
                             style={{ width: seg.width }}
                           />
                         )
@@ -158,7 +158,7 @@ const ModernLoader: React.FC<ModernLoaderProps> = ({
 
                     {(actualIndex + 1) % 6 === 0 && (
                       <motion.div
-                        className="w-full h-1 bg-background rounded-sm opacity-30"
+                        className="w-full h-1 bg-background rounded-lg opacity-30"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}

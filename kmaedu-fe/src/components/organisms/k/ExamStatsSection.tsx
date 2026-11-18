@@ -1,16 +1,12 @@
 import { memo } from "react";
-import { FileText, CheckCircle, HelpCircle } from "lucide-react";
-import { HistoryStatCard } from "@/components/molecules/HistoryStatCard";
+import { ListChecksIcon, LockSimpleIcon, ExamIcon, GlobeIcon } from "@phosphor-icons/react";
+import { ExamOverviewStatCard } from "./exam-overview-stat-card";
 
-interface ExamStatsData {
+export interface ExamStatsData {
   totalExams: number;
-  totalExamsTrend: number;
-  activeExams: number;
-  activeExamsTrend: number;
+  publicExams: number;
   totalQuestions: number;
-  totalQuestionsTrend: number;
-  completionRate: number;
-  completionRateTrend: number;
+  privateExams: number;
 }
 
 interface ExamStatsSectionProps {
@@ -19,25 +15,11 @@ interface ExamStatsSectionProps {
 
 const ExamStatsSectionComponent = ({ stats }: ExamStatsSectionProps) => {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <HistoryStatCard
-        title="Tổng số đề"
-        value={stats.totalExams}
-        icon={FileText}
-        tone="red"
-      />
-      <HistoryStatCard
-        title="Đề đang hoạt động"
-        value={stats.activeExams}
-        icon={CheckCircle}
-        tone="green"
-      />
-      <HistoryStatCard
-        title="Tổng câu hỏi"
-        value={stats.totalQuestions}
-        icon={HelpCircle}
-        tone="amber"
-      />
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <ExamOverviewStatCard title="Tổng số đề thi" value={stats.totalExams} icon={ExamIcon} tone="red" />
+      <ExamOverviewStatCard title="Đề công khai" value={stats.publicExams} icon={GlobeIcon} tone="green" />
+      <ExamOverviewStatCard title="Tổng câu hỏi" value={stats.totalQuestions} icon={ListChecksIcon} tone="amber" />
+      <ExamOverviewStatCard title="Đề riêng tư" value={stats.privateExams} icon={LockSimpleIcon} tone="violet" />
     </div>
   );
 };

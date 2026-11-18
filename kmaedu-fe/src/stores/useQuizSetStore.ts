@@ -42,7 +42,8 @@ interface QuizSetState {
     id: string,
     credentials: CredentialsQuizSet
   ) => Promise<void>;
-  deleteQuizSet: (id: string) => Promise<void>;
+  /** True when deleted. `quiet` skips the success toast (the caller sums up); failures are always toasted. */
+  deleteQuizSet: (id: string, options?: { quiet?: boolean }) => Promise<boolean>;
   setQuizzesToQuizset: (
     credentials: CredentialsSetQuizToQuizset
   ) => Promise<void>;
@@ -243,7 +244,7 @@ export const useQuizSetStore = create<QuizSetState>((set) => ({
     }
   },
 
-  deleteQuizSet: async (id: string) => {
+  deleteQuizSet: async (id: string, options = {}) => {
     set({ loading: true });
     try {
       await deleteQuizSetApi(id);
@@ -252,15 +253,17 @@ export const useQuizSetStore = create<QuizSetState>((set) => ({
         currentQuizSet:
           state.currentQuizSet?.id === id ? null : state.currentQuizSet,
       }));
-      toast.success("Xóa bộ đề thành công");
+      if (!options.quiet) toast.success("Xóa bộ đề thành công");
 
       // Invalidate cache sau khi xóa
       storeCache.invalidate("quizsets");
+      return true;
     } catch (error) {
       toast.error("Xóa bộ đề thất bại", {
         description: (error as Error).message,
       });
       console.error("Xóa bộ đề thất bại:", error);
+      return false;
     } finally {
       set({ loading: false });
     }

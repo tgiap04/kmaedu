@@ -21,7 +21,7 @@ interface TableSkeletonLoaderProps {
   showSearchBar?: boolean;
 }
 
-const cardClass = "rounded-[20px] border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]";
+const cardClass = "rounded-lg border border-hairline bg-canvas shadow-[0_4px_20px_rgba(15,23,42,0.04)]";
 
 /** Loading state shaped like the /k management pages: header, stat tiles, filter bar, list card. */
 export function TableSkeletonLoader({
@@ -32,18 +32,18 @@ export function TableSkeletonLoader({
   return (
     <div className="flex flex-col gap-5" aria-busy="true">
       <div className="mb-1 flex flex-wrap items-center gap-4">
-        <Skeleton className="size-16 rounded-2xl" />
+        <Skeleton className="size-16 rounded-lg" />
         <div className="flex-1 space-y-2">
           <Skeleton className="h-8 w-56" />
           <Skeleton className="h-4 w-full max-w-sm" />
         </div>
-        <Skeleton className="h-10 w-32 rounded-full" />
+        <Skeleton className="h-10 w-32 rounded-lg" />
       </div>
 
       {showStats && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="rounded-2xl border border-hairline bg-canvas p-5 shadow-soft">
+            <div key={index} className="rounded-lg border border-hairline bg-canvas p-5 shadow-soft">
               <div className="flex items-center gap-3">
                 <Skeleton className="size-9 rounded-lg" />
                 <Skeleton className="h-4 w-24" />

@@ -145,7 +145,7 @@ export function FloatingDock({
                   to={item.href}
                   onClick={() => setShowSecondary(false)}
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl transition-colors",
+                    "flex items-center gap-3 p-3 rounded-lg transition-colors",
                     item.active
                       ? "bg-coral/10 text-brand-strong"
                       : "text-ink hover:bg-surface-soft"

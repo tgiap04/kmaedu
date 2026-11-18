@@ -1,5 +1,4 @@
-import type { LucideIcon } from "lucide-react";
-import { ArrowRight } from "lucide-react";
+import { type Icon as AppIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -8,7 +7,7 @@ export type HistoryStatTone = "red" | "amber" | "green" | "blue";
 interface HistoryStatCardProps {
   title: string;
   value: number | string;
-  icon: LucideIcon;
+  icon: AppIcon;
   tone: HistoryStatTone;
   /** Where the arrow button leads; no arrow when the viewer cannot open that page. */
   to?: string;
@@ -25,16 +24,16 @@ export function HistoryStatCard({ title, value, icon: Icon, tone, to }: HistoryS
   const colors = toneClass[tone];
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-hairline bg-canvas p-5 shadow-soft">
+    <div className="relative overflow-hidden rounded-lg border border-hairline bg-canvas p-5 shadow-soft">
       {/* Faded watermark of the same icon, as in the brand mock */}
       <Icon
         className={cn("pointer-events-none absolute -right-2 top-1/2 size-24 -translate-y-1/2 opacity-[0.07]", colors.mark)}
-        strokeWidth={1.5}
+        weight="duotone"
         aria-hidden
       />
       <div className="relative flex items-center gap-3">
         <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", colors.tile)}>
-          <Icon className="size-[18px]" aria-hidden />
+          <Icon className="size-[18px]" weight="duotone" aria-hidden />
         </span>
         <p className="truncate text-sm font-medium text-body">{title}</p>
       </div>
@@ -49,7 +48,7 @@ export function HistoryStatCard({ title, value, icon: Icon, tone, to }: HistoryS
               colors.arrow,
             )}
           >
-            <ArrowRight className="size-4" aria-hidden />
+            <ArrowRightIcon className="size-4" aria-hidden />
           </Link>
         )}
       </div>

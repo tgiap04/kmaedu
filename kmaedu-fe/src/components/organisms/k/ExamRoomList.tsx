@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { DoorOpen, Eye, Pencil, Trash2 } from "lucide-react";
+import { DoorOpenIcon, EyeIcon, PencilSimpleIcon, TrashIcon } from "@phosphor-icons/react";
 import { ItemRow, type RowAction } from "@/components/k-page/item-row";
 import { SectionCard, SectionMessage } from "@/components/k-page/section-card";
 
@@ -29,22 +29,22 @@ const ExamRoomListComponent = ({
   onDeleteRoom,
 }: ExamRoomListProps) => {
   return (
-    <SectionCard icon={<DoorOpen />} title="Danh sách phòng thi" countLabel={`${rooms.length} phòng thi`}>
+    <SectionCard icon={<DoorOpenIcon />} title="Danh sách phòng thi" countLabel={`${rooms.length} phòng thi`}>
       {rooms.length === 0 ? (
         <SectionMessage title="Chưa có phòng thi nào" hint="Bấm “Tạo phòng thi mới” để bắt đầu." />
       ) : (
         rooms.map((room) => {
           const menu: RowAction[] = [];
-          if (onEditRoom) menu.push({ label: "Chỉnh sửa", icon: Pencil, onClick: () => onEditRoom(room.id) });
-          if (onDeleteRoom) menu.push({ label: "Xóa", icon: Trash2, onClick: () => onDeleteRoom(room.id), destructive: true });
+          if (onEditRoom) menu.push({ label: "Chỉnh sửa", icon: PencilSimpleIcon, onClick: () => onEditRoom(room.id) });
+          if (onDeleteRoom) menu.push({ label: "Xóa", icon: TrashIcon, onClick: () => onDeleteRoom(room.id), destructive: true });
           return (
             <ItemRow
               key={room.id}
-              icon={<DoorOpen />}
+              icon={<DoorOpenIcon />}
               tone="red"
               title={room.name}
               meta={[`Bộ đề: ${room.roomType}`, `${room.questionCount} câu`, room.isPrivate ? "Riêng tư" : ""]}
-              action={{ label: "Xem chi tiết", icon: Eye, onClick: () => onViewRoom(room.id), variant: "neutral" }}
+              action={{ label: "Xem chi tiết", icon: EyeIcon, onClick: () => onViewRoom(room.id), variant: "neutral" }}
               menu={menu}
             />
           );

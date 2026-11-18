@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { PencilSimpleIcon, TrashIcon } from "@phosphor-icons/react";
 import { RichTextViewer } from "@/components/molecules/RichTextViewer";
 import { cn } from "@/lib/utils";
 import type { Flashcard } from "@/types/flashcardSet";
@@ -17,13 +17,13 @@ const iconBtn =
 /** One flashcard tile: number + label chip, question / answer and edit / delete. */
 export function FlashcardGridCard({ card, number, disabled, onEdit, onDelete }: Props) {
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-hairline bg-canvas p-4 transition-colors duration-200 hover:border-brand-border">
+    <div className="flex h-full flex-col rounded-lg border border-hairline bg-canvas p-4 transition-colors duration-200 hover:border-brand-border">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 rounded-full border border-hairline bg-surface-soft px-2.5 py-0.5 text-xs font-medium text-body">Thẻ {number}</span>
+          <span className="shrink-0 rounded-lg border border-hairline bg-surface-soft px-2.5 py-0.5 text-xs font-medium text-body">Thẻ {number}</span>
           {card.label && (
             <span
-              className="inline-flex min-w-0 items-center gap-1 truncate rounded-full border px-2.5 py-0.5 text-xs font-medium"
+              className="inline-flex min-w-0 items-center gap-1 truncate rounded-lg border px-2.5 py-0.5 text-xs font-medium"
               style={{
                 backgroundColor: card.label.color ? `${card.label.color}20` : undefined,
                 borderColor: card.label.color || undefined,
@@ -36,10 +36,10 @@ export function FlashcardGridCard({ card, number, disabled, onEdit, onDelete }: 
         </div>
         <div className="flex shrink-0 gap-1">
           <button type="button" onClick={onEdit} disabled={disabled} aria-label="Sửa thẻ" className={iconBtn}>
-            <Pencil className="size-3.5" aria-hidden />
+            <PencilSimpleIcon className="size-3.5" aria-hidden />
           </button>
           <button type="button" onClick={onDelete} disabled={disabled} aria-label="Xóa thẻ" className={cn(iconBtn, "text-destructive hover:text-destructive")}>
-            <Trash2 className="size-3.5" aria-hidden />
+            <TrashIcon className="size-3.5" aria-hidden />
           </button>
         </div>
       </div>

@@ -1,20 +1,7 @@
 "use client";
 import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  BookOpen,
-  Clock as ClockIcon,
-  Coins as TokensIcon,
-  GraduationCap,
-  ArrowRight,
-  LogOut,
-  Network,
-  PanelsTopLeft as CardStackIcon,
-  Rocket as RocketIcon,
-  ScrollText as ReaderIcon,
-  Shield as AdminIcon,
-  DoorOpen as StudyRoomIcon,
-} from "lucide-react";
+import { BooksIcon, CardsIcon, ClockCounterClockwiseIcon, DoorOpenIcon, ExamIcon, NotePencilIcon, ShieldStarIcon, SignOutIcon, SparkleIcon, TranslateIcon, UsersThreeIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { FloatingDock } from "@/components/atoms/k/FloatingDock";
 import ProfileDropdown from "@/components/atoms/ProfileDropdown";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -52,17 +39,18 @@ interface SidebarItem {
 }
 
 const ICON_CLASS = "h-[22px] w-[22px]";
+// One icon per section, picked for what it holds; two-tone like the other decorative icons.
 const NAV_ICONS: Record<string, React.ReactNode> = {
-  "ai-tool": <RocketIcon className={ICON_CLASS} />,
-  "word-family": <Network className={ICON_CLASS} />,
-  "my-materials": <BookOpen className={ICON_CLASS} />,
-  "my-exams": <GraduationCap className={ICON_CLASS} />,
-  "manage-exam": <ReaderIcon className={ICON_CLASS} />,
-  "flash-card": <CardStackIcon className={ICON_CLASS} />,
-  "manage-exam-room": <TokensIcon className={ICON_CLASS} />,
-  "study-room": <StudyRoomIcon className={ICON_CLASS} />,
-  history: <ClockIcon className={ICON_CLASS} />,
-  admin: <AdminIcon className={ICON_CLASS} />,
+  "ai-tool": <SparkleIcon className={ICON_CLASS} weight="duotone" />,
+  "word-family": <TranslateIcon className={ICON_CLASS} weight="duotone" />,
+  "my-materials": <BooksIcon className={ICON_CLASS} weight="duotone" />,
+  "my-exams": <NotePencilIcon className={ICON_CLASS} weight="duotone" />,
+  "manage-exam": <ExamIcon className={ICON_CLASS} weight="duotone" />,
+  "flash-card": <CardsIcon className={ICON_CLASS} weight="duotone" />,
+  "manage-exam-room": <DoorOpenIcon className={ICON_CLASS} weight="duotone" />,
+  "study-room": <UsersThreeIcon className={ICON_CLASS} weight="duotone" />,
+  history: <ClockCounterClockwiseIcon className={ICON_CLASS} weight="duotone" />,
+  admin: <ShieldStarIcon className={ICON_CLASS} weight="duotone" />,
 };
 
 // Which routes light up an item (an item owns its detail pages too).
@@ -181,7 +169,7 @@ export function SidebarKit({ collapsed = false }: SidebarKitProps) {
         <span className={sidebarIconClass(item.active)}>{item.icon}</span>
         {!collapsed && <span className="truncate">{item.label}</span>}
         {collapsed && (
-          <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-surface-dark px-2 py-1 text-xs font-medium text-on-dark opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+          <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-lg bg-surface-dark px-2 py-1 text-xs font-medium text-on-dark opacity-0 shadow-md transition-opacity group-hover:opacity-100">
             {item.label}
           </span>
         )}
@@ -236,7 +224,7 @@ export function SidebarKit({ collapsed = false }: SidebarKitProps) {
                     <span className="block whitespace-nowrap text-[11.5px] text-body">kiến tạo tương lai tri thức</span>
                   </span>
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-canvas text-coral shadow-[0_2px_8px_rgba(15,23,42,0.08)] transition-transform duration-200 group-hover:translate-x-0.5">
-                    <ArrowRight className="h-4 w-4" strokeWidth={2.4} />
+                    <ArrowRightIcon className="h-4 w-4" />
                   </span>
                 </Link>
                 <button
@@ -264,9 +252,9 @@ export function SidebarKit({ collapsed = false }: SidebarKitProps) {
                   aria-label="Đăng xuất"
                   className="!h-10 !w-10 !text-body hover:!bg-red-50 hover:!text-red-700 [&>svg]:!size-5"
                 >
-                  <LogOut />
+                  <SignOutIcon />
                 </Button>
-                <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-surface-dark px-2 py-1 text-xs font-medium text-on-dark opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+                <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-surface-dark px-2 py-1 text-xs font-medium text-on-dark opacity-0 shadow-md transition-opacity group-hover:opacity-100">
                   Đăng xuất
                 </span>
               </div>

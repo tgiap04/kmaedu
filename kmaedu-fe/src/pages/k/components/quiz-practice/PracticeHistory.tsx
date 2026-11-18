@@ -1,4 +1,4 @@
-import { History, Eye } from "lucide-react";
+import { ClockCounterClockwiseIcon, EyeIcon } from "@phosphor-icons/react";
 import { ItemRow } from "@/components/k-page/item-row";
 import { RowsSkeleton, SectionCard, SectionMessage } from "@/components/k-page/section-card";
 import { formatDuration } from "@/lib/quiz-practice/progress";
@@ -13,7 +13,7 @@ interface PracticeHistoryProps {
 
 export function PracticeHistory({ attempts, error, onOpen, onRetry }: PracticeHistoryProps) {
   return (
-    <SectionCard icon={<History />} title="Lịch sử luyện tập" countLabel={attempts?.length ? `${attempts.length} lượt` : undefined}>
+    <SectionCard icon={<ClockCounterClockwiseIcon />} title="Lịch sử luyện tập" countLabel={attempts?.length ? `${attempts.length} lượt` : undefined}>
       {error ? (
         <SectionMessage title="Không thể tải lịch sử luyện tập" onRetry={onRetry} />
       ) : attempts === null ? (
@@ -24,11 +24,11 @@ export function PracticeHistory({ attempts, error, onOpen, onRetry }: PracticeHi
         attempts.map((a) => (
           <ItemRow
             key={a.id}
-            icon={<History />}
+            icon={<ClockCounterClockwiseIcon />}
             tone="indigo"
             title={`${a.score ?? 0}/10 · đúng ${a.correctAnswers}/${a.totalQuestions}`}
             meta={[a.submittedAt ? new Date(a.submittedAt).toLocaleString("vi-VN") : "", formatDuration(a.timeSpentSeconds)]}
-            action={{ label: "Xem lại", icon: Eye, onClick: () => onOpen(a.id), variant: "neutral" }}
+            action={{ label: "Xem lại", icon: EyeIcon, onClick: () => onOpen(a.id), variant: "neutral" }}
           />
         ))
       )}

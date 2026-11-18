@@ -1,10 +1,10 @@
-import { LucideIcon } from "lucide-react";
+import type { Icon as AppIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   title: string;
   value: number | string;
-  icon: LucideIcon;
+  icon: AppIcon;
   iconColor: string;
   iconBgColor: string;
   trend?: number;
@@ -30,7 +30,7 @@ export function StatCard({
       )}>
       <div className="flex items-start mb-2">
         <div className={cn("rounded-lg py-2.5 pr-2.5 flex items-center justify-center gap-x-2")}>
-          <Icon className={cn("h-5 w-5", iconColor)} />
+          <Icon className={cn("h-5 w-5", iconColor)} weight="duotone" />
           <div className="text-xs text-muted-foreground md:text-sm line-clamp-2">{title}</div>
         </div>
       </div>

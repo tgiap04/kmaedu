@@ -60,7 +60,7 @@ export function CreateFlashcardModal({
         <p>
           Tạo bộ flashcard từ <strong>{selectedCount}</strong> từ đã chọn:
         </p>
-        <p className="rounded-md bg-canvas px-3 py-2 text-ink/70">
+        <p className="rounded-lg bg-canvas px-3 py-2 text-ink/70">
           Tên deck: <strong>Gia đình từ: {rootWord}</strong>
         </p>
         <p className="text-xs text-ink/50">
