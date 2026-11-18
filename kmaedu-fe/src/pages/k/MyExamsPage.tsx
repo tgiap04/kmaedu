@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { NotePencilIcon, DoorOpenIcon } from "@phosphor-icons/react";
+import { ClipboardTextIcon } from "@phosphor-icons/react"
 import { type RecentExamAttempt, togglePinExamRoomApi } from "@/apis/studentMaterialsApi"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/antd/dialog"
-import { Skeleton } from "@/components/antd/skeleton"
 import { useToast } from "@/components/antd/toast"
 import { PageHeader } from "@/components/k-page/page-header"
-import { SectionCard, SectionMessage } from "@/components/k-page/section-card"
+import { SectionMessage, ViewAllButton } from "@/components/k-page/section-card"
 import { useStudentMaterialsStore } from "@/stores/useStudentMaterialsStore"
-import { groupBySession, sortWithPinnedFirst, type SessionSummary } from "./my-exams-types"
+import { examOverview, groupBySession, myExamsView, sortWithPinnedFirst, splitByProgress, type SessionSummary } from "./my-exams-types"
+import { ContinueExamCard } from "./components/continue-exam-card"
+import { MyExamsSkeleton, OverviewPills, OverviewPillsSkeleton, SectionHeading } from "./components/my-exams-sections"
 import { ExamsPagination } from "./components/my-exams-pagination"
 import { SessionCard } from "./components/session-card"
 import { SessionHistoryDialog } from "./components/session-history-dialog"
@@ -25,6 +26,10 @@ export default function MyExamsPage() {
   const [examAttempts, setExamAttempts] = useState<RecentExamAttempt[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+  const [expandedByUser, setExpanded] = useState(false)
+  /** Only the newest load may write state: a slow answer for a page already left is dropped. */
+  const latestLoad = useRef(0)
   const [historyDialog, setHistoryDialog] = useState<{ open: boolean; session: SessionSummary | null }>({
     open: false,
     session: null,
@@ -34,18 +39,29 @@ export default function MyExamsPage() {
     () => sortWithPinnedFirst(groupBySession(examAttempts)),
     [examAttempts],
   )
+  const { continuing, others } = useMemo(() => splitByProgress(sessions), [sessions])
+  const overview = useMemo(() => examOverview(sessions), [sessions])
 
   const fetchExams = useCallback(
     async (page: number) => {
+      const load = ++latestLoad.current
       try {
         setLoading(true)
+        setFailed(false)
         const data = await fetchExamsFromStore(page, PAGE_SIZE)
+        if (load !== latestLoad.current) return
         setExamAttempts(data.examAttempts)
         setTotal(data.total)
-      } catch {
+      } catch (error) {
+        if (load !== latestLoad.current) return
+        console.error("[my-exams] load failed", error)
+        // Never leave another page's rooms under this page number.
+        setExamAttempts([])
+        setTotal(0)
+        setFailed(true)
         toast.error("Không thể tải lịch sử thi")
       } finally {
-        setLoading(false)
+        if (load === latestLoad.current) setLoading(false)
       }
     },
     [fetchExamsFromStore, toast],
@@ -56,6 +72,8 @@ export default function MyExamsPage() {
   }, [currentPage, fetchExams])
 
   const handlePageChange = (page: number) => {
+    // Paging happens in the full list; keep it open on the way back to page 1.
+    setExpanded(true)
     setSearchParams({ page: String(page) })
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
@@ -79,56 +97,74 @@ export default function MyExamsPage() {
     }
   }
 
-  const totalPages = Math.ceil(total / PAGE_SIZE)
+  const openHistory = (session: SessionSummary) => setHistoryDialog({ open: true, session })
 
-  if (loading) {
-    return (
-      <div className="relative text-foreground">
-        <PageHeader icon={<NotePencilIcon />} title="Bài thi của tôi" subtitle="Danh sách các phòng thi đã tham gia" />
-        <SectionCard icon={<DoorOpenIcon />} title="Phòng thi đã tham gia" plain>
-          <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:p-5 lg:grid-cols-3">
-            {Array.from({ length: 6 }, (_, i) => (
-              <Skeleton key={i} className="h-[240px] rounded-lg" />
-            ))}
-          </div>
-        </SectionCard>
-      </div>
-    )
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+  const view = myExamsView({ expandedByUser, page: currentPage, othersCount: others.length, totalPages, failed })
+  const { expanded } = view
+  const visibleOthers = others.slice(0, view.visibleOthers)
+
+  const toggleExpanded = () => {
+    // Collapsing from page 2+ goes back to the first page, where the preview lives.
+    if (expanded && currentPage > 1) setSearchParams({})
+    setExpanded(!expanded)
   }
 
   return (
     <div className="relative text-foreground">
-      <PageHeader icon={<NotePencilIcon />} title="Bài thi của tôi" subtitle="Danh sách các phòng thi đã tham gia" />
+      <PageHeader
+        icon={<ClipboardTextIcon />}
+        title="Bài thi của tôi"
+        subtitle="Danh sách các phòng thi đã tham gia"
+        actions={loading ? <OverviewPillsSkeleton /> : view.showOverview ? <OverviewPills overview={overview} /> : undefined}
+      />
 
-      <SectionCard
-        icon={<DoorOpenIcon />}
-        title="Phòng thi đã tham gia"
-        countLabel={sessions.length > 0 ? `${sessions.length} phòng thi` : undefined}
-        plain
-      >
-        {sessions.length === 0 ? (
-          <SectionMessage title="Chưa có bài thi nào" hint="Tham gia phòng thi để bắt đầu" />
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:p-5 lg:grid-cols-3">
-              {sessions.map((session) => (
-                <div
-                  key={session.examSessionId}
-                  className="transition-all duration-300 ease-out"
-                  style={{ order: session.isPinned ? 0 : 1 }}
-                >
+      {loading ? (
+        <MyExamsSkeleton />
+      ) : sessions.length === 0 ? (
+        <div className="rounded-lg border border-hairline bg-canvas">
+          {failed
+            ? <SectionMessage title="Không tải được danh sách bài thi" onRetry={() => fetchExams(currentPage)} />
+            : <SectionMessage title="Chưa có bài thi nào" hint="Tham gia phòng thi để bắt đầu" />}
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {continuing.length > 0 && (
+            <section aria-labelledby="my-exams-continue">
+              <SectionHeading id="my-exams-continue" title="Tiếp tục học" />
+              <div className="space-y-4">
+                {continuing.map((session) => (
+                  <ContinueExamCard key={session.examSessionId} session={session} onViewHistory={openHistory} onTogglePin={handleTogglePin} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {others.length > 0 && (
+            <section aria-labelledby="my-exams-others" className="@container">
+              <SectionHeading
+                id="my-exams-others"
+                title={continuing.length > 0 ? "Các bài thi khác" : "Bài thi đã làm"}
+                action={view.canExpand ? <ViewAllButton expanded={expanded} onToggle={toggleExpanded} /> : undefined}
+              />
+              <div className="grid grid-cols-1 gap-4 @3xl:grid-cols-2">
+                {visibleOthers.map((session) => (
                   <SessionCard
+                    key={session.examSessionId}
                     session={session}
-                    onViewHistory={(s) => setHistoryDialog({ open: true, session: s })}
+                    onViewHistory={openHistory}
                     onTogglePin={handleTogglePin}
                   />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {view.showPager && (
             <ExamsPagination page={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-          </>
-        )}
-      </SectionCard>
+          )}
+        </div>
+      )}
 
       <Dialog
         open={historyDialog.open}

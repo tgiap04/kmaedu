@@ -1,4 +1,5 @@
 import type { RecentExamAttempt } from "@/apis/studentMaterialsApi"
+import { formatTimeAgo } from "@/lib/history/history-format"
 
 export interface SessionSummary {
   examSessionId: string
@@ -74,3 +75,70 @@ export function sortWithPinnedFirst(sessions: SessionSummary[]): SessionSummary[
   ]
 }
 
+
+export interface ExamOverview {
+  total: number
+  inProgress: number
+  completed: number
+}
+
+/** Header counts: rooms joined, rooms with an attempt still open, rooms finished at least once. */
+export function examOverview(sessions: SessionSummary[]): ExamOverview {
+  return {
+    total: sessions.length,
+    inProgress: sessions.filter((s) => s.hasInProgress).length,
+    completed: sessions.filter((s) => s.bestScore !== null).length,
+  }
+}
+
+/** Rooms with an open attempt go to "Tiếp tục học"; both groups keep the incoming order (pinned first). */
+export function splitByProgress(sessions: SessionSummary[]): { continuing: SessionSummary[]; others: SessionSummary[] } {
+  return {
+    continuing: sessions.filter((s) => s.hasInProgress),
+    others: sessions.filter((s) => !s.hasInProgress),
+  }
+}
+
+/** A slot in [0, size) that never changes for the same key (picks a room's tile icon). */
+export function stableIndex(key: string, size: number): number {
+  let hash = 0
+  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0
+  return Math.abs(hash) % size
+}
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
+/** "5 phút trước" for the last week (shared wording), then the date itself (d/m/yyyy); "" when the date cannot be read. */
+export function formatAttemptTime(dateString: string, now: Date = new Date()): string {
+  const time = new Date(dateString).getTime()
+  if (Number.isNaN(time)) return ""
+  if (now.getTime() - time >= WEEK_MS) return new Date(time).toLocaleDateString("vi-VN")
+  return formatTimeAgo(dateString, now)
+}
+
+/** Two rows of two cards before "Xem tất cả". */
+export const PREVIEW_COUNT = 4
+
+export interface MyExamsViewInput {
+  expandedByUser: boolean
+  page: number
+  othersCount: number
+  totalPages: number
+  failed: boolean
+}
+
+/**
+ * What the page shows: page 2+ only exists in the full list, the pager belongs to the full list (or to a page
+ * holding only rooms in progress), and the header counts are shown only when the loaded page is the whole list.
+ */
+export function myExamsView({ expandedByUser, page, othersCount, totalPages, failed }: MyExamsViewInput) {
+  const expanded = expandedByUser || page > 1
+  const canExpand = othersCount > PREVIEW_COUNT || totalPages > 1
+  return {
+    expanded,
+    canExpand,
+    visibleOthers: expanded || !canExpand ? othersCount : Math.min(othersCount, PREVIEW_COUNT),
+    showPager: expanded || othersCount === 0,
+    showOverview: !failed && totalPages <= 1,
+  }
+}

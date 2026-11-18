@@ -1,29 +1,98 @@
-import { WarningCircleIcon, CalendarBlankIcon, ClockCounterClockwiseIcon, PushPinIcon, PushPinSlashIcon, PlayCircleIcon, TrophyIcon } from "@phosphor-icons/react";
+import type { ReactNode } from "react"
+import {
+  ArrowsClockwiseIcon,
+  BookOpenTextIcon,
+  CalendarBlankIcon,
+  ChartBarIcon,
+  ClipboardTextIcon,
+  ClockIcon,
+  DotsThreeIcon,
+  ExamIcon,
+  FolderIcon,
+  type Icon,
+  ListChecksIcon,
+  NotebookIcon,
+  PushPinIcon,
+  PushPinSlashIcon,
+  TrophyIcon,
+  WarningIcon,
+} from "@phosphor-icons/react"
 import { Button } from "@/components/antd/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/antd/dropdown-menu"
+import { DecorativeIcons } from "@/components/icons/icon-defaults"
 import { cn } from "@/lib/utils"
-import type { SessionSummary } from "../my-exams-types"
+import { formatAttemptTime, stableIndex, type SessionSummary } from "../my-exams-types"
 
-function getScoreColor(score: number): string {
-  if (score >= 80) return "text-success"
-  if (score >= 50) return "text-accent-amber"
-  return "text-error"
+/** Rooms carry no subject, so each one gets a fixed icon picked from its id. */
+const TILE_ICONS: Icon[] = [ExamIcon, ListChecksIcon, ClipboardTextIcon, NotebookIcon, FolderIcon, BookOpenTextIcon]
+
+/** Best score, number of attempts and best rate, split by thin dividers; results turn green once an attempt is finished. */
+export function ExamStats({ session, large, className }: { session: SessionSummary; large?: boolean; className?: string }) {
+  const finished = session.bestScore !== null
+  const stats: { icon: ReactNode; label: string; value: string; good: boolean }[] = [
+    { icon: <TrophyIcon />, label: "Điểm cao", value: session.bestScore === null ? "—" : session.bestScore.toFixed(1), good: finished },
+    { icon: <ArrowsClockwiseIcon />, label: "Số lần thi", value: String(session.attemptCount), good: false },
+    { icon: <ChartBarIcon />, label: "Tỷ lệ tốt", value: `${session.bestPercentage}%`, good: finished },
+  ]
+  return (
+    <dl className={cn("grid grid-cols-3 divide-x divide-hairline", className)}>
+      {stats.map((stat) => (
+        <div key={stat.label} className="flex min-w-0 flex-col items-center gap-0.5 px-2 text-center">
+          <dt className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground [&_svg]:size-4 [&_svg]:shrink-0">
+            {stat.icon}
+            <span className="truncate">{stat.label}</span>
+          </dt>
+          <dd className={cn("font-bold tabular-nums", large ? "text-xl" : "text-lg", stat.good ? "text-success" : "text-ink")}>
+            {stat.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
 }
 
-function formatTimeAgo(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / (1000 * 60))
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffMins < 1) return "Vừa xong"
-  if (diffMins < 60) return `${diffMins} phút trước`
-  if (diffHours < 24) return `${diffHours} giờ trước`
-  if (diffDays < 7) return `${diffDays} ngày trước`
-  return date.toLocaleDateString("vi-VN")
+/** Date of the last attempt, violations when there are any, then a status pill. */
+export function ExamMeta({ session, badge }: { session: SessionSummary; badge: ReactNode }) {
+  const when = formatAttemptTime(session.lastAttemptAt)
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
+      {when && (
+        <span className="inline-flex items-center gap-1.5">
+          <CalendarBlankIcon className="size-3.5" />
+          {when}
+        </span>
+      )}
+      {session.totalViolations > 0 && (
+        <span className="inline-flex items-center gap-1.5 text-error">
+          <WarningIcon className="size-3.5" />
+          {session.totalViolations} vi phạm
+        </span>
+      )}
+      {badge}
+    </div>
+  )
 }
 
+/** The ··· menu holding pin / unpin. */
+export function CardMenu({ session, onTogglePin, className }: { session: SessionSummary; onTogglePin: (s: SessionSummary) => void; className?: string }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon" className={cn("!h-7 !w-7", className)} aria-label={`Thao tác khác với "${session.title}"`}>
+          <DotsThreeIcon weight="bold" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onTogglePin(session)} className="cursor-pointer">
+          {session.isPinned ? <PushPinSlashIcon className="mr-2 size-4" /> : <PushPinIcon className="mr-2 size-4" />}
+          {session.isPinned ? "Bỏ ghim" : "Ghim lên đầu"}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+/** A room in "Các bài thi khác": icon tile, title with history and menu, then the three results. */
 export function SessionCard({
   session,
   onViewHistory,
@@ -33,119 +102,38 @@ export function SessionCard({
   onViewHistory: (s: SessionSummary) => void
   onTogglePin: (s: SessionSummary) => void
 }) {
+  const TileIcon = TILE_ICONS[stableIndex(session.examRoomId, TILE_ICONS.length)]
   return (
-    <article className="group relative flex h-[260px] flex-col rounded-lg border border-hairline bg-canvas p-5 shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-brand-border hover:shadow-[0_6px_24px_rgba(15,23,42,0.08)]">
-      {session.isPinned && (
-        <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-brand-soft text-brand">
-          <PushPinIcon className="h-3 w-3" />
+    <article className="flex h-full flex-col gap-4 rounded-lg border border-hairline bg-canvas p-4 shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition-colors hover:border-brand-border">
+      <div className="flex items-start gap-3">
+        <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-brand-soft-hover text-brand-strong sm:size-14 [&_svg]:size-6 sm:[&_svg]:size-7">
+          <DecorativeIcons>
+            <TileIcon />
+          </DecorativeIcons>
         </span>
-      )}
-
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-50">
-            <TrophyIcon className="h-[18px] w-[18px] text-amber-500" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="font-body text-[15px] font-medium leading-snug text-ink line-clamp-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <h3 className="line-clamp-2 min-w-0 flex-1 basis-40 text-base font-semibold leading-snug text-ink">
+              {session.isPinned && (
+                <PushPinIcon className="mr-1 inline size-3.5 align-[-1px] text-brand" aria-hidden={false} role="img" aria-label="Đã ghim" />
+              )}
               {session.title}
             </h3>
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <CalendarBlankIcon className="h-3 w-3" />
-                {formatTimeAgo(session.lastAttemptAt)}
-              </span>
-              {session.totalViolations > 0 && (
-                <span className="flex items-center gap-1 text-error">
-                  <WarningCircleIcon className="h-3 w-3" />
-                  {session.totalViolations} vi phạm
-                </span>
-              )}
+            <div className="flex shrink-0 items-center gap-1.5">
+              <Button variant="outline" size="sm" onClick={() => onViewHistory(session)}>
+                <ClockIcon />
+                Lịch sử
+              </Button>
+              <CardMenu session={session} onTogglePin={onTogglePin} />
             </div>
           </div>
-        </div>
-        {session.hasInProgress ? (
-          <div className="inline-flex items-center rounded-lg bg-coral/10 px-2.5 font-medium text-brand-strong w-fit flex items-center gap-x-2">
-            <PlayCircleIcon className="h-3 w-3" />
-            <p className="whitespace-nowrap text-xs !mt-2.5">Đang làm</p>
-          </div>
-        ) : (
-          <div className="inline-flex items-center gap-1 rounded-lg bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success w-fit flex items-center gap-x-2">
-            <p className="whitespace-nowrap text-xs !mt-2.5">{session.attemptCount} lần thi</p>
-          </div>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        <div className="rounded-lg border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
-          <p className={cn("text-lg font-semibold", session.bestScore !== null ? getScoreColor(session.bestScore) : "text-ink")}>
-            {session.bestScore !== null ? session.bestScore.toFixed(1) : "—"}
-          </p>
-          <p className="text-[10px] text-muted-foreground">Điểm cao</p>
-        </div>
-        <div className="rounded-lg border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
-          <p className="text-lg font-semibold text-ink">{session.attemptCount}</p>
-          <p className="text-[10px] text-muted-foreground">Số lần thi</p>
-        </div>
-        <div className="rounded-lg border border-hairline-soft bg-surface-soft px-3 py-2 text-center">
-          <p className="text-lg font-semibold text-ink">{session.bestPercentage}%</p>
-          <p className="text-[10px] text-muted-foreground">Tỷ lệ tốt</p>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="mt-3">
-        <div className="h-1 overflow-hidden rounded-lg bg-hairline">
-          <div
-            className="h-full rounded-lg bg-brand transition-all duration-300"
-            style={{ width: `${session.bestPercentage}%` }}
+          <ExamMeta
+            session={session}
+            badge={<span className="rounded-lg bg-success/10 px-2 py-0.5 text-xs font-medium text-success">{session.attemptCount} lần thi</span>}
           />
         </div>
       </div>
-
-      {/* Actions */}
-      <div className="mt-auto flex items-center justify-between border-t border-hairline-soft !pt-2 !mt-2">
-        <button
-          onClick={() => onTogglePin(session)}
-          className={cn(
-            "grid h-8 w-8 place-items-center rounded-lg transition-colors",
-            session.isPinned
-              ? "bg-coral/10 text-brand-strong hover:bg-coral/20"
-              : "text-muted-foreground hover:bg-surface-card hover:text-ink",
-          )}
-          aria-label={session.isPinned ? "Bỏ ghim" : "Ghim"}
-          title={session.isPinned ? "Bỏ ghim" : "Ghim"}
-        >
-          {session.isPinned ? <PushPinSlashIcon className="h-3.5 w-3.5" /> : <PushPinIcon className="h-3.5 w-3.5" />}
-        </button>
-        <div className="flex items-center gap-2">
-          {session.hasInProgress && (
-            <Button
-              onClick={() => {
-                const url = session.inProgressAttemptId
-                  ? `/exam-session/${session.examSessionId}/quiz?attemptId=${session.inProgressAttemptId}`
-                  : `/exam-session/${session.examSessionId}/quiz`
-                window.location.assign(url)
-              }}
-              size="sm"
-              className="h-8 px-3 text-xs"
-            >
-              <PlayCircleIcon className="mr-1.5 h-3.5 w-3.5" />
-              Tiếp tục
-            </Button>
-          )}
-          <Button
-            onClick={() => onViewHistory(session)}
-            variant="outline"
-            size="sm"
-            className="h-8 px-3 text-xs"
-          >
-            <ClockCounterClockwiseIcon className="mr-1.5 h-3.5 w-3.5" />
-            Lịch sử
-          </Button>
-        </div>
-      </div>
+      <ExamStats session={session} className="mt-auto" />
     </article>
   )
 }
