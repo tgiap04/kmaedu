@@ -66,6 +66,13 @@ export default antfu(
     },
   },
   {
+    // A mock of a hook module has to export the hook's own name (`useStatsStore`…) without calling hooks.
+    files: ["src/**/*.test.tsx"],
+    rules: {
+      "react-hooks-extra/no-unnecessary-use-prefix": "off",
+    },
+  },
+  {
     // Without `files`, they are general rules for all files
     rules: {
       "style/semi": "off",

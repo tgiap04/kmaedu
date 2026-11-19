@@ -5,8 +5,10 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
+      // Pure logic runs in node; a component / hook test opts into the DOM with `// @vitest-environment jsdom`.
       environment: "node",
-      include: ["src/**/*.test.ts"],
+      include: ["src/**/*.test.{ts,tsx}"],
+      setupFiles: ["src/test/setup.ts"],
     },
   }),
 );
