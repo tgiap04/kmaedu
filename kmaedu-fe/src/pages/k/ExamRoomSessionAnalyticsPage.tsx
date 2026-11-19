@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ChartBarIcon } from "@phosphor-icons/react";
-import { getExamAttemptDetailApi, getExamAttemptsBySessionApi, type ExamAttemptDetail, type ExamAttemptListItem } from "@/apis/examAttemptApi";
-import { getSessionCheatingStatsApi, getUserAttemptsWithLogsApi, type CheatingSessionStats, type UserAttemptWithLogs } from "@/apis/cheatingLogApi";
+import { getExamAttemptsBySessionApi, type ExamAttemptListItem } from "@/apis/examAttemptApi";
+import { getSessionCheatingStatsApi, type CheatingSessionStats } from "@/apis/cheatingLogApi";
 import { getExamSessionByIdApi } from "@/apis/examSessionApi";
 import {
   Breadcrumb,
@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/k-page/page-header";
 import { Skeleton } from "@/components/antd/skeleton";
 import { toast } from "@/components/antd/toast";
 import { AttemptDetailSheet } from "./components/attempt-detail-sheet";
+import { useAttemptDetail } from "./components/use-attempt-detail";
 import { AnalyticsStats, RankingCard, ScoreDistributionCard, ViolationsCard } from "./components/session-analytics-sections";
 
 const ATTEMPT_STATUS = {
@@ -30,11 +31,6 @@ export default function ExamRoomSessionAnalyticsPage() {
   const [sessionInfo, setSessionInfo] = useState<{ title: string; passingScore: number; startTime: string; endTime?: string } | null>(null);
   const [attempts, setAttempts] = useState<ExamAttemptListItem[]>([]);
   const [cheatingStats, setCheatingStats] = useState<CheatingSessionStats[]>([]);
-  const [selectedAttempt, setSelectedAttempt] = useState<ExamAttemptDetail | null>(null);
-  const [selectedUserAttempts, setSelectedUserAttempts] = useState<UserAttemptWithLogs[]>([]);
-  const [selectedLogs, setSelectedLogs] = useState<Array<{ type: string; description: string; totalCount: number }>>([]);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [loadingDetail, setLoadingDetail] = useState(false);
   const [sortField, setSortField] = useState<"score" | "violations">("score");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
@@ -69,23 +65,8 @@ export default function ExamRoomSessionAnalyticsPage() {
     }
   }, [sessionId]);
 
-  const handleViewDetail = useCallback(async (userId: string) => {
-    setLoadingDetail(true);
-    setSheetOpen(true);
-    try {
-      const data = await getUserAttemptsWithLogsApi(sessionId, userId);
-      setSelectedUserAttempts(data.attempts);
-      setSelectedLogs(data.aggregatedLogs);
-      const bestAttempt = data.attempts.reduce((best, current) => (current.score > best.score ? current : best));
-      const detail = await getExamAttemptDetailApi(bestAttempt.id);
-      setSelectedAttempt(detail);
-    } catch (error) {
-      console.error("Failed to load attempt detail:", error);
-      toast.error("Không thể tải chi tiết");
-    } finally {
-      setLoadingDetail(false);
-    }
-  }, [sessionId]);
+  const { show: showAttempt, sheet: attemptSheet } = useAttemptDetail();
+  const handleViewDetail = useCallback((userId: string) => showAttempt(sessionId, userId), [showAttempt, sessionId]);
 
   const sortedAttempts = useMemo(() => {
     const completed = attempts.filter((a) => a.status === ATTEMPT_STATUS.COMPLETED);
@@ -165,15 +146,7 @@ export default function ExamRoomSessionAnalyticsPage() {
         />
       </div>
 
-      <AttemptDetailSheet
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        loadingDetail={loadingDetail}
-        selectedAttempt={selectedAttempt}
-        selectedUserAttempts={selectedUserAttempts}
-        selectedLogs={selectedLogs}
-        passingScore={sessionInfo?.passingScore || 0}
-      />
+      <AttemptDetailSheet {...attemptSheet} passingScore={sessionInfo?.passingScore || 0} />
     </div>
   );
 }

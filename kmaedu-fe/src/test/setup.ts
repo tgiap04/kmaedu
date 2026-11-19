@@ -23,6 +23,9 @@ if (typeof window !== "undefined") {
   const computed = window.getComputedStyle.bind(window);
   window.getComputedStyle = (element: Element) => computed(element);
 
+  // jsdom lays nothing out, so it has no scrolling to do.
+  Element.prototype.scrollIntoView ??= () => {};
+
   globalThis.ResizeObserver ??= class {
     observe() {}
     unobserve() {}

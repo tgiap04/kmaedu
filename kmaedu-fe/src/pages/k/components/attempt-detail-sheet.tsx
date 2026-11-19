@@ -19,6 +19,10 @@ interface Props {
 }
 
 export function AttemptDetailSheet({ open, onOpenChange, loadingDetail, selectedAttempt, selectedUserAttempts, selectedLogs, passingScore }: Props) {
+  // The sheet may show the latest attempt (a room's candidate row) rather than the best one: say which it is.
+  const bestId = selectedUserAttempts.reduce<UserAttemptWithLogs | null>((top, a) => (!top || a.score > top.score ? a : top), null)?.id;
+  const showsBest = !selectedAttempt || !bestId || selectedAttempt.id === bestId;
+  const history = [...selectedUserAttempts].sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
   return (
   <Sheet open={open} onOpenChange={onOpenChange}>
     <SheetContent className="sm:max-w-lg overflow-y-auto">
@@ -35,7 +39,7 @@ export function AttemptDetailSheet({ open, onOpenChange, loadingDetail, selected
           </div>
 
           <div className="space-y-3">
-            <h4 className="font-semibold flex items-center gap-2"><TrophyIcon className="h-4 w-4 text-yellow-500" />Điểm cao nhất</h4>
+            <h4 className="font-semibold flex items-center gap-2"><TrophyIcon className="h-4 w-4 text-yellow-500" />{showsBest ? "Điểm cao nhất" : "Bài làm đang xem"}</h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-lg border border-hairline p-4 text-center"><p className="text-2xl font-bold text-brand">{selectedAttempt.score.toFixed(1)}%</p><p className="text-sm text-muted-foreground">Điểm số</p></div>
               <div className="rounded-lg border border-hairline p-4 text-center"><p className="text-2xl font-bold">{formatDuration(selectedAttempt.timeSpentSeconds)}</p><p className="text-sm text-muted-foreground">Thời gian</p></div>
@@ -45,12 +49,12 @@ export function AttemptDetailSheet({ open, onOpenChange, loadingDetail, selected
           <div className="space-y-3">
             <h4 className="font-semibold flex items-center gap-2"><ChartBarIcon className="h-4 w-4 text-brand" />Lịch sử làm bài ({selectedUserAttempts.length} lần)</h4>
             <div className="space-y-2">
-              {selectedUserAttempts.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()).map((attempt, index) => {
+              {history.map((attempt, index) => {
                 const passed = attempt.score >= (passingScore);
                 return (
                   <div key={attempt.id} className={`rounded-lg border border-hairline p-3 ${attempt.id === selectedAttempt.id ? "border-brand-border bg-brand-soft" : ""}`}>
                     <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-2"><span className="font-medium">Lần {selectedUserAttempts.length - index}</span>{attempt.id === selectedAttempt.id && <Badge variant="default" className="bg-yellow-500 text-xs">Cao nhất</Badge>}</div>
+                      <div className="flex items-center gap-2"><span className="font-medium">Lần {history.length - index}</span>{attempt.id === bestId && <Badge variant="default" className="bg-yellow-500 text-xs">Cao nhất</Badge>}{attempt.id === selectedAttempt.id && attempt.id !== bestId && <Badge variant="outline" className="text-xs">Đang xem</Badge>}</div>
                       <Badge variant={passed ? "default" : "destructive"} className={passed ? "bg-green-500" : ""}>{passed ? "Đạt" : "Chưa đạt"}</Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">

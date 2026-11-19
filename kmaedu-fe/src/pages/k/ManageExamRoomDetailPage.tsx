@@ -1,165 +1,104 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowCircleLeftIcon, CheckCircleIcon, CopyIcon, DoorOpenIcon, PlusCircleIcon } from "@phosphor-icons/react";
-import { toast } from "@/components/antd/toast";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ArrowCircleLeftIcon, MonitorIcon } from "@phosphor-icons/react";
+import { ApiRequestError } from "@/apis/api";
 import { Button } from "@/components/antd/button";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/antd/breadcrumb";
+import { Skeleton } from "@/components/antd/skeleton";
 import { PageHeader } from "@/components/k-page/page-header";
 import { SectionCard, SectionMessage } from "@/components/k-page/section-card";
 import { DeleteConfirmDialog } from "@/components/organisms/DeleteConfirmDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/antd/dialog";
-import { ExamSessionFormModal } from "@/components/organisms/ExamSessionFormModal";
-import { Skeleton } from "@/components/antd/skeleton";
-import { ASSESS_TYPE } from "@/types/examSession";
-import type { ExamSessionBasic } from "@/types/examRoom";
+import { useCan } from "@/hooks/useCan";
+import { useNow } from "@/hooks/useNow";
+import { linkSession, roomTimeline } from "@/lib/exam-room/room-status";
 import { useExamRoomDetailStore } from "@/stores/useExamRoomDetailStore";
 import { useExamRoomStore } from "@/stores/useExamRoomStore";
-import { useCan } from "@/hooks/useCan";
-import { RoomDetailStats, RoomInfoCard } from "./components/room-detail-overview";
-import { RoomSessionsSection } from "./components/room-sessions-section";
+import { AttemptDetailSheet } from "./components/attempt-detail-sheet";
+import { RoomBreadcrumb } from "./components/exam-room-list/room-breadcrumb";
+import { RoomStatusPill } from "./components/exam-room-list/room-status-pill";
+import { CandidatesTab } from "./components/exam-room-detail/candidates-tab";
+import { RoomDetailActions } from "./components/exam-room-detail/room-detail-actions";
+import { RoomDetailStats, RoomInfoCard } from "./components/exam-room-detail/room-detail-cards";
+import { isRoomTab, RoomDetailTabs, type RoomTab } from "./components/exam-room-detail/room-detail-tabs";
+import { RoomProgressCard } from "./components/exam-room-detail/room-progress-card";
+import { RoomSessionsTab } from "./components/exam-room-detail/room-sessions-tab";
+import { RoomSettingsTab } from "./components/exam-room-detail/room-settings-tab";
+import { RoomStatsTab } from "./components/exam-room-detail/room-stats-tab";
+import { useRoomCandidates } from "./components/exam-room-detail/use-room-candidates";
+import { useRoomOverview } from "./components/exam-room-detail/use-room-overview";
+import { useAttemptDetail } from "./components/use-attempt-detail";
 
-const PAGE_SIZE = 10;
-
+/** Keyed by the room id, so opening another room starts every hook (numbers, candidates, page) afresh. */
 export default function ManageExamRoomDetailPage() {
   const { id = "" } = useParams();
+  return <RoomDetail key={id} id={id} />;
+}
+
+function RoomDetail({ id }: { id: string }) {
   const navigate = useNavigate();
-  const { currentExamRoom, fetchExamRoomById, loading } = useExamRoomStore();
-  const {
-    sessions,
-    sessionsTotalPages,
-    totalDistinctParticipants,
-    loadingSessions,
-    mutationLoading,
-    fetchSessions,
-    createSession,
-    updateSession,
-    deleteSession,
-    refreshSnapshot,
-    reset,
-  } = useExamRoomDetailStore();
+  const [params, setParams] = useSearchParams();
+  const requested = params.get("tab");
+  const tab: RoomTab = isRoomTab(requested) ? requested : "candidates";
+  const { currentExamRoom, fetchExamRoomById } = useExamRoomStore();
+  const { endRoom, mutationLoading, reset } = useExamRoomDetailStore();
+  /** "missing": the room is not there (404); "failed": it could not be read just now (network, 5xx). */
+  const canEndSessions = useCan("exam_session:manage");
+  const [loadError, setLoadError] = useState<"missing" | "failed" | null>(null);
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  const tabsRef = useRef<HTMLElement>(null);
+  const now = useNow(30_000);
 
-  const canManageSessions = useCan("exam_session:manage");
-  const [refreshingId, setRefreshingId] = useState<string | null>(null);
-  const [sessionsPage, setSessionsPage] = useState(1);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [formModalOpen, setFormModalOpen] = useState(false);
-  const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [editingSession, setEditingSession] = useState<ExamSessionBasic | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
+  // The store may still hold the room opened before this one: only this id's room counts.
+  const room = currentExamRoom?.id === id ? currentExamRoom : null;
+  const sessions = useMemo(() => room?.examSessions ?? [], [room]);
+  const timeline = useMemo(() => roomTimeline(sessions, now), [sessions, now]);
+  const live = timeline.status === "ongoing";
+  const overview = useRoomOverview(id, live);
+  // Only the candidates tab shows the list: elsewhere a live refresh would load the roster for nobody.
+  const candidates = useRoomCandidates(id, { live: live && tab === "candidates" });
+  const attemptDetail = useAttemptDetail();
 
-  useEffect(() => {
-    if (id) {
-      fetchExamRoomById(id);
-    }
-
-    return () => {
-      reset();
-    };
-  }, [id, fetchExamRoomById, reset]);
+  const load = useCallback(() => {
+    setLoadError(null);
+    fetchExamRoomById(id).catch((error) => setLoadError(error instanceof ApiRequestError && error.status === 404 ? "missing" : "failed"));
+  }, [id, fetchExamRoomById]);
 
   useEffect(() => {
-    if (id) {
-      fetchSessions(id, sessionsPage, PAGE_SIZE);
-    }
-  }, [id, sessionsPage, fetchSessions]);
+    load();
+    return () => reset();
+  }, [load, reset]);
 
-  const stats = useMemo(() => {
-    const now = new Date();
-    const total = sessions.length;
-    const upcoming = sessions.filter((s) => new Date(s.startTime) > now).length;
-    const ongoing = sessions.filter((s) => {
-      const start = new Date(s.startTime);
-      const end = s.endTime ? new Date(s.endTime) : null;
-      return start <= now && (!end || end > now);
-    }).length;
-    const completed = sessions.filter((s) => {
-      const end = s.endTime ? new Date(s.endTime) : null;
-      return end && end <= now;
-    }).length;
-    const totalAttempts = sessions.reduce((sum, s) => sum + (s._count?.examAttempts || 0), 0);
+  const setTab = (next: RoomTab) =>
+    setParams((p) => {
+      p.set("tab", next);
+      return p;
+    }, { replace: true });
 
-    return {
-      total,
-      upcoming,
-      ongoing,
-      completed,
-      totalAttempts,
-      totalParticipants: totalDistinctParticipants,
-    };
-  }, [sessions, totalDistinctParticipants]);
-
-  const handleCopyLink = () => {
-    if (!selectedSessionId) return;
-    const link = `${window.location.origin}/exam-session/${selectedSessionId}`;
-    navigator.clipboard.writeText(link);
-    setCopied(true);
-    toast.success("Đã sao chép link!");
-    setTimeout(() => setCopied(false), 2000);
+  /** After a session changed: the room's windows, the numbers and the candidates all move. */
+  const refreshAll = () => {
+    void fetchExamRoomById(id, { quiet: true }).catch(() => {});
+    overview.reload();
+    candidates.reload();
   };
 
-  const handleFormSubmit = async (data: {
-    startTime: string;
-    endTime?: string;
-    assessType: ASSESS_TYPE;
-    accessCode?: string | null;
-    whitelist?: string[];
-    allowRetake: boolean;
-    maxAttempts: number;
-    showAnswersAfterSubmit?: boolean;
-    passingScore?: number;
-    questionCount?: number | null;
-    questionSelectionMode?: number;
-    labelQuestionConfig?: any[] | null;
-    shuffleQuestions?: boolean;
-  }) => {
-    let success = false;
-
-    if (formMode === "create") {
-      success = await createSession({ examRoomId: id, ...data });
-    } else if (editingSession) {
-      success = await updateSession(editingSession.id, data);
+  if (!room) {
+    if (loadError === "failed") {
+      return (
+        <SectionCard icon={<MonitorIcon />} title="Phòng thi" plain>
+          <SectionMessage title="Không tải được phòng thi" hint="Kết nối có thể đang gián đoạn." onRetry={load} />
+        </SectionCard>
+      );
     }
-
-    return success;
-  };
-
-  const handleRefreshSnapshot = async (sessionId: string) => {
-    setRefreshingId(sessionId);
-    const result = await refreshSnapshot(sessionId);
-    setRefreshingId(null);
-    if (result === "locked") {
-      await fetchSessions(id, sessionsPage, PAGE_SIZE, { forceRefresh: true });
+    if (loadError !== "missing") {
+      return (
+        <div className="space-y-4" aria-busy="true">
+          <Skeleton className="h-16 w-96 max-w-full rounded-lg" />
+          <Skeleton className="h-[104px] w-full rounded-lg" />
+          <Skeleton className="h-[260px] w-full rounded-lg" />
+        </div>
+      );
     }
-  };
-
-  if (loading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-12 w-72 rounded-lg" />
-        <Skeleton className="h-24 w-full rounded-lg" />
-        <Skeleton className="h-[256px] w-full rounded-lg" />
-      </div>
-    );
-  }
-
-  if (!currentExamRoom) {
-    return (
-      <SectionCard icon={<DoorOpenIcon />} title="Phòng thi" plain>
+      <SectionCard icon={<MonitorIcon />} title="Phòng thi" plain>
         <SectionMessage title="Không tìm thấy phòng thi" hint="Phòng thi có thể đã bị xóa." />
         <div className="flex justify-center pb-6">
           <Button variant="outline" onClick={() => navigate("/k/manage-exam-room")}>
@@ -171,109 +110,71 @@ export default function ManageExamRoomDetailPage() {
     );
   }
 
-  const openCreate = () => {
-    setFormMode("create");
-    setEditingSession(null);
-    setFormModalOpen(true);
-  };
+  const data = overview.data;
 
   return (
-    <div>
-      <div>
-        <PageHeader
-          icon={<DoorOpenIcon />}
-          title={currentExamRoom.title}
-          subtitle="Chi tiết phòng thi và các phiên thi liên quan"
-          eyebrow={
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to="/k/manage-exam-room">Quản lý Phòng thi</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{currentExamRoom.title}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          }
-          actions={
-            <Button onClick={openCreate} size="lg">
-              <PlusCircleIcon className="mr-2 h-4 w-4" />
-              Tạo phiên thi
-            </Button>
-          }
-        />
-
-        <RoomDetailStats stats={stats} />
-        <RoomInfoCard room={currentExamRoom} />
-
-        <RoomSessionsSection
-          sessions={sessions}
-          loading={loadingSessions}
-          counts={stats}
-          page={sessionsPage}
-          totalPages={sessionsTotalPages}
-          onPageChange={setSessionsPage}
-          canManage={canManageSessions}
-          refreshingId={refreshingId}
-          onRefreshSnapshot={handleRefreshSnapshot}
-          onCreate={openCreate}
-          onShare={(session) => { setSelectedSessionId(session.id); setShareDialogOpen(true); setCopied(false); }}
-          onStats={(session) => navigate(`/k/manage-exam-room/${id}/session/${session.id}`)}
-          onEdit={(session) => { setFormMode("edit"); setEditingSession(session); setFormModalOpen(true); }}
-          onDelete={(session) => { setDeletingSessionId(session.id); setDeleteDialogOpen(true); }}
-        />
-
-      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-        <DialogContent className="sm:max-w-md border-hairline bg-canvas">
-          <DialogHeader><DialogTitle className="text-ink">Chia sẻ phiên thi</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                value={selectedSessionId ? `${window.location.origin}/exam-session/${selectedSessionId}` : ""}
-                className="flex-1 rounded-lg border border-hairline bg-surface-soft px-3 py-2 text-sm text-ink"
-              />
-              <Button variant="outline" size="sm" className="border-hairline" onClick={handleCopyLink}>
-                {copied ? <CheckCircleIcon className="h-4 w-4 text-success" /> : <CopyIcon className="h-4 w-4" />}
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">Chia sẻ link này để mọi người có thể truy cập phiên thi.</p>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <ExamSessionFormModal
-        open={formModalOpen}
-        onOpenChange={setFormModalOpen}
-        mode={formMode}
-        examRoomId={id}
-        session={editingSession}
-        onSubmit={handleFormSubmit}
-        isLoading={mutationLoading}
+    <div className="space-y-5">
+      <PageHeader
+        large
+        icon={<MonitorIcon />}
+        title={room.title}
+        subtitle={<>Đề thi: {room.quizSet?.title || "Chưa có bộ đề"}<span className="mx-2.5" aria-hidden>•</span>Loại: Trắc nghiệm</>}
+        eyebrow={<RoomBreadcrumb current="Chi tiết phòng thi" />}
+        badge={<RoomStatusPill status={timeline.status} size="lg" />}
+        actions={
+          <RoomDetailActions
+            linkSessionId={linkSession(sessions, now)}
+            canEnd={canEndSessions && timeline.status === "ongoing"}
+            onShowResults={() => {
+              setTab("stats");
+              tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+            onEnd={() => setConfirmEnd(true)}
+          />
+        }
       />
 
+      <RoomDetailStats timeline={timeline} participants={data ? data.completed + data.inProgress + data.cancelled : null} />
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.55fr)]">
+        <RoomInfoCard room={room} timeline={timeline} />
+        <RoomProgressCard data={data} failed={overview.failed} range={overview.range} onRangeChange={overview.setRange} onRetry={overview.reload} />
+      </div>
+
+      <section ref={tabsRef} className="scroll-mt-4 rounded-lg border border-hairline bg-canvas px-4 pb-5 pt-3 shadow-soft md:px-5">
+        <RoomDetailTabs active={tab} onChange={setTab} candidates={data?.candidates ?? null} sessions={sessions.length} />
+        <div role="tabpanel" id={`room-panel-${tab}`} aria-labelledby={`room-tab-${tab}`} className="pt-5">
+          {tab === "candidates" && (
+            <CandidatesTab
+              roomId={id}
+              roomTitle={room.title}
+              list={candidates}
+              onDetail={(c) => c.sessionId && attemptDetail.show(c.sessionId, c.userId, c.attemptId ?? undefined)}
+              onWatch={(c) => c.sessionId && navigate(`/k/manage-exam-room/${id}/session/${c.sessionId}`)}
+            />
+          )}
+          {tab === "sessions" && <RoomSessionsTab roomId={id} now={now} onChanged={refreshAll} />}
+          {tab === "stats" && <RoomStatsTab roomId={id} overview={data} sessions={sessions} now={now} />}
+          {tab === "settings" && <RoomSettingsTab room={room} sessions={sessions.length} onOpenSessions={() => setTab("sessions")} />}
+        </div>
+      </section>
+
+      <AttemptDetailSheet {...attemptDetail.sheet} passingScore={attemptDetail.sheet.selectedAttempt?.passingScore ?? 0} />
+
       <DeleteConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="Xóa phiên thi"
-        description="Bạn có chắc chắn muốn xóa phiên thi này? Tất cả dữ liệu liên quan sẽ bị xóa vĩnh viễn."
+        open={confirmEnd}
+        onOpenChange={(open) => !mutationLoading && setConfirmEnd(open)}
+        title="Kết thúc phòng thi"
+        description={`Đóng ngay ${timeline.ongoing} phiên đang diễn ra: không ai bắt đầu hay vào lại bài làm được nữa. Bài đang làm được nộp hộ ngay với các câu thí sinh đã lưu (câu trả lời trong khoảng 30 giây cuối có thể chưa kịp lưu). Giờ kết thúc đã hẹn của các phiên này được thay bằng bây giờ và không khôi phục được; phiên sắp diễn ra giữ nguyên.`}
+        confirmLabel="Kết thúc"
         isLoading={mutationLoading}
         onConfirm={async () => {
-          if (!deletingSessionId) return;
-          const success = await deleteSession(deletingSessionId, id);
-          if (success) {
-            setDeleteDialogOpen(false);
-            setDeletingSessionId(null);
-            fetchSessions(id, sessionsPage, PAGE_SIZE, { forceRefresh: true });
+          if (await endRoom(id)) {
+            setConfirmEnd(false);
+            refreshAll();
           }
         }}
       />
-      </div>
     </div>
   );
 }

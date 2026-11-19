@@ -351,3 +351,67 @@ export async function submitSecureQuizApi(
   });
   return response.data;
 }
+
+// ==================== Room insights (owner only) ====================
+
+/** A candidate's state, read from their latest attempt in the room; "not_started" is whitelisted without an attempt. */
+export type CandidateStatus = "submitted" | "in_progress" | "not_started" | "cancelled";
+
+export interface RoomCandidate {
+  userId: string;
+  /** null when auth is unreachable or the account was deleted. */
+  user: ExamAttemptUser | null;
+  status: CandidateStatus;
+  attemptId: string | null;
+  sessionId: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+  /** Percent; set for a submitted attempt only, as are `passed` and `timeSpentSeconds`. */
+  score: number | null;
+  passed: boolean | null;
+  timeSpentSeconds: number | null;
+  attemptCount: number;
+}
+
+export interface RoomCandidatesQuery {
+  page: number;
+  limit: number;
+  search?: string;
+  status?: "submitted" | "in_progress" | "not_started";
+  result?: "passed" | "failed";
+}
+
+export interface RoomCandidatesResponse {
+  candidates: RoomCandidate[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export type RoomOverviewWindow = "30m" | "1h" | "24h" | "7d";
+
+export interface RoomOverview {
+  candidates: number;
+  completed: number;
+  inProgress: number;
+  notStarted: number;
+  cancelled: number;
+  /** Mean of the submitted candidates' scores, one decimal; null before anyone submits. */
+  averageScore: number | null;
+  passed: number;
+  /** Ten 10%-wide score buckets over the submitted candidates. */
+  scoreBuckets: number[];
+  /** Attempts handed in per bucket over the last `window`, oldest first. */
+  timeline: { window: RoomOverviewWindow; from: string; bucketMinutes: number; counts: number[] };
+}
+
+export async function getRoomOverviewApi(examRoomId: string, window: RoomOverviewWindow): Promise<RoomOverview> {
+  const response = await api.get(`/examattempts/room/${examRoomId}/overview`, { params: { window } });
+  return response.data;
+}
+
+export async function getRoomCandidatesApi(examRoomId: string, query: RoomCandidatesQuery): Promise<RoomCandidatesResponse> {
+  const response = await api.get(`/examattempts/room/${examRoomId}/candidates`, { params: query });
+  return response.data;
+}

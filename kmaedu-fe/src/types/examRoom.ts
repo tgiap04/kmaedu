@@ -26,6 +26,10 @@ export interface ExamRoom {
     examSessions?: number;
   };
   examSessions?: ExamSessionBasic[];
+  /** list-all only: every session's window, oldest start first. */
+  sessionWindows?: { startTime: string; endTime: string | null }[];
+  /** list-all only: distinct people with at least one attempt in the room. */
+  participantCount?: number;
 }
 
 export interface ExamSessionBasic {

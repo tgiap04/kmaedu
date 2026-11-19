@@ -242,3 +242,12 @@ export async function refreshSnapshotApi(
   const response = await api.post(`/examsessions/${id}/refresh-snapshot`);
   return response.data;
 }
+
+/**
+ * Ends every session of the room that is running now (upcoming ones stay) and hands in the attempts still open
+ * in them, graded on what they saved.
+ */
+export async function endExamRoomApi(examRoomId: string): Promise<{ ended: number; closedAttempts: number; endedAt: string }> {
+  const response = await api.post(`/examsessions/room/${examRoomId}/end`);
+  return response.data;
+}

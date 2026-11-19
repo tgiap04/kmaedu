@@ -14,6 +14,9 @@ import { ExamRoom } from "@/types/examRoom";
 import { storeCache, CacheTTL } from "@/lib/storeCache";
 import { toast } from "@/components/antd/toast";
 
+/** Prefix of every cached room list: the paged one ("examrooms:…") and list-all ("examrooms-all:"). */
+const ROOM_CACHE = "examrooms";
+
 interface ExamRoomStore {
   examRooms: ExamRoom[];
   currentExamRoom: ExamRoom | null;
@@ -26,15 +29,21 @@ interface ExamRoomStore {
     options?: { forceRefresh?: boolean }
   ) => Promise<any>;
   fetchAllExamRooms: (options?: { forceRefresh?: boolean }) => Promise<any>;
-  fetchExamRoomById: (id: string) => Promise<void>;
+  /** `quiet` reloads the room on screen (after a session change) without the loading state. */
+  fetchExamRoomById: (id: string, options?: { quiet?: boolean }) => Promise<void>;
   createExamRoom: (credentials: CredentialsCreateExamRoom) => Promise<void>;
   updateExamRoom: (
     id: string,
     credentials: CredentialsUpdateExamRoom
   ) => Promise<void>;
   deleteExamRoom: (id: string) => Promise<void>;
+  /** Deletes the rooms one after another; returns the ids that could not be deleted. */
+  deleteExamRooms: (ids: string[]) => Promise<string[]>;
   invalidateCache: () => void;
 }
+
+/** The newest fetchExamRoomById call: only its answer may land. */
+let roomRequest = 0;
 
 export const useExamRoomStore = create<ExamRoomStore>((set) => ({
   examRooms: [],
@@ -120,17 +129,21 @@ export const useExamRoomStore = create<ExamRoomStore>((set) => ({
     }
   },
 
-  fetchExamRoomById: async (id: string) => {
+  fetchExamRoomById: async (id, options = {}) => {
+    const token = ++roomRequest;
     try {
-      set({ loading: true, error: null });
+      set({ loading: !options.quiet, error: null });
 
       const examRoom = await getExamRoomByIdApi(id);
 
+      // Opening room A then room B quickly: A's late answer must not replace B.
+      if (token !== roomRequest) return;
       set({
         currentExamRoom: examRoom,
         loading: false,
       });
     } catch (error) {
+      if (token !== roomRequest) return;
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       set({
@@ -152,7 +165,7 @@ export const useExamRoomStore = create<ExamRoomStore>((set) => ({
       const response = await createExamRoomApi(credentials);
 
       // Invalidate cache sau khi tạo mới
-      storeCache.invalidate("examrooms:");
+      storeCache.invalidate(ROOM_CACHE);
 
       // Thêm exam room mới vào danh sách
       set((state) => ({
@@ -186,16 +199,18 @@ export const useExamRoomStore = create<ExamRoomStore>((set) => ({
       const response = await updateExamRoomApi(id, credentials);
 
       // Invalidate cache sau khi cập nhật
-      storeCache.invalidate("examrooms:");
+      storeCache.invalidate(ROOM_CACHE);
 
       // Cập nhật exam room trong danh sách
       set((state) => ({
+        // The edit response has no session windows or participant count: keep the listed ones.
         examRooms: state.examRooms.map((room) =>
-          room.id === id ? response.examRoom : room
+          room.id === id ? { ...room, ...response.examRoom } : room
         ),
+        // Nor the open room's sessions and host: keep those as well.
         currentExamRoom:
           state.currentExamRoom?.id === id
-            ? response.examRoom
+            ? { ...state.currentExamRoom, ...response.examRoom }
             : state.currentExamRoom,
         loading: false,
       }));
@@ -223,7 +238,7 @@ export const useExamRoomStore = create<ExamRoomStore>((set) => ({
       await deleteExamRoomApi(id);
 
       // Invalidate cache sau khi xóa
-      storeCache.invalidate("examrooms:");
+      storeCache.invalidate(ROOM_CACHE);
 
       // Xóa exam room khỏi danh sách
       set((state) => ({
@@ -249,7 +264,30 @@ export const useExamRoomStore = create<ExamRoomStore>((set) => ({
     }
   },
 
+  deleteExamRooms: async (ids) => {
+    set({ loading: true, error: null });
+    const failed: string[] = [];
+    for (const id of ids) {
+      try {
+        await deleteExamRoomApi(id);
+      } catch (error) {
+        console.error("Xóa phòng thi thất bại:", id, error);
+        failed.push(id);
+      }
+    }
+    storeCache.invalidate(ROOM_CACHE);
+    const gone = new Set(ids.filter((id) => !failed.includes(id)));
+    set((state) => ({
+      examRooms: state.examRooms.filter((room) => !gone.has(room.id)),
+      currentExamRoom: state.currentExamRoom && gone.has(state.currentExamRoom.id) ? null : state.currentExamRoom,
+      loading: false,
+    }));
+    if (failed.length === 0) toast.success(`Đã xóa ${gone.size} phòng thi`);
+    else toast.warning(`Đã xóa ${gone.size} phòng thi, ${failed.length} phòng không xóa được`);
+    return failed;
+  },
+
   invalidateCache: () => {
-    storeCache.invalidate("examrooms:");
+    storeCache.invalidate(ROOM_CACHE);
   },
 }));

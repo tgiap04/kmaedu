@@ -19,6 +19,8 @@ interface DeleteConfirmDialogProps {
   description?: string;
   isLoading?: boolean;
   onConfirm: () => void;
+  /** The red button's text, "Xóa" by default. */
+  confirmLabel?: string;
 }
 
 /**
@@ -32,6 +34,7 @@ export function DeleteConfirmDialog({
   description = "Bạn có chắc chắn muốn xóa? Hành động này không thể hoàn tác.",
   isLoading = false,
   onConfirm,
+  confirmLabel = "Xóa",
 }: DeleteConfirmDialogProps) {
   const handleConfirm = () => {
     onConfirm();
@@ -51,7 +54,7 @@ export function DeleteConfirmDialog({
             disabled={isLoading}
             className="bg-red-600 hover:bg-red-700 focus:ring-red-600 px-4 !ml-2 flex items-center gap-x-2">
             {isLoading && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
-            Xóa
+            {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/antd/select";
-import { CircleNotchIcon } from "@phosphor-icons/react";
+import { CircleNotchIcon, LightbulbIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { pickableQuizSetId } from "@/lib/exam-room/quiz-set-choice";
 
@@ -40,6 +40,8 @@ interface ExamRoomFormProps {
   onSubmit: (data: ExamRoomFormData) => void;
   onCancel: () => void;
   submitLabel?: string;
+  /** "wide" lays the fields out in two columns for a page (the room's settings tab); the modal keeps "stacked". */
+  layout?: "stacked" | "wide";
 }
 
 /**
@@ -54,7 +56,9 @@ export function ExamRoomForm({
   onSubmit,
   onCancel,
   submitLabel = "Lưu",
+  layout = "stacked",
 }: ExamRoomFormProps) {
+  const wide = layout === "wide";
   // State quản lý form data
   const [formData, setFormData] = useState<ExamRoomFormData>({
     title: "",
@@ -110,9 +114,9 @@ export function ExamRoomForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className={wide ? "grid gap-x-6 gap-y-5 md:grid-cols-2" : "space-y-4"}>
       {/* Tiêu đề */}
-      <div className="space-y-2">
+      <div className={cn("space-y-2", wide && "md:col-start-1 md:row-start-1")}>
         <Label htmlFor="title" className="required">
           Tiêu đề <span className="text-red-500">*</span>
         </Label>
@@ -133,7 +137,7 @@ export function ExamRoomForm({
       </div>
 
       {/* Mô tả */}
-      <div className="space-y-2">
+      <div className={cn("space-y-2", wide && "md:col-span-2")}>
         <Label htmlFor="description">Mô tả</Label>
         <Textarea
           id="description"
@@ -147,7 +151,7 @@ export function ExamRoomForm({
           placeholder="Nhập mô tả phòng thi (tùy chọn)"
           disabled={isLoading}
           className={errors.description ? "border-red-500" : ""}
-          rows={3}
+          rows={wide ? 4 : 3}
         />
         {errors.description && (
           <p className="text-sm text-red-500">{errors.description}</p>
@@ -155,7 +159,7 @@ export function ExamRoomForm({
       </div>
 
       {/* Chọn bộ đề */}
-      <div className="space-y-2 w-full">
+      <div className={cn("space-y-2 w-full", wide && "md:col-start-2 md:row-start-1")}>
         <Label htmlFor="quizSetId">
           Bộ đề thi <span className="text-red-500">*</span>
         </Label>
@@ -208,16 +212,17 @@ export function ExamRoomForm({
       </div>
 
       {/* Info note */}
-      <div className="rounded-lg border p-4 bg-muted/50">
+      <div className={cn("flex gap-2.5 rounded-lg border p-4 bg-muted/50", wide && "md:col-span-2")}>
+        <LightbulbIcon className="mt-0.5 size-4 shrink-0 text-amber-500" aria-hidden />
         <p className="text-sm text-muted-foreground">
-          💡 <strong>Lưu ý:</strong> Các cài đặt bảo mật như loại phòng thi, cho
+          <strong>Lưu ý:</strong> Các cài đặt bảo mật như loại phòng thi, cho
           phép thi lại, mã truy cập... sẽ được cấu hình cho từng phiên thi riêng
           lẻ.
         </p>
       </div>
 
       {/* Action buttons */}
-      <div className="flex justify-end gap-3 pt-4">
+      <div className={cn("flex justify-end gap-3 pt-4", wide && "border-t border-hairline-soft pt-5 md:col-span-2")}>
         <Button
           type="button"
           variant="outline"
@@ -225,7 +230,7 @@ export function ExamRoomForm({
           disabled={isLoading}>
           Hủy
         </Button>
-        <Button type="submit" disabled={isLoading || isLoadingQuizSets}>
+        <Button type="submit" variant={wide ? "solid" : "default"} disabled={isLoading || isLoadingQuizSets}>
           {isLoading && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
           {submitLabel}
         </Button>

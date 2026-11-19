@@ -1,51 +1,46 @@
-import { displayUserName } from "@/lib/user/display-user-name";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { DoorOpenIcon, PlusCircleIcon } from "@phosphor-icons/react";
+import { MonitorIcon, PlusIcon } from "@phosphor-icons/react";
 import { PageHeader } from "@/components/k-page/page-header";
-import { getExamAttemptsByRoomApi, type ExamAttemptListItem } from "@/apis/examAttemptApi";
 import { ExamRoomModal } from "@/components/organisms/ExamRoomModal";
 import { DeleteConfirmDialog } from "@/components/organisms/DeleteConfirmDialog";
-import { RoomStatsSection } from "@/components/organisms/k/RoomStatsSection";
-import { ExamRoomList, type ExamRoom as ExamRoomListType } from "@/components/organisms/k/ExamRoomList";
-import { RecentParticipantsList, type Participant } from "@/components/organisms/k/RecentParticipantsList";
 import { Button } from "@/components/antd/button";
 import type { ExamRoomFormData } from "@/components/molecules/ExamRoomForm";
+import { useNow } from "@/hooks/useNow";
 import { useExamRoomStore } from "@/stores/useExamRoomStore";
 import { useQuizSetStore } from "@/stores/useQuizSetStore";
+import { RoomBreadcrumb } from "./components/exam-room-list/room-breadcrumb";
+import { RoomListPanel } from "./components/exam-room-list/room-list-panel";
+import { RoomListStats } from "./components/exam-room-list/room-list-stats";
+import { RoomListToolbar } from "./components/exam-room-list/room-list-toolbar";
+import { useExamRoomList } from "./components/exam-room-list/use-exam-room-list";
+
+type Pending = { kind: "one"; id: string } | { kind: "selected" } | null;
 
 export default function ManageExamRoomPage() {
   const navigate = useNavigate();
-  const {
-    examRooms,
-    loading,
-    fetchAllExamRooms,
-    createExamRoom,
-    updateExamRoom,
-    deleteExamRoom,
-  } = useExamRoomStore();
+  const { examRooms, loading, fetchAllExamRooms, createExamRoom, updateExamRoom, deleteExamRoom, deleteExamRooms } = useExamRoomStore();
   const { fetchAllQuizSets, quizSetsK } = useQuizSetStore();
+  const now = useNow();
+  const list = useExamRoomList(examRooms, now);
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   // Opened from a quiz set ("Sử dụng đề thi này"): ?quizSetId= prefills the create form once.
   const [searchParams, setSearchParams] = useSearchParams();
   const [createInitial, setCreateInitial] = useState<ExamRoomFormData | undefined>();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [editFormData, setEditFormData] = useState<ExamRoomFormData | undefined>();
-  const [recentParticipants, setRecentParticipants] = useState<Participant[]>([]);
-  const [loadingParticipants, setLoadingParticipants] = useState(false);
+  const [editing, setEditing] = useState<{ id: string; data: ExamRoomFormData } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Pending>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    fetchAllExamRooms();
+    void fetchAllExamRooms().catch(() => {});
   }, [fetchAllExamRooms]);
 
   useEffect(() => {
     const quizSetId = searchParams.get("quizSetId");
     if (!quizSetId) return;
     setCreateInitial({ title: "", description: "", quizSetId });
-    setIsCreateModalOpen(true);
+    setCreateOpen(true);
     setSearchParams((params) => {
       params.delete("quizSetId");
       return params;
@@ -58,211 +53,103 @@ export default function ManageExamRoomPage() {
     void fetchAllQuizSets().finally(() => setQuizSetsLoading(false));
   }, [fetchAllQuizSets]);
 
-  useEffect(() => {
-    const fetchRecentParticipants = async () => {
-      if (examRooms.length === 0) return;
+  const quizSetOptions = useMemo(() => quizSetsK.map((qs) => ({ id: qs.id, title: qs.title, questionCount: qs.questionCount })), [quizSetsK]);
 
-      setLoadingParticipants(true);
-      try {
-        const attemptsPromises = examRooms.map((room) =>
-          getExamAttemptsByRoomApi(room.id, 1, 10, true).catch(() => ({
-            attempts: [],
-            total: 0,
-            page: 1,
-            limit: 10,
-            totalPages: 0,
-          })),
-        );
-
-        const results = await Promise.all(attemptsPromises);
-        const allAttempts: ExamAttemptListItem[] = [];
-
-        results.forEach((result, index) => {
-          result.attempts.forEach((attempt) => {
-            allAttempts.push({
-              ...attempt,
-              examRoomTitle: examRooms[index].title,
-            } as ExamAttemptListItem & { examRoomTitle: string });
-          });
-        });
-
-        const participants: Participant[] = allAttempts
-          .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
-          .slice(0, 5)
-          .map((attempt) => ({
-            id: attempt.id,
-            name: displayUserName(attempt.user),
-            examName: (attempt as ExamAttemptListItem & { examRoomTitle?: string }).examRoomTitle || "Phòng thi",
-            status: "offline",
-          }));
-
-        setRecentParticipants(participants);
-      } catch (error) {
-        console.error("Failed to fetch recent participants:", error);
-      } finally {
-        setLoadingParticipants(false);
-      }
-    };
-
-    fetchRecentParticipants();
-  }, [examRooms]);
-
-  const stats = useMemo(() => {
-    const activeRooms = examRooms.length;
-    const totalParticipants = examRooms.reduce((sum, room) => sum + (room._count?.examSessions || 0), 0);
-
-    return {
-      activeRooms,
-      totalParticipants,
-      ongoingExams: 0,
-      completedToday: 0,
-    };
-  }, [examRooms]);
-
-  const transformedRooms = useMemo<ExamRoomListType[]>(() => {
-    return examRooms.map((room) => ({
-      id: room.id,
-      name: room.title,
-      roomType: room.quizSet?.title || "Chưa có bộ đề",
-      questionCount: room.quizSet?._count?.detailsQuizQuestions || room.quizSet?.questionCount || 0,
-      isPrivate: false,
-    }));
-  }, [examRooms]);
-
-  const quizSetOptions = useMemo(
-    () =>
-      quizSetsK.map((qs) => ({
-        id: qs.id,
-        title: qs.title,
-        questionCount: qs.questionCount,
-      })),
-    [quizSetsK],
-  );
-
-  const handleEditRoom = useCallback(
+  const openEdit = useCallback(
     (id: string) => {
       const room = examRooms.find((item) => item.id === id);
       if (!room) return;
-
-      setEditFormData({
-        title: room.title,
-        description: room.description || "",
-        // The backend marks rooms whose set was deleted; the form also drops ids missing from the list.
-        quizSetId: room.sourceDeleted ? "" : room.quizSetId,
-      });
-      setSelectedRoomId(id);
-      setIsEditModalOpen(true);
+      // The backend marks rooms whose set was deleted; the form also drops ids missing from the list.
+      setEditing({ id, data: { title: room.title, description: room.description || "", quizSetId: room.sourceDeleted ? "" : room.quizSetId } });
     },
     [examRooms],
   );
 
-  const handleCreateSubmit = useCallback(
-    async (data: ExamRoomFormData) => {
-      try {
-        await createExamRoom({
-          title: data.title,
-          description: data.description,
-          quizSetId: data.quizSetId,
-        });
-        setIsCreateModalOpen(false);
-        setCreateInitial(undefined);
-      } catch (error) {
-        console.error("Create exam room error:", error);
-      }
-    },
-    [createExamRoom],
-  );
-
-  const handleEditSubmit = useCallback(
-    async (data: ExamRoomFormData) => {
-      if (!selectedRoomId) return;
-
-      try {
-        await updateExamRoom(selectedRoomId, {
-          title: data.title,
-          description: data.description,
-          quizSetId: data.quizSetId,
-        });
-        setIsEditModalOpen(false);
-        setSelectedRoomId(null);
-        setEditFormData(undefined);
-      } catch (error) {
-        console.error("Update exam room error:", error);
-      }
-    },
-    [selectedRoomId, updateExamRoom],
-  );
-
-  const handleConfirmDelete = useCallback(async () => {
-    if (!selectedRoomId) return;
-
+  const handleCreate = async (data: ExamRoomFormData) => {
     try {
-      await deleteExamRoom(selectedRoomId);
-      setIsDeleteDialogOpen(false);
-      setSelectedRoomId(null);
-    } catch (error) {
-      console.error("Delete exam room error:", error);
+      await createExamRoom({ title: data.title, description: data.description, quizSetId: data.quizSetId });
+      setCreateOpen(false);
+      setCreateInitial(undefined);
+    } catch {
+      // The store has told the user; the form stays open to try again.
     }
-  }, [selectedRoomId, deleteExamRoom]);
+  };
 
-  if (loading && examRooms.length === 0) {
-    return (
-      <div className="animate-pulse">
-        <div className="mb-4 h-12 w-72 rounded-lg bg-surface-soft" />
-        <div className="mb-4 grid gap-4 sm:grid-cols-2">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="h-24 rounded-lg bg-surface-soft" />
-          ))}
-        </div>
-        <div className="h-52 rounded-lg bg-surface-soft" />
-      </div>
-    );
-  }
+  const handleEdit = async (data: ExamRoomFormData) => {
+    if (!editing) return;
+    try {
+      await updateExamRoom(editing.id, { title: data.title, description: data.description, quizSetId: data.quizSetId });
+      setEditing(null);
+    } catch {
+      // As above.
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      if (pendingDelete.kind === "one") await deleteExamRoom(pendingDelete.id);
+      else await deleteExamRooms([...list.selected]);
+      setPendingDelete(null);
+    } catch {
+      // As above; the dialog stays open.
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handlers = {
+    onOpen: (id: string) => navigate(`/k/manage-exam-room/${id}`),
+    onResults: (id: string) => navigate(`/k/manage-exam-room/${id}?tab=stats`),
+    onEdit: openEdit,
+    onDelete: (id: string) => setPendingDelete({ kind: "one", id }),
+  };
+
+  const firstLoad = loading && examRooms.length === 0;
 
   return (
-    <div>
-      <div>
-        <PageHeader
-          icon={<DoorOpenIcon />}
-          title="Quản lý phòng thi"
-          subtitle="Tạo và quản lý các phòng thi trực tuyến"
-          actions={
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <PlusCircleIcon className="mr-2 h-4 w-4" />
-              Tạo phòng thi mới
-            </Button>
-          }
-        />
+    <div className="space-y-5">
+      <PageHeader
+        icon={<MonitorIcon />}
+        title="Danh sách phòng thi"
+        subtitle="Quản lý các phòng thi đã tạo và theo dõi kết quả"
+        eyebrow={<RoomBreadcrumb current="Danh sách phòng thi" />}
+        large
+        actions={
+          <Button variant="solid" size="lg" onClick={() => setCreateOpen(true)} className="!h-12 !px-6 !text-[15px] !font-semibold">
+            <PlusIcon weight="bold" />
+            Tạo phòng thi
+          </Button>
+        }
+      />
 
-        <RoomStatsSection stats={stats} />
-
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <ExamRoomList
-              rooms={transformedRooms}
-              onViewRoom={(id) => navigate(`/k/manage-exam-room/${id}`)}
-              onEditRoom={handleEditRoom}
-              onDeleteRoom={(id) => {
-                setSelectedRoomId(id);
-                setIsDeleteDialogOpen(true);
-              }}
-            />
+      {firstLoad ? (
+        <div className="animate-pulse space-y-5" aria-busy="true">
+          <div className="grid gap-4 min-[480px]:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }, (_, i) => <div key={i} className="h-[104px] rounded-lg bg-surface-soft" />)}
           </div>
-
-          <div className="lg:col-span-1">
-            {loadingParticipants ? (
-              <div className="h-52 animate-pulse rounded-lg bg-surface-soft" />
-            ) : (
-              <RecentParticipantsList participants={recentParticipants} onViewAll={() => {}} />
-            )}
-          </div>
+          <div className="h-[76px] rounded-lg bg-surface-soft" />
+          <div className="h-72 rounded-lg bg-surface-soft" />
         </div>
-      </div>
+      ) : (
+        <>
+          <RoomListStats stats={list.stats} />
+          <RoomListToolbar filters={list.filters} onChange={list.changeFilters} view={list.view} onViewChange={list.setView} />
+          <RoomListPanel
+            list={list}
+            hasRooms={examRooms.length > 0}
+            onCreate={() => setCreateOpen(true)}
+            onDeleteSelected={() => setPendingDelete({ kind: "selected" })}
+            {...handlers}
+          />
+        </>
+      )}
 
       <ExamRoomModal
-        open={isCreateModalOpen}
+        open={createOpen}
         onOpenChange={(open) => {
-          setIsCreateModalOpen(open);
+          setCreateOpen(open);
           if (!open) setCreateInitial(undefined);
         }}
         mode="create"
@@ -270,26 +157,31 @@ export default function ManageExamRoomPage() {
         quizSets={quizSetOptions}
         isLoadingQuizSets={quizSetsLoading}
         isLoading={loading}
-        onSubmit={handleCreateSubmit}
+        onSubmit={handleCreate}
       />
 
       <ExamRoomModal
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
+        open={editing !== null}
+        onOpenChange={(open) => !open && setEditing(null)}
         mode="edit"
         quizSets={quizSetOptions}
         isLoadingQuizSets={quizSetsLoading}
         isLoading={loading}
-        initialData={editFormData}
-        onSubmit={handleEditSubmit}
+        initialData={editing?.data}
+        onSubmit={handleEdit}
       />
 
       <DeleteConfirmDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        title="Xóa phòng thi"
-        description="Bạn có chắc chắn muốn xóa phòng thi này? Hành động này không thể hoàn tác."
-        onConfirm={handleConfirmDelete}
+        open={pendingDelete !== null}
+        onOpenChange={(open) => !open && !deleting && setPendingDelete(null)}
+        title={pendingDelete?.kind === "selected" ? `Xóa ${list.selected.size} phòng thi` : "Xóa phòng thi"}
+        description={
+          pendingDelete?.kind === "selected"
+            ? "Mọi phiên thi và bài làm trong các phòng đã chọn sẽ bị xóa. Hành động này không thể hoàn tác."
+            : "Bạn có chắc chắn muốn xóa phòng thi này? Hành động này không thể hoàn tác."
+        }
+        isLoading={deleting}
+        onConfirm={confirmDelete}
       />
     </div>
   );

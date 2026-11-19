@@ -4,6 +4,7 @@ import {
   ResponseListExamSessions,
 } from "@/apis/examRoomApi";
 import {
+  endExamRoomApi,
   createExamSessionApi,
   updateExamSessionApi,
   deleteExamSessionApi,
@@ -16,6 +17,16 @@ import { storeCache, CacheTTL } from "@/lib/storeCache";
 import { toast } from "@/components/antd/toast";
 import { ApiRequestError } from "@/apis/api";
 import { createSessionErrorMessage } from "@/lib/exam-session/snapshot-banner";
+
+/**
+ * Every cached list a session change makes stale: the room's sessions, session lists, and the room list,
+ * whose session windows and statuses come from the sessions ("examrooms:" and "examrooms-all:").
+ */
+function invalidateSessionLists() {
+  storeCache.invalidate("examroom-sessions:");
+  storeCache.invalidate("examsessions:");
+  storeCache.invalidate("examrooms");
+}
 
 interface ExamRoomDetailStore {
   // Sessions data
@@ -45,6 +56,8 @@ interface ExamRoomDetailStore {
   deleteSession: (id: string, examRoomId: string) => Promise<boolean>;
   /** "locked" = 409 SNAPSHOT_LOCKED: the caller should refetch so the button disappears. */
   refreshSnapshot: (id: string) => Promise<"ok" | "locked" | "error">;
+  /** Closes every running session of the room now; true when the server took it. */
+  endRoom: (examRoomId: string) => Promise<boolean>;
   invalidateSessionsCache: (examRoomId: string) => void;
   reset: () => void;
 }
@@ -103,8 +116,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
       const newSession = response.examSession;
 
       // Invalidate cache sau khi tạo mới
-      storeCache.invalidate("examroom-sessions:");
-      storeCache.invalidate("examsessions:");
+      invalidateSessionLists();
 
       // Add new session to local state (at the beginning)
       set((state) => ({
@@ -152,8 +164,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
       const updatedSession = response.examSession;
 
       // Invalidate cache sau khi cập nhật
-      storeCache.invalidate("examroom-sessions:");
-      storeCache.invalidate("examsessions:");
+      invalidateSessionLists();
 
       // Cập nhật session trong local state với dữ liệu trả về từ API
       set((state) => ({
@@ -198,8 +209,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
       await deleteExamSessionApi(id);
 
       // Invalidate cache sau khi xóa
-      storeCache.invalidate("examroom-sessions:");
-      storeCache.invalidate("examsessions:");
+      invalidateSessionLists();
 
       // Xóa session khỏi local state
       set((state) => ({
@@ -222,8 +232,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
     try {
       set({ mutationLoading: true });
       await refreshSnapshotApi(id);
-      storeCache.invalidate("examroom-sessions:");
-      storeCache.invalidate("examsessions:");
+      invalidateSessionLists();
       // The banner disappears locally; the next fetch confirms it from the server.
       set((state) => ({
         sessions: state.sessions.map((session) =>
@@ -245,6 +254,23 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
       }
       toast.error("Cập nhật đề thất bại");
       return "error";
+    }
+  },
+
+  endRoom: async (examRoomId) => {
+    set({ mutationLoading: true });
+    try {
+      const { ended, closedAttempts } = await endExamRoomApi(examRoomId);
+      invalidateSessionLists();
+      if (ended > 0) toast.success(`Đã kết thúc ${ended} phiên thi${closedAttempts > 0 ? `, nộp hộ ${closedAttempts} bài đang làm` : ""}`);
+      else toast.info("Không có phiên thi nào đang diễn ra");
+      return true;
+    } catch (error) {
+      console.error("Error ending exam room:", error);
+      toast.error("Không thể kết thúc phòng thi");
+      return false;
+    } finally {
+      set({ mutationLoading: false });
     }
   },
 

@@ -9,17 +9,19 @@ interface FlashcardTablePaginationProps {
   totalResults: number;
   perPage: number;
   onPageChange: (page: number) => void;
+  /** What the rows are, in "Hiển thị 1 – 5 / 5 …". */
+  noun?: string;
 }
 
 const base =
   "grid size-8 place-items-center rounded-full border text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:pointer-events-none disabled:opacity-50";
 
-const FlashcardTablePaginationComponent = ({ currentPage, totalPages, totalResults, perPage, onPageChange }: FlashcardTablePaginationProps) => {
+const FlashcardTablePaginationComponent = ({ currentPage, totalPages, totalResults, perPage, onPageChange, noun = "bộ thẻ" }: FlashcardTablePaginationProps) => {
   const { from, to } = visibleRange(currentPage, perPage, totalResults);
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline-soft px-4 py-3 md:px-5">
       <p className="text-sm text-muted-foreground">
-        Hiển thị {from} – {to} / {totalResults} bộ thẻ
+        Hiển thị {from} – {to} / {totalResults} {noun}
       </p>
       {totalPages > 1 && (
         <nav aria-label="Phân trang" className="flex items-center gap-1.5">
