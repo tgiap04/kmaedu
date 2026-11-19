@@ -99,13 +99,6 @@ export function splitByProgress(sessions: SessionSummary[]): { continuing: Sessi
   }
 }
 
-/** A slot in [0, size) that never changes for the same key (picks a room's tile icon). */
-export function stableIndex(key: string, size: number): number {
-  let hash = 0
-  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0
-  return Math.abs(hash) % size
-}
-
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 /** "5 phút trước" for the last week (shared wording), then the date itself (d/m/yyyy); "" when the date cannot be read. */

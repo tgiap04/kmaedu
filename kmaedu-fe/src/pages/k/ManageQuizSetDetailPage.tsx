@@ -141,6 +141,7 @@ function QuizSetDetail({ id }: { id: string }) {
               onUpdate={detail.updateQuestion}
               onRequestDelete={setPendingDelete}
               onBusyChange={setEditingQuestion}
+              onAssignChapter={detail.assignChapter} onCreateChapter={detail.createChapterFor}
             />
           )}
           {tab === "info" && (

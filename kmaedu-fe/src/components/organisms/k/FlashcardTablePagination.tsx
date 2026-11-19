@@ -1,83 +1,47 @@
 import { memo } from "react";
-import { Button } from "@/components/antd/button";
-import { CaretCircleLeftIcon, CaretCircleRightIcon } from "@phosphor-icons/react";
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { pageNumbers, visibleRange } from "@/pages/k/components/flashcard-list/flashcard-list-logic";
+import { cn } from "@/lib/utils";
 
 interface FlashcardTablePaginationProps {
   currentPage: number;
   totalPages: number;
   totalResults: number;
+  perPage: number;
   onPageChange: (page: number) => void;
 }
 
-const FlashcardTablePaginationComponent = ({
-  currentPage,
-  totalPages,
-  totalResults,
-  onPageChange,
-}: FlashcardTablePaginationProps) => {
-  const startResult = (currentPage - 1) * 10 + 1;
-  const endResult = Math.min(currentPage * 10, totalResults);
+const base =
+  "grid size-8 place-items-center rounded-full border text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:pointer-events-none disabled:opacity-50";
 
-  const renderPageNumbers = () => {
-    const pages = [];
-    const maxVisible = 3;
-
-    if (totalPages <= maxVisible + 2) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 2) {
-        pages.push(1, 2, 3);
-      } else if (currentPage >= totalPages - 1) {
-        pages.push(totalPages - 2, totalPages - 1, totalPages);
-      } else {
-        pages.push(currentPage - 1, currentPage, currentPage + 1);
-      }
-    }
-
-    return pages;
-  };
-
+const FlashcardTablePaginationComponent = ({ currentPage, totalPages, totalResults, perPage, onPageChange }: FlashcardTablePaginationProps) => {
+  const { from, to } = visibleRange(currentPage, perPage, totalResults);
   return (
-    <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-hairline bg-canvas px-4 py-3 shadow-[0_4px_20px_rgba(15,23,42,0.04)] sm:flex-row md:px-5">
-      <div className="text-sm text-muted-foreground">
-        Hiển thị {startResult} - {endResult} trong tổng số {totalResults} kết quả
-      </div>
-      <div className="flex flex-wrap items-center justify-center gap-1">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="h-8 rounded-lg border-hairline focus-visible:ring-2 focus-visible:ring-brand/40">
-          <CaretCircleLeftIcon className="h-4 w-4 mr-1" />
-          Trước
-        </Button>
-        {renderPageNumbers().map((page) => (
-          <Button
-            key={page}
-            variant={currentPage === page ? "default" : "outline"}
-            size="sm"
-            onClick={() => onPageChange(page)}
-            className={`h-8 w-8 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-brand/40 ${
-              currentPage === page
-                ? ""
-                : "border-hairline"
-            }`}>
-            {page}
-          </Button>
-        ))}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="h-8 rounded-lg border-hairline focus-visible:ring-2 focus-visible:ring-brand/40">
-          Sau
-          <CaretCircleRightIcon className="h-4 w-4 ml-1" />
-        </Button>
-      </div>
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline-soft px-4 py-3 md:px-5">
+      <p className="text-sm text-muted-foreground">
+        Hiển thị {from} – {to} / {totalResults} bộ thẻ
+      </p>
+      {totalPages > 1 && (
+        <nav aria-label="Phân trang" className="flex items-center gap-1.5">
+          <button type="button" aria-label="Trang trước" disabled={currentPage <= 1} onClick={() => onPageChange(currentPage - 1)} className={cn(base, "border-hairline bg-canvas text-body hover:bg-surface-soft")}>
+            <CaretLeftIcon weight="bold" className="size-3.5" aria-hidden />
+          </button>
+          {pageNumbers(currentPage, totalPages).map((n) => (
+            <button
+              key={n}
+              type="button"
+              aria-current={n === currentPage ? "page" : undefined}
+              onClick={() => onPageChange(n)}
+              className={cn(base, n === currentPage ? "border-brand bg-brand text-white" : "border-hairline bg-canvas text-ink hover:bg-surface-soft")}
+            >
+              {n}
+            </button>
+          ))}
+          <button type="button" aria-label="Trang sau" disabled={currentPage >= totalPages} onClick={() => onPageChange(currentPage + 1)} className={cn(base, "border-hairline bg-canvas text-body hover:bg-surface-soft")}>
+            <CaretRightIcon weight="bold" className="size-3.5" aria-hidden />
+          </button>
+        </nav>
+      )}
     </div>
   );
 };

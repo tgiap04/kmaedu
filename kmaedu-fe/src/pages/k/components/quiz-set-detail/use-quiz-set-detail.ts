@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   addQuestionToQuizSet,
+  assignQuestionsToLabelApi,
+  createLabelApi,
   deleteQuestionFromQuizSet,
   getQuizSetByIdApi,
   updateQuestionInQuizSet,
@@ -9,6 +11,8 @@ import {
 import { toast } from "@/components/antd/toast";
 import { invalidateLabelsCache } from "@/components/molecules/LabelSelector";
 import type { QuizSetFormData } from "@/components/molecules/QuizSetForm";
+import { nextLabelOrder } from "@/lib/label-picker/label-picker";
+import { chapterColorAt } from "@/lib/manage-exam/chapter-colors";
 import { sortSetQuestions } from "@/lib/manage-exam/quiz-set-detail";
 import { storeCache } from "@/lib/storeCache";
 import { useStatsStore } from "@/stores/useStatsStore";
@@ -97,6 +101,27 @@ export function useQuizSetDetail(id: string) {
     addQuestion: (data: QuestionInput) => run(() => addQuestionToQuizSet(id, data), "Đã thêm câu hỏi", "Thêm câu hỏi thất bại"),
     updateQuestion: (questionId: string, data: QuestionInput) =>
       run(() => updateQuestionInQuizSet(id, questionId, data), "Đã lưu thay đổi", "Lưu câu hỏi thất bại"),
+    /** Puts one question in a chapter of the set; a failure reads the set again (the chapter may be gone). */
+    assignChapter: async (questionId: string, labelId: string) => {
+      const ok = await run(() => assignQuestionsToLabelApi(id, labelId, [questionId]), "Đã gán chương", "Gán chương thất bại");
+      if (!ok) await changed();
+      return ok;
+    },
+    /** Creates a chapter, then puts the question in it; a chapter made before the assign failed is still shown, ready to pick. */
+    createChapterFor: async (questionId: string, name: string) => {
+      const labels = quizSet?.labels ?? [];
+      let labelId: string;
+      try {
+        ({ label: { id: labelId } } = await createLabelApi(id, { name, color: chapterColorAt(labels.length), order: nextLabelOrder(labels) }));
+      } catch (error) {
+        toast.error("Tạo chương thất bại", { description: errorText(error) });
+        await changed(); // e.g. the name is taken: show the chapters as they are now
+        return false;
+      }
+      const ok = await run(() => assignQuestionsToLabelApi(id, labelId, [questionId]), `Đã gán vào chương "${name}"`, "Đã tạo chương nhưng chưa gán được câu hỏi");
+      if (!ok) await changed();
+      return ok;
+    },
     /** Deletes one after another so a failure leaves the rest untouched; reports how many went. */
     deleteQuestions: async (ids: string[]) => {
       let deleted = 0;

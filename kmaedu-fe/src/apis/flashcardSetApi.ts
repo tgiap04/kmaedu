@@ -61,6 +61,8 @@ export type CredentialsGetFlashcardSets = {
   tags?: string[];
   isPublic?: boolean;
   isPinned?: boolean;
+  /** Server-side order of the whole list (default newest first). */
+  sort?: "recent" | "name" | "cards" | "views";
 };
 
 export type ResponseListFlashcardSets = {

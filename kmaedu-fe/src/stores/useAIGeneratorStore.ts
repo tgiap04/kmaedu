@@ -405,8 +405,11 @@ interface FlashcardGeneratorState {
   setIsNarrow: (isNarrow: boolean) => void;
   setKeyword: (keyword: string) => void;
   setCurrentCard: (index: number) => void;
-  generateFlashcards: () => Promise<void>;
+  /** `quiet`: no success toast (a caller that saves the cards says "done" itself, once). */
+  generateFlashcards: (options?: { quiet?: boolean }) => Promise<void>;
   clearFlashcards: () => void;
+  /** Forgets the file and the result, keeps the settings (card count, narrow, keyword). */
+  clearResult: () => void;
 }
 
 // Test Generator Store
@@ -588,7 +591,7 @@ export const useFlashcardGeneratorStore = create<FlashcardGeneratorState>(
     setKeyword: (keyword) => set({ keyword }),
     setCurrentCard: (currentCard) => set({ currentCard }),
 
-    generateFlashcards: async () => {
+    generateFlashcards: async (options = {}) => {
       const {
         file,
         uploadId,
@@ -663,11 +666,13 @@ export const useFlashcardGeneratorStore = create<FlashcardGeneratorState>(
               currentCard: 0,
               isGenerating: false,
             });
-            toast.success("Tạo flashcard thành công!", {
-              description: `Đã tạo ${
-                result.flashcards?.length || 0
-              } thẻ flashcard từ tài liệu của bạn`,
-            });
+            if (!options.quiet) {
+              toast.success("Tạo flashcard thành công!", {
+                description: `Đã tạo ${
+                  result.flashcards?.length || 0
+                } thẻ flashcard từ tài liệu của bạn`,
+              });
+            }
             // Refresh recent uploads list after successful generation
             useRecentUploadsStore.getState().fetchRecentUploads(true);
           },
@@ -711,6 +716,15 @@ export const useFlashcardGeneratorStore = create<FlashcardGeneratorState>(
         cardCount: 15,
         isNarrow: false,
         keyword: "",
+      }),
+    clearResult: () =>
+      set({
+        file: null,
+        uploadId: null,
+        fileInfo: null,
+        generatedCards: null,
+        generatedCardsId: null,
+        currentCard: 0,
       }),
   }),
 );

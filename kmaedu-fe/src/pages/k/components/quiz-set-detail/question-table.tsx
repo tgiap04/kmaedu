@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { PlusCircleIcon } from "@phosphor-icons/react";
 import { ExamTablePagination } from "@/components/organisms/k/ExamTablePagination";
+import { orderLabels } from "@/lib/label-picker/label-picker";
 import { toggleAll, toggleOne } from "@/lib/manage-exam/exam-list-view";
 import { cn } from "@/lib/utils";
 import type { Quizz, QuizSetLabel } from "@/types/quizset";
@@ -25,15 +26,19 @@ interface Props {
   onRequestDelete: (ids: string[]) => void;
   /** True while a question is being edited or added (unsaved work on the page). */
   onBusyChange?: (busy: boolean) => void;
+  /** Put a question without a chapter in one, or in a chapter created for it. */
+  onAssignChapter: (questionId: string, labelId: string) => Promise<boolean>;
+  onCreateChapter: (questionId: string, name: string) => Promise<boolean>;
 }
 
 /** "Danh sách câu hỏi": column header, rows (expand / edit inline), add row, selection and paging footer. */
-export function QuestionTable({ questions, numberOf, labels, resetKey, emptyText, onAdd, onUpdate, onRequestDelete, onBusyChange }: Props) {
+export function QuestionTable({ questions, numberOf, labels, resetKey, emptyText, onAdd, onUpdate, onRequestDelete, onBusyChange, onAssignChapter, onCreateChapter }: Props) {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [expanded, setExpanded] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const chapters = useMemo(() => orderLabels(labels), [labels]);
 
   const totalPages = Math.max(1, Math.ceil(questions.length / PER_PAGE));
   const rows = questions.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -84,7 +89,7 @@ export function QuestionTable({ questions, numberOf, labels, resetKey, emptyText
               key={q.id}
               question={q}
               number={numberOf(q.id)}
-              labels={labels}
+              labels={chapters}
               selected={selected.has(q.id)}
               onToggleSelect={() => setSelected((prev) => toggleOne(prev, q.id))}
               expanded={expanded === q.id}
@@ -98,6 +103,8 @@ export function QuestionTable({ questions, numberOf, labels, resetKey, emptyText
               onSave={(data) => onUpdate(q.id, data)}
               onDelete={() => onRequestDelete([q.id])}
               locked={busy && openEdit !== q.id}
+              onAssignChapter={(labelId) => onAssignChapter(q.id, labelId)}
+              onCreateChapter={(name) => onCreateChapter(q.id, name)}
             />
           ))}
         </ul>

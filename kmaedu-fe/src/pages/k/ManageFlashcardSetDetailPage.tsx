@@ -1,361 +1,189 @@
-import { useEffect, useState, useCallback } from "react";
-import { Link, useParams } from "react-router-dom";
-import { useFlashcardSetStore } from "@/stores/useFlashcardSetStore";
-import { Button } from "@/components/antd/button";
-import { Badge } from "@/components/antd/badge";
+import { useCallback, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Skeleton } from "@/components/antd/skeleton";
-import { CalendarDotsIcon, CreditCardIcon, EyeIcon, PlusCircleIcon, CardsIcon } from "@phosphor-icons/react";
-import { PageHeader } from "@/components/k-page/page-header";
-import { SectionCard, SectionMessage } from "@/components/k-page/section-card";
-import { HistoryStatCard } from "@/components/molecules/HistoryStatCard";
-import type { Flashcard as FlashCard } from "@/types/flashcardSet";
 import { DeleteConfirmDialog } from "@/components/organisms/DeleteConfirmDialog";
-import { FlashcardEditorDialog } from "@/components/organisms/FlashcardEditorDialog";
-import type { FlashcardFormData } from "@/components/organisms/FlashcardEditorDialog";
-import { FlashcardLabelManager } from "@/components/organisms/FlashcardLabelManager";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/antd/breadcrumb";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/antd/select";
-import {
-  getFlashcardSetFlashcardsApi,
-  getFlashcardSetLabelsApi,
-  updateFlashcardInFlashcardSet,
-  type PaginationInfo,
-  type FlashcardSetLabel,
-} from "@/apis/flashcardSetApi";
-import { storeCache } from "@/lib/storeCache";
-import { FlashcardGridCard } from "./components/flashcard-grid-card";
-import { NumberedPagination } from "./components/numbered-pagination";
+import { FlashcardSetModal } from "@/components/organisms/FlashcardSetModal";
+import { ShareFlashcardModal } from "@/components/organisms/ShareFlashcardModal";
+import { ALL_CARDS, UNLABELED, completionRate, filterCards } from "@/lib/flashcard-detail/flashcard-detail";
+import { useFlashcardSetStore } from "@/stores/useFlashcardSetStore";
+import { useStatsStore } from "@/stores/useStatsStore";
+import type { Flashcard } from "@/types/flashcardSet";
+import { FlashcardDetailHeader } from "./components/flashcard-detail/flashcard-detail-header";
+import { FlashcardDetailStats } from "./components/flashcard-detail/flashcard-detail-stats";
+import { FlashcardLabelManager } from "./components/flashcard-detail/flashcard-label-manager";
+import { FlashcardList } from "./components/flashcard-detail/flashcard-list";
+import { FlashcardStatsPanel } from "./components/flashcard-detail/flashcard-stats-panel";
+import { type DetailTab, FlashcardTabsBar, tabId, tabPanelId } from "./components/flashcard-detail/flashcard-tabs-bar";
+import { useCardLabeling } from "./components/flashcard-detail/use-card-labeling";
+import { useCopyFlashcardSet } from "./components/flashcard-detail/use-copy-flashcard-set";
+import { useFlashcardCards } from "./components/flashcard-detail/use-flashcard-cards";
+import { useFlashcardProgress } from "./components/flashcard-detail/use-flashcard-progress";
+import { useFlashcardSetDetail } from "./components/flashcard-detail/use-flashcard-set-detail";
 
+/** One mount per set: opening another set (e.g. right after "Sao chép") starts from a clean page. */
 export default function ManageFlashcardSetDetailPage() {
   const { id = "" } = useParams();
-  const {
-    currentFlashcardSet,
-    loading,
-    fetchFlashcardSetById,
-    addFlashcard,
-    updateFlashcard,
-    deleteFlashcard,
-  } = useFlashcardSetStore();
+  return <FlashcardSetDetail key={id} id={id} />;
+}
 
-  const [selectedCard, setSelectedCard] = useState<FlashCard | null>(null);
-  const [showCardForm, setShowCardForm] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [cardToDelete, setCardToDelete] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [paginatedFlashcards, setPaginatedFlashcards] = useState<FlashCard[]>([]);
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
-  const [flashcardsLoading, setFlashcardsLoading] = useState(false);
-  const itemsPerPage = 9;
-  const [selectedLabelId, setSelectedLabelId] = useState<string | null>(null);
-  const [availableLabels, setAvailableLabels] = useState<FlashcardSetLabel[]>([]);
-  const [_labelsLoading, setLabelsLoading] = useState(false);
-  useEffect(() => {
-    if (id) {
-      fetchFlashcardSetById(id);
-    }
-  }, [id, fetchFlashcardSetById]);
+function FlashcardSetDetail({ id }: { id: string }) {
+  const navigate = useNavigate();
+  const { updateFlashcardSet, deleteFlashcardSet } = useFlashcardSetStore();
+  const invalidateFlashcardStats = useStatsStore((s) => s.invalidateFlashcardStats);
+  const detail = useFlashcardSetDetail(id);
+  const { set, labels } = detail;
+  const cardStore = useFlashcardCards(id);
+  const { cards } = cardStore;
+  const studiedIds = useFlashcardProgress(id);
+  const copier = useCopyFlashcardSet(set, cards);
 
-  const fetchFlashcards = useCallback(async () => {
-    if (!id) return;
+  const [tab, setTab] = useState<DetailTab>("cards");
+  const [search, setSearch] = useState("");
+  const [chosenLabel, setLabel] = useState(ALL_CARDS);
+  const [editOpen, setEditOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [deleteSetOpen, setDeleteSetOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Flashcard | null>(null);
+  const [busy, setBusy] = useState(false);
 
-    setFlashcardsLoading(true);
-    try {
-      const response = await getFlashcardSetFlashcardsApi(id, currentPage, itemsPerPage, selectedLabelId);
-      setPaginatedFlashcards(response.flashCards);
-      setPagination(response.pagination);
-    } catch (error) {
-      console.error("Failed to fetch flashcards:", error);
-    } finally {
-      setFlashcardsLoading(false);
-    }
-  }, [id, currentPage, selectedLabelId]);
-
-  const fetchLabels = useCallback(async () => {
-    if (!id) return;
-
-    setLabelsLoading(true);
-    try {
-      const response = await getFlashcardSetLabelsApi(id);
-      setAvailableLabels(response.labels);
-    } catch (error) {
-      console.error("Failed to fetch labels:", error);
-    } finally {
-      setLabelsLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchFlashcards();
-  }, [fetchFlashcards]);
-
-  useEffect(() => {
-    fetchLabels();
-  }, [fetchLabels]);
-
-  const totalFlashcards = pagination?.total || 0;
-  const totalPages = pagination?.totalPages || 0;
-
-  // Cache key generator for flashcards by label
-  const getLabelFlashcardsCacheKey = (labelId: string) =>
-    storeCache.createKey("flashcards-by-label", { flashcardSetId: id, labelId });
-
-  // Invalidate label flashcards cache when card CUD or label CUD
-  const invalidateLabelFlashcardsCache = (labelId: string) => {
-    const cacheKey = getLabelFlashcardsCacheKey(labelId);
-    storeCache.invalidate(cacheKey);
-  };
-
-  // Handle label change from FlashcardLabelManager
-  const handleLabelChange = useCallback(
-    (_action: "create" | "update" | "delete", labelId?: string) => {
-      if (labelId) {
-        invalidateLabelFlashcardsCache(labelId);
-      }
-      // Refresh labels list
-      fetchLabels();
-    },
-    [fetchLabels],
+  // A label deleted while it is the filter falls back to "all" instead of an empty, unnamed filter.
+  const label = chosenLabel === ALL_CARDS || chosenLabel === UNLABELED || labels.some((l) => l.id === chosenLabel) ? chosenLabel : ALL_CARDS;
+  const all = useMemo(() => cards ?? [], [cards]);
+  const visible = useMemo(() => filterCards(all, label, search), [all, label, search]);
+  const numbers = useMemo(() => new Map(all.map((c, i) => [c.id, i + 1])), [all]);
+  const completion = studiedIds && cards ? completionRate(studiedIds, all.map((c) => c.id)) : null;
+  // Stable while the set is unchanged, so the edit form does not reset on every render.
+  const editInitial = useMemo(
+    () => (set ? { title: set.title, description: set.description ?? "", isPublic: set.isPublic, isPinned: set.isPinned, tags: set.tags ?? [] } : undefined),
+    [set],
   );
-
-  const handleAddCard = useCallback(() => {
-    setSelectedCard(null);
-    setShowCardForm(true);
+  const labeling = useCardLabeling(id, cardStore, detail);
+  const openLabel = useCallback((filter: string) => {
+    setLabel(filter);
+    setSearch("");
+    setTab("cards");
   }, []);
 
-  const handleEditCard = useCallback((card: FlashCard) => {
-    setSelectedCard(card);
-    setShowCardForm(true);
-  }, []);
-
-  const handleDeleteCard = useCallback((cardId: string) => {
-    setCardToDelete(cardId);
-    setIsDeleteDialogOpen(true);
-  }, []);
-
-  const handleConfirmDelete = useCallback(async () => {
-    if (cardToDelete && id) {
-      // Find the card to get its labelId before deletion
-      const cardToDeleteObj = paginatedFlashcards.find((c) => c.id === cardToDelete);
-      const cardLabelId = cardToDeleteObj?.label?.id;
-
-      await deleteFlashcard(id, cardToDelete);
-      setIsDeleteDialogOpen(false);
-      setCardToDelete(null);
-
-      // Invalidate label cache if card had label
-      if (cardLabelId) {
-        invalidateLabelFlashcardsCache(cardLabelId);
-      }
-
-      if (paginatedFlashcards.length === 1 && currentPage > 1) {
-        setCurrentPage((prev) => prev - 1);
-        await fetchFlashcards();
-      } else {
-        await fetchFlashcards();
-      }
-    }
-  }, [cardToDelete, id, deleteFlashcard, paginatedFlashcards, currentPage, fetchFlashcards]);
-
-  const handleSaveCard = useCallback(
-    async (cardData: FlashcardFormData) => {
-      if (!id) return;
-
-      if (selectedCard) {
-        // Call API directly and update local state with returned data
-        const response = await updateFlashcardInFlashcardSet(id, selectedCard.id, cardData);
-        setPaginatedFlashcards((prev) =>
-          prev.map((card) => (card.id === selectedCard.id ? response.flashcard : card))
-        );
-        // Invalidate label cache if card has label
-        if (selectedCard.label?.id) {
-          invalidateLabelFlashcardsCache(selectedCard.label.id);
-        }
-      } else {
-        await addFlashcard(id, cardData);
-        await fetchFlashcards();
-      }
-
-      setShowCardForm(false);
-      setSelectedCard(null);
-    },
-    [selectedCard, id, addFlashcard, updateFlashcard, fetchFlashcards],
-  );
-
-  if (loading || !currentFlashcardSet) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-12 w-72 rounded-lg" />
-        <div className="grid gap-4 md:grid-cols-3">
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
+  if (!set) {
+    if (detail.failed) {
+      return (
+        <div className="py-24 text-center text-body">
+          <p>Không tải được bộ thẻ, hoặc bộ thẻ không còn tồn tại.</p>
+          <button type="button" onClick={() => void detail.reloadSet()} className="mt-3 font-semibold text-brand hover:underline">Thử lại</button>
         </div>
+      );
+    }
+    return (
+      <div className="space-y-5 pt-2">
+        <Skeleton className="h-16 w-full max-w-xl rounded-lg" />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)}</div>
         <Skeleton className="h-80 rounded-lg" />
       </div>
     );
   }
 
-  const labelFilter = (
-    <div className="flex items-center gap-2">
-      <span className="text-sm font-medium text-body">Lọc theo nhãn:</span>
-      <Select
-        value={selectedLabelId || "all"}
-        onValueChange={(value) => {
-          setSelectedLabelId(value === "all" ? null : value);
-          setCurrentPage(1);
-        }}
-      >
-        <SelectTrigger className="w-40 rounded-lg sm:w-48">
-          <SelectValue placeholder="Chọn nhãn" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Tất cả thẻ</SelectItem>
-          <SelectItem value="unlabeled">Chưa gán nhãn</SelectItem>
-          {availableLabels.map((label) => (
-            <SelectItem key={label.id} value={label.id}>
-              <div className="flex items-center gap-2">
-                {label.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: label.color }} />}
-                {label.name}
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+  const deleteSet = async () => {
+    setBusy(true);
+    try {
+      await deleteFlashcardSet(id);
+      invalidateFlashcardStats();
+      navigate("/k/flash-card");
+    } catch (error) {
+      console.error("Delete flashcard set error:", error); // the store already told the user
+      setBusy(false);
+    }
+  };
+
+  const deleteCard = async () => {
+    if (!pendingDelete) return;
+    setBusy(true);
+    const ok = await cardStore.deleteCard(pendingDelete);
+    setBusy(false);
+    if (ok) setPendingDelete(null);
+  };
+
+  // Until the cards are in, every tab shows a skeleton (or the retry link), never "0 thẻ".
+  const pendingCards = cardStore.failed ? (
+    <p className="py-12 text-center text-[14px] text-body">Không tải được danh sách thẻ. <button type="button" onClick={() => void cardStore.reload()} className="font-semibold text-brand hover:underline">Thử lại</button></p>
+  ) : (
+    <Skeleton className="h-64 w-full rounded-lg" />
   );
 
   return (
-    <div>
-      <div>
-        <PageHeader
-          icon={<CardsIcon />}
-          title={currentFlashcardSet.title}
-          subtitle={
-            <>
-              {currentFlashcardSet.description || "Quản lý thẻ nhớ và nhãn của bộ flashcard"}
-              {currentFlashcardSet.tags && currentFlashcardSet.tags.length > 0 && (
-                <span className="mt-2 flex flex-wrap gap-2">
-                  {currentFlashcardSet.tags.map((tag: string) => (
-                    <Badge key={tag} variant="outline">
-                      {tag}
-                    </Badge>
-                  ))}
-                </span>
-              )}
-            </>
-          }
-          eyebrow={
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to="/k/flash-card">Quản lý Flashcard</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{currentFlashcardSet.title}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          }
-        />
+    <div className="flex min-w-0 flex-col gap-5 pt-2 pb-6">
+      <FlashcardDetailHeader set={set} copying={copier.copying} copyDisabled={cards === null} onEditInfo={() => setEditOpen(true)} onShare={() => setShareOpen(true)} onCopy={() => void copier.copy()} onDelete={() => setDeleteSetOpen(true)} />
 
-        <div className="mb-4 grid gap-4 md:grid-cols-3">
-          <HistoryStatCard icon={CreditCardIcon} title="Tổng số thẻ" value={totalFlashcards} tone="red" />
-          <HistoryStatCard icon={EyeIcon} title="Lượt xem" value={currentFlashcardSet.viewCount} tone="green" />
-          <HistoryStatCard icon={CalendarDotsIcon} title="Ngày tạo" value={new Date(currentFlashcardSet.createdAt).toLocaleDateString("vi-VN")} tone="blue" />
-        </div>
+      <FlashcardDetailStats cardCount={cards === null ? null : all.length} viewCount={set.viewCount ?? 0} completion={completion} />
 
-        <FlashcardLabelManager
-          flashcardSetId={id}
-          onLabelChange={handleLabelChange}
-        />
-
-        <FlashcardEditorDialog
-          open={showCardForm}
-          onOpenChange={setShowCardForm}
-          flashcard={selectedCard}
-          onSave={handleSaveCard}
-        />
-
-        <SectionCard
-          icon={<CardsIcon />}
-          title="Danh sách flashcard"
-          countLabel={totalFlashcards > 0 ? `${totalFlashcards} thẻ` : undefined}
-          action={
-            <div className="flex flex-wrap items-center gap-2">
-              {labelFilter}
-              <Button onClick={handleAddCard} disabled={showCardForm}>
-                <PlusCircleIcon className="mr-2 h-4 w-4" />
-                Thêm thẻ
-              </Button>
-            </div>
-          }
-          plain
-        >
-          {flashcardsLoading ? (
-            <div className="grid gap-4 border-t border-hairline-soft p-4 md:grid-cols-2 md:p-5 lg:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-32 w-full rounded-lg" />
-              ))}
-            </div>
-          ) : paginatedFlashcards.length > 0 ? (
-            <>
-              <div className="grid gap-4 border-t border-hairline-soft p-4 md:grid-cols-2 md:p-5 lg:grid-cols-3">
-                {paginatedFlashcards.map((card, index) => (
-                  <FlashcardGridCard
-                    key={card.id}
-                    card={card}
-                    number={(currentPage - 1) * itemsPerPage + index + 1}
-                    disabled={showCardForm}
-                    onEdit={() => handleEditCard(card)}
-                    onDelete={() => handleDeleteCard(card.id)}
-                  />
-                ))}
-              </div>
-
-              {totalPages > 1 && (
-                <div className="border-t border-hairline-soft">
-                  <NumberedPagination
-                    page={currentPage}
-                    totalPages={totalPages}
-                    perPage={itemsPerPage}
-                    total={totalFlashcards}
-                    unit="thẻ"
-                    onChange={setCurrentPage}
-                    onSelect={setCurrentPage}
-                  />
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="border-t border-hairline-soft">
-              <SectionMessage title="Chưa có thẻ nhớ nào" hint={'Nhấn "Thêm thẻ" để bắt đầu tạo bộ flashcard'} />
-            </div>
+      <section className="rounded-lg border border-hairline-soft bg-canvas px-4 pt-3 shadow-[0_4px_20px_rgba(15,23,42,0.05)] md:px-5">
+        <FlashcardTabsBar tab={tab} onTabChange={setTab} cardCount={cards === null ? null : all.length} search={search} onSearchChange={setSearch} labels={labels} label={label} onLabelChange={setLabel} />
+        <div role="tabpanel" id={tabPanelId(tab)} aria-labelledby={tabId(tab)} className="pt-4 pb-4">
+          {cards === null && pendingCards}
+          {cards !== null && cardStore.failed && (
+            <p className="mb-3 rounded-lg bg-surface-soft px-3 py-2 text-[13px] text-body" role="status">
+              Chưa làm mới được danh sách thẻ, đang hiện bản đã tải.{" "}
+              <button type="button" onClick={() => void cardStore.reload()} className="font-semibold text-brand hover:underline">Thử lại</button>
+            </p>
           )}
-        </SectionCard>
-      </div>
+          {tab === "cards" && cards !== null && (
+            <FlashcardList
+              cards={visible}
+              numberOf={(cid) => numbers.get(cid) ?? 0}
+              resetKey={`${label}|${search}`}
+              emptyText={all.length === 0 ? "Bộ thẻ chưa có thẻ nào. Bấm \"Thêm thẻ\" để bắt đầu." : "Không có thẻ nào khớp tìm kiếm hoặc bộ lọc."}
+              onAdd={cardStore.addCard}
+              onUpdate={cardStore.updateCard}
+              onRequestDelete={setPendingDelete}
+              labels={labeling.labels}
+              labelsUnavailable={detail.labelsFailed}
+              onAssignLabel={labeling.assign}
+              onCreateLabel={labeling.create}
+            />
+          )}
+          {tab === "stats" && cards !== null && <FlashcardStatsPanel set={set} cards={all} studiedIds={studiedIds} />}
+          {tab === "labels" && cards !== null && <FlashcardLabelManager setId={id} labels={labels} cards={all} onChanged={labeling.onLabelsChanged} onOpenLabel={openLabel} />}
+        </div>
+      </section>
 
+      <FlashcardSetModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        mode="edit"
+        initialData={editInitial}
+        isLoading={false}
+        onSubmit={async (data) => {
+          try {
+            await updateFlashcardSet(id, { title: data.title, description: data.description || "", isPublic: data.isPublic, isPinned: data.isPinned, tags: data.tags });
+            setEditOpen(false);
+          } catch (error) {
+            console.error("Update flashcard set error:", error); // the store already told the user
+          }
+        }}
+      />
+      <ShareFlashcardModal
+        open={shareOpen}
+        onOpenChange={(open) => {
+          setShareOpen(open);
+          if (!open) void detail.reloadSet();
+        }}
+        flashcardSetId={id}
+        flashcardSetTitle={set.title}
+      />
       <DeleteConfirmDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
+        open={pendingDelete !== null}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
         title="Xóa thẻ nhớ"
-        description="Bạn có chắc chắn muốn xóa thẻ nhớ này? Hành động này không thể hoàn tác."
-        onConfirm={handleConfirmDelete}
+        description="Thẻ bị xóa sẽ không khôi phục được."
+        isLoading={busy}
+        onConfirm={() => void deleteCard()}
+      />
+      <DeleteConfirmDialog
+        open={deleteSetOpen}
+        onOpenChange={setDeleteSetOpen}
+        title="Xóa bộ thẻ"
+        description={`Xóa "${set.title}" cùng ${cards === null ? "toàn bộ" : all.length} thẻ? Hành động này không thể hoàn tác.`}
+        isLoading={busy}
+        onConfirm={() => void deleteSet()}
       />
     </div>
   );

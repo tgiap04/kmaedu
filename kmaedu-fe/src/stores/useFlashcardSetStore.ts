@@ -17,6 +17,7 @@ import {
 } from "@/apis/flashcardSetApi";
 import { FlashcardSet } from "@/types/flashcardSet";
 import { storeCache, CacheTTL } from "@/lib/storeCache";
+import { createReadGate } from "@/lib/read-gate";
 import { toast } from "@/components/antd/toast";
 
 interface FlashcardSetStore {
@@ -59,6 +60,9 @@ interface FlashcardSetStore {
   ) => Promise<void>;
 }
 
+/** Paging or filtering fast starts reads that can answer out of order: only the newest one writes the list. */
+const listGate = createReadGate();
+
 export const useFlashcardSetStore = create<FlashcardSetStore>((set) => ({
   flashcardSetsK: [],
   currentFlashcardSet: null,
@@ -68,6 +72,7 @@ export const useFlashcardSetStore = create<FlashcardSetStore>((set) => ({
   fetchFlashcardSets: async (params, options = {}) => {
     const { forceRefresh = false } = options;
     const cacheKey = storeCache.createKey("flashcardsets", params);
+    const mine = listGate.begin();
 
     try {
       set({ loading: true, error: null });
@@ -83,24 +88,30 @@ export const useFlashcardSetStore = create<FlashcardSetStore>((set) => ({
         }
       );
 
-      set({
-        flashcardSetsK: response.flashcardSets,
-        loading: false,
-      });
+      if (listGate.isCurrent(mine)) {
+        set({
+          flashcardSetsK: response.flashcardSets,
+          loading: false,
+        });
+      }
 
       return response;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      set({
-        error: errorMessage,
-        loading: false,
-      });
-      toast.error("Lấy bộ flashcard thất bại", {
-        description: errorMessage,
-      });
       console.error("Lấy bộ flashcard thất bại:", error);
+      if (listGate.isCurrent(mine)) {
+        set({
+          error: errorMessage,
+          loading: false,
+        });
+        toast.error("Lấy bộ flashcard thất bại", {
+          description: errorMessage,
+        });
+      }
       throw error;
+    } finally {
+      listGate.end(mine);
     }
   },
 

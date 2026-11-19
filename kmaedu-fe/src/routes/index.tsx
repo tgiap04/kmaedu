@@ -23,6 +23,7 @@ import ExamSessionPage from "@/pages/exam-session/ExamSessionPage";
 import ExamQuizPage from "@/pages/exam-session/ExamQuizPage";
 import ManageExamPage from "@/pages/k/ManageExamPage";
 import CreateExamPage from "@/pages/k/CreateExamPage";
+import CreateFlashcardPage from "@/pages/k/CreateFlashcardPage";
 import ManageQuizSetDetailPage from "@/pages/k/ManageQuizSetDetailPage";
 import ManageFlashcardSetDetailPage from "@/pages/k/ManageFlashcardSetDetailPage";
 import AIToolPage from "@/pages/k/AIToolPage";
@@ -131,6 +132,7 @@ export const router = createBrowserRouter([
   { path: "/k/verify", element: guarded(<VerifyPage />) },
   { path: "/k/my-materials", element: guarded(<MyMaterialsPage />, { permission: "flashcard:study", pageKey: "my-materials" }) },
   { path: "/k/flash-card", element: guarded(<FlashcardsPage />, { permission: "flashcardset:manage", pageKey: "flash-card" }) },
+  { path: "/k/flash-card/create", element: guarded(<CreateFlashcardPage />, { permission: "flashcardset:manage", pageKey: "flash-card" }) },
   { path: "/k/history", element: guarded(<HistoryPage />, { anyOf: ["ai:generate", "exam:take"], pageKey: "history" }) },
   { path: "/k/history/exam", element: guarded(<ExamHistoryPage />, { permission: "exam:take", pageKey: "history" }) },
   { path: "/k/history/pdf", element: guarded(<PDFHistoryPage />, { permission: "ai:generate", pageKey: "history" }) },

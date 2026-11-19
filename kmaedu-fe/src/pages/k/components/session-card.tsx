@@ -21,7 +21,8 @@ import { Button } from "@/components/antd/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/antd/dropdown-menu"
 import { DecorativeIcons } from "@/components/icons/icon-defaults"
 import { cn } from "@/lib/utils"
-import { formatAttemptTime, stableIndex, type SessionSummary } from "../my-exams-types"
+import { stableIndex } from "@/lib/stable-index"
+import { formatAttemptTime, type SessionSummary } from "../my-exams-types"
 
 /** Rooms carry no subject, so each one gets a fixed icon picked from its id. */
 const TILE_ICONS: Icon[] = [ExamIcon, ListChecksIcon, ClipboardTextIcon, NotebookIcon, FolderIcon, BookOpenTextIcon]

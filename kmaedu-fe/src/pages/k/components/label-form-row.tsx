@@ -4,23 +4,26 @@ import { CHAPTER_COLORS } from "@/lib/manage-exam/chapter-colors";
 import { cn } from "@/lib/utils";
 
 
-export interface ChapterDraft {
+export interface LabelDraft {
   name: string;
   description: string;
   color: string;
 }
 
 interface Props {
-  initial: ChapterDraft;
+  initial: LabelDraft;
   submitLabel: string;
-  onSubmit: (draft: ChapterDraft) => Promise<boolean>;
+  onSubmit: (draft: LabelDraft) => Promise<boolean>;
   onCancel: () => void;
+  /** What the row names in its labels: "chương" for a quiz set, "nhãn" for a flashcard set. */
+  noun: string;
+  namePlaceholder: string;
 }
 
 const field = "h-9 w-full rounded-lg border border-hairline bg-canvas px-3 text-[14px] text-ink outline-none transition-colors placeholder:text-muted-soft focus:border-brand-border";
 
-/** Inline add / edit of one chapter: name, optional description, a colour dot. Enter saves, Esc cancels. */
-export function ChapterFormRow({ initial, submitLabel, onSubmit, onCancel }: Props) {
+/** Inline add / edit of one label (a quiz chapter or a flashcard label): name, optional description, a colour. Enter saves, Esc cancels. */
+export function LabelFormRow({ initial, submitLabel, onSubmit, onCancel, noun, namePlaceholder }: Props) {
   const [draft, setDraft] = useState(initial);
   const [saving, setSaving] = useState(false);
   const name = draft.name.trim();
@@ -42,11 +45,11 @@ export function ChapterFormRow({ initial, submitLabel, onSubmit, onCancel }: Pro
       }}
     >
       <div className="grid gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-        <input autoFocus value={draft.name} maxLength={100} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Tên chương, VD: Chương 1" aria-label="Tên chương" className={field} />
-        <input value={draft.description} maxLength={500} onChange={(e) => setDraft({ ...draft, description: e.target.value })} placeholder="Mô tả ngắn (không bắt buộc)" aria-label="Mô tả chương" className={field} />
+        <input autoFocus value={draft.name} maxLength={100} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder={namePlaceholder} aria-label={`Tên ${noun}`} className={field} />
+        <input value={draft.description} maxLength={500} onChange={(e) => setDraft({ ...draft, description: e.target.value })} placeholder="Mô tả ngắn (không bắt buộc)" aria-label={`Mô tả ${noun}`} className={field} />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5" role="radiogroup" aria-label="Màu chương">
+        <div className="flex items-center gap-1.5" role="radiogroup" aria-label={`Màu ${noun}`}>
           {CHAPTER_COLORS.map(({ value: c }) => (
             <button
               key={c}

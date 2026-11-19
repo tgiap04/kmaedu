@@ -4,6 +4,7 @@ import { plainText } from "@/lib/manage-exam/quiz-set-detail";
 import { quizOptionToText, resolveAnswerIndex } from "@/lib/quizAnswerUtils";
 import { cn } from "@/lib/utils";
 import type { Quizz, QuizSetLabel } from "@/types/quizset";
+import { AssignLabelPicker } from "../assign-label-picker";
 import { QuestionInlineEditor } from "./question-inline-editor";
 import type { QuestionInput } from "./use-quiz-set-detail";
 
@@ -24,6 +25,9 @@ interface Props {
   onDelete: () => void;
   /** Another row is being edited: actions are paused. */
   locked: boolean;
+  /** A question without a chapter can be put in one from its row. */
+  onAssignChapter: (labelId: string) => Promise<boolean>;
+  onCreateChapter: (name: string) => Promise<boolean>;
 }
 
 const iconBtn = "grid size-9 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:pointer-events-none disabled:opacity-40";
@@ -47,6 +51,11 @@ export function QuestionTableRow(p: Props) {
   const { question: q } = p;
   const open = p.expanded || p.editing;
   const answerIndex = resolveAnswerIndex(q.answer, q.options);
+  const chapter = q.label ? (
+    <ChapterBadge label={q.label} />
+  ) : (
+    <AssignLabelPicker labels={p.labels} noun="chương" disabled={p.locked || p.editing} onAssign={p.onAssignChapter} onCreate={p.onCreateChapter} />
+  );
 
   return (
     <li className={cn("rounded-lg border transition-colors", p.editing ? "border-brand-border bg-brand-soft/30" : "border-transparent hover:bg-surface-soft/50")}>
@@ -56,10 +65,10 @@ export function QuestionTableRow(p: Props) {
           <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-soft text-[14px] font-bold text-brand">{p.number}</span>
           <div className="min-w-0">
             <p className={cn("text-[15px] font-semibold text-ink", !open && "truncate")}>{plainText(q.question) || "(Câu hỏi trống)"}</p>
-            <div className="mt-1 md:hidden"><ChapterBadge label={q.label} /></div>
+            <div className="mt-1 md:hidden">{chapter}</div>
           </div>
         </div>
-        <div className="hidden min-w-0 justify-center md:flex"><ChapterBadge label={q.label} /></div>
+        <div className="hidden min-w-0 justify-center md:flex">{chapter}</div>
         <div className="hidden justify-center md:flex">
           <span className="rounded-lg bg-brand-soft px-3 py-1 text-[12px] font-medium text-brand">Trắc nghiệm</span>
         </div>

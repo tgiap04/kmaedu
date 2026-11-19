@@ -3,10 +3,11 @@ import { PencilSimpleIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/rea
 import { createLabelApi, deleteLabelApi, updateLabelApi } from "@/apis/quizsetApi";
 import { toast } from "@/components/antd/toast";
 import { DeleteConfirmDialog } from "@/components/organisms/DeleteConfirmDialog";
+import { nextLabelOrder, orderLabels } from "@/lib/label-picker/label-picker";
 import { chapterColorAt } from "@/lib/manage-exam/chapter-colors";
 import { type LabelFilter, NO_LABEL, chapterCounts } from "@/lib/manage-exam/quiz-set-detail";
 import type { Quizz, QuizSetLabel } from "@/types/quizset";
-import { type ChapterDraft, ChapterFormRow } from "./chapter-form-row";
+import { type LabelDraft, LabelFormRow } from "../label-form-row";
 
 interface Props {
   quizSetId: string;
@@ -26,7 +27,7 @@ export function QuizSetChapterManager({ quizSetId, labels, questions, onChanged,
   const [editing, setEditing] = useState<string | "new" | null>(null);
   const [removing, setRemoving] = useState<QuizSetLabel | null>(null);
   const counts = useMemo(() => chapterCounts(questions), [questions]);
-  const ordered = useMemo(() => [...labels].sort((a, b) => a.order - b.order), [labels]);
+  const ordered = useMemo(() => orderLabels(labels), [labels]);
 
   const save = async (work: () => Promise<unknown>, done: string, fail: string) => {
     try {
@@ -40,9 +41,9 @@ export function QuizSetChapterManager({ quizSetId, labels, questions, onChanged,
     }
   };
 
-  const create = (d: ChapterDraft) =>
-    save(() => createLabelApi(quizSetId, { name: d.name, description: d.description || undefined, color: d.color, order: labels.length }), "Đã thêm chương", "Thêm chương thất bại");
-  const update = (id: string, d: ChapterDraft) =>
+  const create = (d: LabelDraft) =>
+    save(() => createLabelApi(quizSetId, { name: d.name, description: d.description || undefined, color: d.color, order: nextLabelOrder(labels) }), "Đã thêm chương", "Thêm chương thất bại");
+  const update = (id: string, d: LabelDraft) =>
     save(() => updateLabelApi(quizSetId, id, { name: d.name, description: d.description || null, color: d.color }), "Đã lưu chương", "Lưu chương thất bại");
 
   return (
@@ -69,7 +70,7 @@ export function QuizSetChapterManager({ quizSetId, labels, questions, onChanged,
         {ordered.map((l) =>
           editing === l.id ? (
             <li key={l.id} className="py-2">
-              <ChapterFormRow initial={{ name: l.name, description: l.description ?? "", color: l.color ?? chapterColorAt(0) }} submitLabel="Lưu" onSubmit={(d) => update(l.id, d)} onCancel={() => setEditing(null)} />
+              <LabelFormRow noun="chương" namePlaceholder="Tên chương, VD: Chương 1" initial={{ name: l.name, description: l.description ?? "", color: l.color ?? chapterColorAt(0) }} submitLabel="Lưu" onSubmit={(d) => update(l.id, d)} onCancel={() => setEditing(null)} />
             </li>
           ) : (
             <li key={l.id} className="flex items-center gap-1 py-1.5">
@@ -98,7 +99,7 @@ export function QuizSetChapterManager({ quizSetId, labels, questions, onChanged,
 
         {editing === "new" && (
           <li className="py-2">
-            <ChapterFormRow initial={{ name: "", description: "", color: chapterColorAt(labels.length) }} submitLabel="Thêm" onSubmit={create} onCancel={() => setEditing(null)} />
+            <LabelFormRow noun="chương" namePlaceholder="Tên chương, VD: Chương 1" initial={{ name: "", description: "", color: chapterColorAt(labels.length) }} submitLabel="Thêm" onSubmit={create} onCancel={() => setEditing(null)} />
           </li>
         )}
 
