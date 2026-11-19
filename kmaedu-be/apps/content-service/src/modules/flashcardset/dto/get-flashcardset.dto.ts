@@ -10,6 +10,7 @@ export const GetFlashcardsetsSchema = z.object({
     tag: queryStringArray.optional(),
     isPublic: queryBool.optional(),
     isPinned: queryBool.optional(),
+    sort: z.enum(['recent', 'name', 'cards', 'views']).optional(),
 });
 
 export class GetFlashcardsetsDto extends createZodDto(GetFlashcardsetsSchema) {
@@ -56,4 +57,11 @@ export class GetFlashcardsetsDto extends createZodDto(GetFlashcardsetsSchema) {
         required: false,
     })
     isPinned?: boolean;
+
+    @ApiProperty({
+        description: 'Order: newest first (default), title A-Z, most cards, most views',
+        enum: ['recent', 'name', 'cards', 'views'],
+        required: false,
+    })
+    sort?: 'recent' | 'name' | 'cards' | 'views';
 }

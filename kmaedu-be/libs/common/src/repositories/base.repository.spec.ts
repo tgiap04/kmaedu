@@ -51,3 +51,27 @@ describe('BaseRepository key namespace', () => {
         expect([...store.keys()].some((k) => k.includes(':user:u1:list:'))).toBe(false);
     });
 });
+
+describe('BaseRepository paginate order', () => {
+    it('sorts by params.orderBy (several keys) and never treats it as a filter', async () => {
+        const { repo, model } = setup(Repo);
+        const orderBy = [{ title: 'asc' }, { id: 'asc' }];
+        await repo.paginate({ page: 2, size: 5, orderBy, isPublic: true } as never);
+        expect(model.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy, where: { isPublic: true }, skip: 5, take: 5 }));
+    });
+
+    it('keeps the sortBy / sortType default when no orderBy is given', async () => {
+        const { repo, model } = setup(Repo);
+        await repo.paginate({ page: 1, size: 5, sortBy: 'title', sortType: 'asc' });
+        expect(model.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { title: 'asc' } }));
+    });
+
+    it('caches two orders of the same filter apart (one never answers for the other)', async () => {
+        const { repo, model } = setup(Repo);
+        await repo.paginate({ page: 1, size: 5, cache: true, orderBy: [{ title: 'asc' }] } as never, 'u1');
+        await repo.paginate({ page: 1, size: 5, cache: true, orderBy: [{ viewCount: 'desc' }] } as never, 'u1');
+        await repo.paginate({ page: 1, size: 5, cache: true, sortBy: 'title', sortType: 'asc' }, 'u1');
+        await repo.paginate({ page: 1, size: 5, cache: true, sortBy: 'title', sortType: 'desc' }, 'u1');
+        expect(model.findMany).toHaveBeenCalledTimes(4);
+    });
+});

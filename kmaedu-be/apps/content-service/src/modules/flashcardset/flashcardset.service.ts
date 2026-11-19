@@ -44,6 +44,22 @@ import {
     toFlashcardSetStudyView,
 } from './flashcardset-public.mapper';
 
+/** Order of the owner's set list for each `sort`; every order ends on a unique key so pages never overlap. */
+const SET_LIST_ORDER = {
+    recent: [{ createdAt: 'desc' }, { id: 'desc' }],
+    name: [{ title: 'asc' }, { id: 'asc' }],
+    cards: [{ detailsFlashCard: { _count: 'desc' } }, { createdAt: 'desc' }, { id: 'desc' }],
+    views: [{ viewCount: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+} satisfies Record<NonNullable<GetFlashcardsetsDto['sort']>, Record<string, unknown>[]>;
+
+/** The set already has a label of that name (unique per set): a 409 the page can explain, not a 500. */
+function duplicateLabelName(error: unknown): never {
+    if ((error as { code?: unknown } | null)?.code === 'P2002') {
+        throw new ConflictException('Nhãn với tên này đã tồn tại');
+    }
+    throw error;
+}
+
 @Injectable()
 export class FlashcardsetService {
     constructor(
@@ -212,25 +228,19 @@ export class FlashcardsetService {
             },
             skip,
             take: limitNum,
-            orderBy: {
-                flashCard: { createdAt: 'asc' },
-            },
+            // Cards made in one batch share createdAt: the link id breaks the tie, so a set
+            // read page by page never repeats or skips a card.
+            orderBy: [{ flashCard: { createdAt: 'asc' } }, { id: 'asc' }],
         });
 
-        // Track usage if first page is accessed
-        if (pageNum === 1 && user.id) {
-            await this.prisma.flashCardViewHistory
-                .create({
-                    data: {
-                        id: this.generateIdService.generateId(),
-                        userId: user.id,
-                        flashCardSetId: id,
-                    },
-                })
-                .catch(() => {});
-        }
+        // No view is recorded here: this is the owner managing the set (the page reads it again after
+        // changes), not someone studying it; study and public views record theirs.
 
-        const flashCards = detailsFlashCards.map((detail) => detail.flashCard);
+        // Each card with the label of its link to this set (null when it has none).
+        const flashCards = detailsFlashCards.map((detail) => ({
+            ...detail.flashCard,
+            label: detail.label,
+        }));
 
         return {
             flashCards,
@@ -329,8 +339,8 @@ export class FlashcardsetService {
                 include: {
                     _count: { select: { detailsFlashCard: true } },
                 },
-                sortBy: 'createdAt',
-                sortType: 'desc',
+                // Sorted here, not in the browser, so every page follows the order; ties end on the id.
+                orderBy: SET_LIST_ORDER[dto.sort ?? 'recent'],
                 cache: true,
             },
             user.id
@@ -1290,15 +1300,17 @@ export class FlashcardsetService {
             throw new NotFoundException('Bộ thẻ ghi nhớ không tồn tại');
         }
 
-        const label = await this.prisma.flashCardSetLabel.create({
-            data: {
-                flashCardSetId: flashcardSetId,
-                name: dto.name,
-                description: dto.description,
-                color: dto.color,
-                order: dto.order || 0,
-            },
-        });
+        const label = await this.prisma.flashCardSetLabel
+            .create({
+                data: {
+                    flashCardSetId: flashcardSetId,
+                    name: dto.name,
+                    description: dto.description,
+                    color: dto.color,
+                    order: dto.order || 0,
+                },
+            })
+            .catch(duplicateLabelName);
 
         await this.flashcardSetRepository.invalidateItemCache(user.id, flashcardSetId);
         await this.flashcardSetRepository.invalidateUserListCache(user.id);
@@ -1332,15 +1344,17 @@ export class FlashcardsetService {
             throw new NotFoundException('Nhãn không tồn tại');
         }
 
-        const updatedLabel = await this.prisma.flashCardSetLabel.update({
-            where: { id: labelId },
-            data: {
-                name: dto.name,
-                description: dto.description,
-                color: dto.color,
-                order: dto.order,
-            },
-        });
+        const updatedLabel = await this.prisma.flashCardSetLabel
+            .update({
+                where: { id: labelId },
+                data: {
+                    name: dto.name,
+                    description: dto.description,
+                    color: dto.color,
+                    order: dto.order,
+                },
+            })
+            .catch(duplicateLabelName);
 
         await this.flashcardSetRepository.invalidateItemCache(user.id, flashcardSetId);
         await this.flashcardSetRepository.invalidateUserListCache(user.id);
@@ -1412,23 +1426,26 @@ export class FlashcardsetService {
             throw new NotFoundException('Nhãn không tồn tại');
         }
 
-        // Verify all flashcards belong to this flashcard set
-        const flashcards = await this.prisma.detailsFlashCard.findMany({
-            where: {
-                id: { in: flashcardIds },
-                flashCardSetId: flashcardSetId,
-            },
+        // Cards are named by their FlashCard id, as on every other card route; only
+        // this set's links change (a card can be linked to more than one set).
+        const ids = [...new Set(flashcardIds)];
+        const inThisSet = {
+            flashCardSetId: flashcardSetId,
+            flashCardId: { in: ids },
+        };
+        const links = await this.prisma.detailsFlashCard.findMany({
+            where: inThisSet,
+            select: { id: true },
         });
 
-        if (flashcards.length !== flashcardIds.length) {
+        if (links.length !== ids.length) {
             throw new BadRequestException(
                 'Một số thẻ ghi nhớ không tồn tại hoặc không thuộc bộ này'
             );
         }
 
-        // Assign label to flashcards
         await this.prisma.detailsFlashCard.updateMany({
-            where: { id: { in: flashcardIds } },
+            where: inThisSet,
             data: { labelId },
         });
 
@@ -1464,9 +1481,14 @@ export class FlashcardsetService {
             throw new NotFoundException('Nhãn không tồn tại');
         }
 
-        // Remove label from flashcards
+        // Remove this label from these cards (by FlashCard id), in this set only; a card
+        // that carries another label keeps it, and an unknown id changes nothing.
         await this.prisma.detailsFlashCard.updateMany({
-            where: { id: { in: flashcardIds } },
+            where: {
+                flashCardSetId: flashcardSetId,
+                flashCardId: { in: flashcardIds },
+                labelId,
+            },
             data: { labelId: null },
         });
 

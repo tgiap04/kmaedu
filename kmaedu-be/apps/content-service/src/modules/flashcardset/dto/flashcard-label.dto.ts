@@ -91,7 +91,8 @@ export class UpdateFlashcardLabelDto extends createZodDto(UpdateFlashcardLabelSc
 export const AssignFlashcardsToLabelSchema = z.object({
     flashcardIds: z
         .array(z.string().min(1))
-        .min(1, { message: 'At least one flashcard ID is required' }),
+        .min(1, { message: 'At least one flashcard ID is required' })
+        .max(1000, { message: 'At most 1000 flashcards per request' }),
 });
 
 export class AssignFlashcardsToLabelDto extends createZodDto(

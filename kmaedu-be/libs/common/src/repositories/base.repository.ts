@@ -633,8 +633,11 @@ export abstract class BaseRepository<T> {
             cacheTTL = this.defaultCacheTTL,
             include,
             select,
+            orderBy,
             ...filters
         } = params;
+        // An explicit orderBy (one key or a list, e.g. with a tie-breaker) wins over sortBy / sortType.
+        const order = orderBy ?? { [sortBy]: sortType };
 
         // Ensure page and size are numbers (convert from string if needed)
         const pageNum = typeof page === 'string' ? parseInt(page, 10) : page;
@@ -668,7 +671,8 @@ export abstract class BaseRepository<T> {
         }
 
         // Generate cache key - use user-scoped if userId provided
-        const cacheKeySuffix = `paginate:${pageNum}:${sizeNum}:${JSON.stringify(where)}`;
+        // The order is part of the key: two orders of the same filter are two different pages.
+        const cacheKeySuffix = `paginate:${pageNum}:${sizeNum}:${JSON.stringify(where)}:${JSON.stringify(order)}`;
         const cacheKey = userId
             ? this.ns(
                   getListCachePattern(this.cacheModule, userId).replace(
@@ -690,7 +694,7 @@ export abstract class BaseRepository<T> {
 
         const findManyOptions: any = {
             where,
-            orderBy: { [sortBy]: sortType },
+            orderBy: order,
             skip: (pageNum - 1) * sizeNum,
             take: sizeNum,
         };
