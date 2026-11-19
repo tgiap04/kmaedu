@@ -80,6 +80,13 @@ export function countCorrect(questions: readonly SnapshotQuestion[], answers: Re
     return questions.reduce((n, q) => (answers[q.id] === q.answer ? n + 1 : n), 0);
 }
 
+/** Saved answers graded against the attempt's questions: score in percent, 0 for an attempt without questions. */
+export function gradeAnswers(questions: readonly SnapshotQuestion[], answers: Record<string, string>) {
+    const correctAnswers = countCorrect(questions, answers);
+    const totalQuestions = questions.length;
+    return { correctAnswers, totalQuestions, score: totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0 };
+}
+
 export interface LabelStats {
     totalQuestions: number;
     labels: Array<{ id: string; name: string; color: string | null; questionCount: number }>;

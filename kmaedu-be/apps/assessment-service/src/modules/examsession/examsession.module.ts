@@ -6,6 +6,7 @@ import { GenerateIdService } from '@kmaedu/common';
 import { RedisService } from '@kmaedu/redis';
 import { ExamSessionRepository } from './examsession.repository';
 import { ExamRoomRepository } from '../examroom/examroom.repository';
+import { ExamAttemptRepository } from '../examattempt/examattempt.repository';
 import { UserSearchService } from '../common/user-search.service';
 
 @Module({
@@ -17,6 +18,7 @@ import { UserSearchService } from '../common/user-search.service';
         GenerateIdService,
         ExamSessionRepository,
         ExamRoomRepository,
+        ExamAttemptRepository,
         UserSearchService,
     ],
     controllers: [ExamSessionController],

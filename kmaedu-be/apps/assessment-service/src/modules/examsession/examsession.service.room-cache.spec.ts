@@ -85,6 +85,7 @@ function build() {
         users as never,
         {} as never,
         {} as never,
+        {} as never,
         {} as never
     );
     const titles = { withQuizSets: async <T>(r: T[]) => r };

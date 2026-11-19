@@ -26,6 +26,7 @@ import { ExamAttemptService } from './examattempt.service';
 import { CreateExamAttemptDto } from './dto/create-examattempt.dto';
 import { UpdateExamAttemptDto } from './dto/update-examattempt.dto';
 import { GetExamAttemptsDto } from './dto/get-examattempt.dto';
+import { RoomCandidatesDto, RoomOverviewDto } from './dto/room-candidates.dto';
 import { Authenticated, forwardUser, RequirePermissions } from '@kmaedu/auth-jwt';
 
 @UsePipes(ZodValidationPipe)
@@ -197,6 +198,38 @@ export class ExamAttemptController {
             parseInt(limit, 10) || 10,
             distinctUser === 'true'
         );
+    }
+
+    @Get('room/:examRoomId/overview')
+    @RequirePermissions('exam_result:view')
+    @ApiCookieAuth('cookie-auth')
+    @ApiOperation({
+        summary: 'Room dashboard numbers: candidate counts, scores and a submissions timeline (owner only)',
+    })
+    @ApiParam({ name: 'examRoomId', description: 'Exam room ID' })
+    @ApiResponse({ status: 200, description: 'Room overview', type: Object })
+    async getRoomOverview(
+        @Req() req: AuthenticatedRequest,
+        @Param('examRoomId') examRoomId: string,
+        @Query() query: RoomOverviewDto
+    ) {
+        return this.examAttemptService.getRoomOverview(examRoomId, req.user, query);
+    }
+
+    @Get('room/:examRoomId/candidates')
+    @RequirePermissions('exam_result:view')
+    @ApiCookieAuth('cookie-auth')
+    @ApiOperation({
+        summary: 'Candidates of a room (latest attempt each, plus whitelisted users not started), paged (owner only)',
+    })
+    @ApiParam({ name: 'examRoomId', description: 'Exam room ID' })
+    @ApiResponse({ status: 200, description: 'Paged candidates', type: Object })
+    async getRoomCandidates(
+        @Req() req: AuthenticatedRequest,
+        @Param('examRoomId') examRoomId: string,
+        @Query() query: RoomCandidatesDto
+    ) {
+        return this.examAttemptService.getRoomCandidates(examRoomId, req.user, query);
     }
 
     @Get('list-by-session/:sessionId')

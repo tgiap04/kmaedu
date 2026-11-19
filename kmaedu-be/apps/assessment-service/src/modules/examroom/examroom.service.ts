@@ -210,27 +210,51 @@ export class ExamRoomService {
 
     /**
      * Get all exam rooms for a user without pagination
-     * Used for dropdowns and selection lists
+     * Used for dropdowns and selection lists. Each room also carries what the room list needs to
+     * show its state and size, without a query per room: `sessionWindows` (start/end of every
+     * session, ascending: the client derives upcoming/running/ended from the clock) and
+     * `participantCount` (distinct users with at least one attempt in the room).
      */
     async getAllExamRooms(user: AuthUser, metadata: Metadata) {
-        const examRooms = await this.prisma.examRoom.findMany({
-            where: {
-                hostId: user.id,
-            },
-            include: {
-                _count: {
-                    select: {
-                        examSessions: true,
+        const [examRooms, participants] = await Promise.all([
+            this.prisma.examRoom.findMany({
+                where: {
+                    hostId: user.id,
+                },
+                include: {
+                    _count: {
+                        select: {
+                            examSessions: true,
+                        },
+                    },
+                    examSessions: {
+                        select: { startTime: true, endTime: true },
+                        orderBy: { startTime: 'asc' },
                     },
                 },
-            },
-            orderBy: {
-                createdAt: 'desc',
-            },
-        });
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            }),
+            this.prisma.$queryRaw<{ examRoomId: string; participants: number | bigint }[]>`
+                SELECT s."examRoomId" AS "examRoomId", COUNT(DISTINCT a."userId") AS "participants"
+                FROM "ExamAttempt" a
+                JOIN "ExamSession" s ON s."id" = a."examSessionId"
+                JOIN "ExamRoom" r ON r."id" = s."examRoomId"
+                WHERE r."hostId" = ${user.id}
+                GROUP BY s."examRoomId"
+            `,
+        ]);
+
+        const participantsByRoom = new Map(participants.map((p) => [p.examRoomId, Number(p.participants)]));
+        const withInsights = examRooms.map(({ examSessions, ...room }) => ({
+            ...room,
+            sessionWindows: examSessions,
+            participantCount: participantsByRoom.get(room.id) ?? 0,
+        }));
 
         return {
-            examRooms: await this.titles.withQuizSets(examRooms, metadata),
+            examRooms: await this.titles.withQuizSets(withInsights, metadata),
         };
     }
 

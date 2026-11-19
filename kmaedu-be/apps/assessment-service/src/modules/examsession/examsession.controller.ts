@@ -374,6 +374,23 @@ export class ExamSessionController {
         );
     }
 
+    @Post('room/:examRoomId/end')
+    @HttpCode(200)
+    @RequirePermissions('exam_session:manage')
+    @ApiCookieAuth('cookie-auth')
+    @ApiOperation({
+        summary: 'End the room: close every session running now (owner only)',
+        description: '200 { ended, endedAt }; sessions that have not started are untouched, ended: 0 when none is running',
+    })
+    @ApiParam({ name: 'examRoomId', description: 'Exam room ID' })
+    @ApiResponse({ status: 200, description: 'Running sessions closed', type: Object })
+    async endRoom(
+        @Param('examRoomId') examRoomId: string,
+        @Req() req: AuthenticatedRequest
+    ) {
+        return this.examSessionService.endRoom(examRoomId, req.user);
+    }
+
     @Post(':id/refresh-snapshot')
     @HttpCode(200)
     @RequirePermissions('exam_session:manage')

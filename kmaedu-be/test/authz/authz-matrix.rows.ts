@@ -333,6 +333,39 @@ export const rows: Record<'content' | 'assessment' | 'studyroom' | 'vocabulary' 
             },
         },
         {
+            name: 'GET /examattempts/room/:roomId/overview',
+            method: 'get',
+            path: '/examattempts/room/room1/overview?window=1h',
+            expect: {
+                STUDENT: 403,
+                TEACHER: 200,
+                ADMIN_ONLY: 200,
+                TEACHER_ADMIN: 200,
+            },
+        },
+        {
+            name: 'GET /examattempts/room/:roomId/candidates',
+            method: 'get',
+            path: '/examattempts/room/room1/candidates?page=1&limit=10&status=submitted',
+            expect: {
+                STUDENT: 403,
+                TEACHER: 200,
+                ADMIN_ONLY: 200,
+                TEACHER_ADMIN: 200,
+            },
+        },
+        {
+            name: 'POST /examsessions/room/:roomId/end',
+            method: 'post',
+            path: '/examsessions/room/room1/end',
+            expect: {
+                STUDENT: 403,
+                TEACHER: 200,
+                ADMIN_ONLY: 200,
+                TEACHER_ADMIN: 200,
+            },
+        },
+        {
             name: 'GET /examsessions/users/search?q=ab',
             method: 'get',
             path: '/examsessions/users/search?q=ab',

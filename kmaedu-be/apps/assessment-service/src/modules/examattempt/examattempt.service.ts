@@ -17,12 +17,19 @@ import {
 } from '../../types';
 import { CreateExamAttemptDto } from './dto/create-examattempt.dto';
 import { GetExamAttemptsDto } from './dto/get-examattempt.dto';
+import type { RoomCandidatesDto, RoomOverviewDto } from './dto/room-candidates.dto';
+import {
+    buildCandidates,
+    filterCandidates,
+    summarize,
+    timelineBuckets,
+} from './room-candidates';
 import { UpdateExamAttemptDto } from './dto/update-examattempt.dto';
 import { ExamAttemptRepository } from './examattempt.repository';
 import { ExamSessionRepository } from '../examsession/examsession.repository';
 import type { Metadata } from '@grpc/grpc-js';
 import { RedisService, EXPIRED_TIME } from '@kmaedu/redis';
-import { DocumentClient } from '@kmaedu/grpc';
+import { DocumentClient, type PublicUser } from '@kmaedu/grpc';
 import { hasPermission, type AuthUser } from '@kmaedu/auth-jwt';
 import { verifyAccessCodeOrThrow } from '../common/access-code-guard';
 import { appendCodeGranted } from '../common/code-granted';
@@ -33,6 +40,7 @@ import { toQuizSetBrief } from '../examroom/quiz-set-titles.cache';
 import { lockSessionRow } from '../snapshot/session-lock';
 import {
     countCorrect,
+    gradeAnswers,
     questionsOf,
     selectQuestionIds,
     withAnswer,
@@ -379,11 +387,10 @@ export class ExamAttemptService {
         // Graded against the snapshot the attempt was drawn from: later edits of the quiz set never count.
         const snapshot = await this.snapshotOf(attempt);
         const questions = questionsOf(snapshot, attempt.selectedQuestionIds);
-        const correctCount = countCorrect(questions, attempt.answers as Record<string, string>);
-
-        const totalQuestions = questions.length;
-        const score =
-            totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
+        const { correctAnswers: correctCount, totalQuestions, score } = gradeAnswers(
+            questions,
+            attempt.answers as Record<string, string>
+        );
 
         try {
             const updatedAttempt = await this.prisma.examAttempt.update({
@@ -467,6 +474,88 @@ export class ExamAttemptService {
             timeLimitMinutes,
             creator: examRoom.host,
             isOwner,
+        };
+    }
+
+    /**
+     * Every attempt and session of the caller's room, as the narrow rows the roster logic needs.
+     * Somebody else's room is "not found", the same as a missing one.
+     */
+    private async loadRoomRoster(examRoomId: string, user: AuthUser) {
+        const room = await this.prisma.examRoom.findFirst({
+            where: { id: examRoomId, hostId: user.id },
+            select: { id: true },
+        });
+        if (!room) {
+            throw new NotFoundException('Phòng thi không tồn tại');
+        }
+        const [attempts, sessions] = await Promise.all([
+            this.prisma.examAttempt.findMany({
+                where: { examSession: { examRoomId } },
+                select: {
+                    id: true,
+                    examSessionId: true,
+                    userId: true,
+                    status: true,
+                    score: true,
+                    startedAt: true,
+                    finishedAt: true,
+                },
+            }),
+            this.prisma.examSession.findMany({
+                where: { examRoomId },
+                select: { id: true, assessType: true, whitelist: true, passingScore: true },
+            }),
+        ]);
+        return { attempts, sessions };
+    }
+
+    /**
+     * Room dashboard numbers: counts by the candidates' latest attempt (plus whitelisted users who
+     * have not started), average / passed / score buckets over the submitted ones, and how many
+     * attempts were handed in during the last `window`.
+     */
+    async getRoomOverview(examRoomId: string, user: AuthUser, dto: RoomOverviewDto) {
+        const { attempts, sessions } = await this.loadRoomRoster(examRoomId, user);
+        return {
+            ...summarize(buildCandidates(attempts, sessions)),
+            timeline: timelineBuckets(attempts, dto.window, new Date()),
+        };
+    }
+
+    /**
+     * One row per candidate (latest attempt, or "not started" for a whitelisted user), filtered and
+     * paged. Names come from auth in one batch: for every candidate left after the status/result
+     * filters when searching, otherwise only for the page.
+     */
+    async getRoomCandidates(examRoomId: string, user: AuthUser, dto: RoomCandidatesDto) {
+        const { attempts, sessions } = await this.loadRoomRoster(examRoomId, user);
+        const all = buildCandidates(attempts, sessions);
+        const { page, limit } = dto;
+        const search = dto.search?.trim();
+
+        let filtered = filterCandidates(all, { status: dto.status, result: dto.result });
+        let profiles: Map<string, PublicUser> | undefined;
+        if (search) {
+            // Strict: with auth down nobody would match, and an empty result would read as "no such candidate".
+            profiles = await this.users.profileMap(
+                filtered.map((c) => c.userId),
+                undefined,
+                { strict: true }
+            );
+            filtered = filterCandidates(filtered, { search }, profiles);
+        }
+
+        const total = filtered.length;
+        const pageRows = filtered.slice((page - 1) * limit, page * limit);
+        profiles ??= await this.users.profileMap(pageRows.map((c) => c.userId));
+
+        return {
+            candidates: pageRows.map((c) => ({ ...c, user: profiles.get(c.userId) ?? null })),
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
         };
     }
 

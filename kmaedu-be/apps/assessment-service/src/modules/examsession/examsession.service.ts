@@ -2,6 +2,7 @@ import { PrismaService } from '../../prisma';
 import { rethrowKnown } from '../common/rethrow-known';
 import {
     Injectable,
+    Logger,
     NotFoundException,
     InternalServerErrorException,
     ForbiddenException,
@@ -11,13 +12,20 @@ import { GenerateIdService } from '@kmaedu/common';
 import { RedisService } from '@kmaedu/redis';
 import type { Metadata } from '@grpc/grpc-js';
 
-import { EXAM_SESSION_STATUS, ASSESS_TYPE, QUESTION_SELECTION_MODE, LabelQuestionConfig } from '../../types';
+import {
+    EXAM_ATTEMPT_STATUS,
+    EXAM_SESSION_STATUS,
+    ASSESS_TYPE,
+    QUESTION_SELECTION_MODE,
+    LabelQuestionConfig,
+} from '../../types';
 import { CreateExamSessionDto } from './dto/create-examsession.dto';
 import { GetExamSessionsDto } from './dto/get-examsession.dto';
 import { UpdateExamSessionDto } from './dto/update-examsession.dto';
 import { ExamSessionUpdateSharingSettingsDto } from './dto/sharing.dto';
 import { ExamSessionRepository } from './examsession.repository';
 import { ExamRoomRepository } from '../examroom/examroom.repository';
+import { ExamAttemptRepository } from '../examattempt/examattempt.repository';
 import type { AuthUser } from '@kmaedu/auth-jwt';
 import {
     generateAccessCode,
@@ -36,13 +44,15 @@ import { UserEnricher } from '../user-profile/user-enricher.service';
 import { toQuizSetBrief } from '../examroom/quiz-set-titles.cache';
 import { QuizSetDeletedException, snapshotColumns } from '../snapshot/quiz-snapshot';
 import { canRefresh, SnapshotDrift } from '../snapshot/snapshot-drift';
-import { labelStats, validateSelectionConfig } from '../snapshot/snapshot.reader';
+import { gradeAnswers, labelStats, questionsOf, validateSelectionConfig } from '../snapshot/snapshot.reader';
 import { SnapshotStore } from '../snapshot/snapshot.store';
 import { SnapshotTaker } from '../snapshot/snapshot-taker';
 import { lockSessionRow, SnapshotLockedException } from '../snapshot/session-lock';
 
 @Injectable()
 export class ExamSessionService {
+    private readonly logger = new Logger(ExamSessionService.name);
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly examSessionRepository: ExamSessionRepository,
@@ -52,7 +62,8 @@ export class ExamSessionService {
         private readonly users: UserEnricher,
         private readonly snapshotTaker: SnapshotTaker,
         private readonly snapshots: SnapshotStore,
-        private readonly drift: SnapshotDrift
+        private readonly drift: SnapshotDrift,
+        private readonly examAttemptRepository: ExamAttemptRepository
     ) {}
 
     /** The room as every session response embeds it: the stored quiz set title, never a content call. */
@@ -233,6 +244,98 @@ export class ExamSessionService {
         await this.examSessionRepository.delete(id, user.id);
         await this.invalidateRoomCache(user.id, examSession.examRoomId);
         return { message: 'Xóa phiên thi thành công' };
+    }
+
+    /**
+     * "End the room": close every session that is running right now (started, with no end or an
+     * end in the future) by setting its `endTime` to now. Upcoming and already ended sessions are
+     * untouched, so calling it again ends nothing. An attempt already in progress can still be
+     * submitted (submit does not look at `endTime`); only new starts are refused.
+     */
+    async endRoom(examRoomId: string, user: AuthUser) {
+        const room = await this.prisma.examRoom.findFirst({
+            where: { id: examRoomId, hostId: user.id },
+            select: { id: true },
+        });
+        if (!room) {
+            throw new NotFoundException('Phòng thi không tồn tại');
+        }
+
+        const now = new Date();
+        const running = {
+            examRoomId,
+            startTime: { lte: now },
+            OR: [{ endTime: null }, { endTime: { gt: now } }],
+        };
+        const sessions = await this.prisma.examSession.findMany({
+            where: running,
+            select: { id: true, quizSnapshotHash: true },
+        });
+        const ids = sessions.map((s) => s.id);
+        if (ids.length === 0) {
+            return { ended: 0, closedAttempts: 0, endedAt: now.toISOString() };
+        }
+
+        // Each session's quiz is read before anything is written: one that cannot be read leaves the room as it was.
+        const quizzes = new Map(
+            await Promise.all(
+                sessions.map(async (s) => [s.id, await this.snapshots.load(s.id, s.quizSnapshotHash)] as const)
+            )
+        );
+
+        const { ended, closed } = await this.prisma.$transaction(
+            async (tx) => {
+                // Re-checked in the write itself: a session that ended or was deleted in between is skipped.
+                const { count } = await tx.examSession.updateMany({
+                    where: { ...running, id: { in: ids } },
+                    data: { endTime: now },
+                });
+                // An attempt still open is handed in now, graded on what it saved (as a submit would), so the room's
+                // results are final. The status guard leaves alone one its candidate handed in a moment ago.
+                const open = await tx.examAttempt.findMany({
+                    where: { examSessionId: { in: ids }, status: EXAM_ATTEMPT_STATUS.IN_PROGRESS },
+                    select: { id: true, userId: true, examSessionId: true, answers: true, selectedQuestionIds: true },
+                });
+                const handedIn: { id: string; userId: string }[] = [];
+                for (const attempt of open) {
+                    const quiz = quizzes.get(attempt.examSessionId);
+                    if (!quiz) continue;
+                    const grade = gradeAnswers(
+                        questionsOf(quiz, attempt.selectedQuestionIds),
+                        (attempt.answers ?? {}) as Record<string, string>
+                    );
+                    const { count: done } = await tx.examAttempt.updateMany({
+                        where: { id: attempt.id, status: EXAM_ATTEMPT_STATUS.IN_PROGRESS },
+                        data: { status: EXAM_ATTEMPT_STATUS.COMPLETED, finishedAt: now, ...grade },
+                    });
+                    if (done > 0) handedIn.push({ id: attempt.id, userId: attempt.userId });
+                }
+                return { ended: count, closed: handedIn };
+            },
+            { timeout: 30_000 }
+        );
+
+        // Ending is not undoable (the scheduled end times are gone): keep a trace of who ended what.
+        this.logger.log(
+            `room ${examRoomId} ended by ${user.id} at ${now.toISOString()}: ${ended} session(s) [${ids.join(', ')}], ` +
+                `${closed.length} open attempt(s) handed in`
+        );
+
+        // Best effort, each on its own: one failing drop must not skip the others.
+        const candidates = [...new Set(closed.map((a) => a.userId))];
+        const drops = await Promise.allSettled([
+            ...ids.map((id) => this.examSessionRepository.invalidateItemCache(user.id, id)),
+            this.examSessionRepository.invalidateUserListCache(user.id),
+            ...closed.map((a) => this.examAttemptRepository.invalidateItemCache(a.userId, a.id)),
+            ...candidates.map((id) => this.examAttemptRepository.invalidateUserListCache(id)),
+        ]);
+        const failed = drops.filter((d) => d.status === 'rejected').length;
+        if (failed > 0) {
+            this.logger.warn(`room ${examRoomId}: ${failed} cache drop(s) failed after end`);
+        }
+        await this.invalidateRoomCache(user.id, examRoomId);
+
+        return { ended, closedAttempts: closed.length, endedAt: now.toISOString() };
     }
 
     async getExamSessionPublicById(id: string) {
