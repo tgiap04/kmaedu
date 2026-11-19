@@ -271,6 +271,9 @@ None.
 | Generate flashcards from a PROCESSING document | UI disables generate button; tooltip explains document is not ready |
 | Delete flashcard set linked to an active study session | API returns 409 or cascades deletion (behavior unverified) |
 | Delete a label that has tagged flashcards | Label tag removed from cards (SetNull); cards remain intact |
+| Create or rename a label to a name the set already has | HTTP 409 "Nhãn với tên này đã tồn tại" (unique per set) |
+| List the owner's sets with `sort` | `recent` (default) / `name` / `cards` / `views`, applied by the server to the whole list; ties end on the id |
+| Assign / remove a label (`POST`/`DELETE /api/v1/flashcardsets/:id/labels/:labelId/flashcards`) | `flashcardIds` are FlashCard ids, as on every other card route; only that set's links change. Any id not in the set → HTTP 400, nothing changed. The card list (`GET /api/v1/flashcardsets/:id/flashcards`) returns each card's `label` (null without one) |
 | AI generation job fails | Job status FAILED; nothing is charged or refunded |
 | Concurrent edits by two users on same set | Last-write-wins; no optimistic locking detected |
 

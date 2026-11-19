@@ -1,0 +1,154 @@
+{
+  "score": 8,
+  "criticalCount": 0,
+  "decision": "SEALED",
+  "acceptanceCovered": [
+    "list page: create button routes to /k/flash-card/create, 4 stats per plan.md, category=tags[0], status column, icon tile by id",
+    "list page keeps edit/delete/share modals, server paging, debounced search",
+    "detail page: header actions share/copy/delete, 4 stats, tabs, search, label filter, inline edit, paging",
+    "create page: 3 tabs gated by ai:generate / quizset:manage, quiz->cards skipping unanswerable, AI history save, manual create",
+    "route /k/flash-card/create guarded by flashcardset:manage, static path does not shadow other routes",
+    "files <= 200 lines"
+  ],
+  "regressionChecked": [
+    "list edit/delete/share modals and stats refresh",
+    "detail label manager, card add/edit/delete, pagination, label cache invalidation",
+    "shared AI generator store vs /k/ai-tool",
+    "routes ordering in src/routes/index.tsx",
+    "stableIndex move (my-exams session-card import)",
+    "getProgressApi permission for owners",
+    "fix round 1: create->fill, auto-save on AI job end, copy set, collectPages dedupe + bounded concurrency, AI job block vs /k/ai-tool (store currentJobId lifecycle), inline plain-text front edit, tab keyboard/aria; 8 mutations killed"
+  ],
+  "contractStatus": "OK",
+  "refuted": [],
+  "unproven": [],
+  "reachableRegressions": [],
+  "findings": [
+    {
+      "severity": "Important",
+      "category": "Concurrency",
+      "location": "kmaedu-fe/src/pages/k/CreateFlashcardPage.tsx:101-115",
+      "summary": "addressed — create page ignores a running quiz job from /k/ai-tool; starting a flashcard job overwrites the shared currentJobId, orphaning the quiz job and leaving test store isGenerating stuck",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Important",
+      "category": "Logic",
+      "location": "kmaedu-fe/src/lib/flashcard-detail/flashcard-detail.ts:78-82",
+      "summary": "addressed — collectPages fetches all offset pages in parallel without dedupe; backend orders by createdAt with ties so sets >100 cards can show duplicate/missing cards and Copy copies them wrongly; unbounded concurrency can hit the 100/min gateway limit",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Important",
+      "category": "Testing",
+      "location": "kmaedu-fe/src/pages/k/components/create-flashcard/use-create-flashcard-submit.ts:41-76",
+      "summary": "addressed — multi-step flows (create+fill, auto-save on job end, copy) have no tests; only pure helpers are tested",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "Maintainability",
+      "location": "kmaedu-fe/src/pages/k/components/flashcard-detail/use-copy-flashcard-set.ts:37-44",
+      "summary": "addressed — copy re-implements batching and does not open the partially copied set, inviting a second partial copy",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "Logic",
+      "location": "kmaedu-fe/src/pages/k/components/flashcard-detail/flashcard-detail-header.tsx:92",
+      "summary": "addressed — Copy button enabled but silently no-ops when cards failed to load",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "Logic",
+      "location": "kmaedu-fe/src/pages/k/components/flashcard-detail/use-copy-flashcard-set.ts:51",
+      "summary": "addressed — navigates to the copy even after the user left the page",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "Logic",
+      "location": "kmaedu-fe/src/pages/k/CreateFlashcardPage.tsx:87",
+      "summary": "addressed — job with historyId but 0 cards creates an empty set then errors",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "UX",
+      "location": "kmaedu-fe/src/pages/k/CreateFlashcardPage.tsx:115",
+      "summary": "addressed — a flashcard job started on /k/ai-tool locks the create page tabs",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "Concurrency",
+      "location": "kmaedu-fe/src/pages/k/CreateFlashcardPage.tsx:101-103",
+      "summary": "addressed — double click during await pdfOk() starts two AI jobs (same pattern as FlashcardGenerator)",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "UX",
+      "location": "kmaedu-fe/src/pages/k/components/create-flashcard/document-source-panel.tsx:48",
+      "summary": "addressed — copy says press 'Tạo Flashcard' while the button reads 'Lưu thành bộ thẻ'",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "Logic",
+      "location": "kmaedu-fe/src/pages/k/components/flashcard-detail/flashcard-inline-editor.tsx:24-30",
+      "summary": "addressed — simple-front round trip collapses newlines and undecoded entities on save",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "UX",
+      "location": "kmaedu-fe/src/pages/k/ManageFlashcardSetDetailPage.tsx:108",
+      "summary": "addressed — stats and delete dialog show 0 cards while cards are loading",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "Concurrency",
+      "location": "kmaedu-fe/src/pages/k/components/flashcard-detail/use-flashcard-cards.ts:28-40",
+      "summary": "addressed — a reload in flight can overwrite an in-place edit/delete patch",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "Concurrency",
+      "location": "kmaedu-fe/src/pages/k/components/flashcard-list/use-flashcard-list-data.ts:43-55",
+      "summary": "stale flag guards totalResults only; late response still writes the store (pre-existing)",
+      "disposition": "Defer"
+    },
+    {
+      "severity": "Minor",
+      "category": "Accessibility",
+      "location": "kmaedu-fe/src/pages/k/components/flashcard-detail/flashcard-tabs-bar.tsx:37-53",
+      "summary": "addressed — tabs lack aria-controls/tabpanel and arrow-key navigation",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "Logic",
+      "location": "kmaedu-fe/src/pages/k/components/create-flashcard/quiz-to-flashcards.ts:10-23",
+      "summary": "addressed — text-answer match ignores entities and letters past D; such questions are skipped (safe)",
+      "disposition": "Defer"
+    },
+    {
+      "severity": "Minor",
+      "category": "Performance",
+      "location": "kmaedu-fe/src/lib/flashcard-detail/flashcard-detail.ts:93",
+      "summary": "after one page read fails, the remaining collectPages workers keep fetching every remaining page (wasted requests, worsens a 429); stop the workers on the first failure",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Minor",
+      "category": "Accessibility",
+      "location": "kmaedu-fe/src/pages/k/components/flashcard-detail/flashcard-tabs-bar.tsx:59",
+      "summary": "unselected tabs carry aria-controls pointing at panel ids that are not rendered (same in create-flashcard/source-tabs.tsx:34); set aria-controls only on the selected tab or render hidden panels",
+      "disposition": "Accept"
+    }
+  ]
+}

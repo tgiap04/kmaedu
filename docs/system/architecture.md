@@ -400,7 +400,7 @@ sequenceDiagram
 | Bot protection | react-google-recaptcha-v3 | latest |
 | i18n | i18next (`vi`, `en`, `ja`) | latest |
 | Auth sync | httpOnly cookies (`withCredentials`) + `X-Device-ID` header; session (`user`, `roles`, `permissions`) from `/auth/me` held in Zustand, never persisted | — |
-| Tests | Vitest (`yarn test`, `src/**/*.test.ts`, node env) | latest |
+| Tests | Vitest (`yarn test`, `src/**/*.test.{ts,tsx}`; node env, component/hook tests opt into jsdom + Testing Library) | latest |
 
 **Frontend RBAC (phase 09, 2026-10-22)**: routes go through `guarded()` → `RequirePermission` (`kmaedu-fe/src/routes/index.tsx`); permission names are generated from `libs/auth-jwt/src/permissions.ts` into `src/types/permissions.generated.ts` (`yarn gen:fe-permissions`, CI `fe-permissions-drift`). `src/apis/api.ts` throws `ApiRequestError` (status, code, requestId) and applies the 401/403 policy of `src/lib/rbac/api-error-policy.ts` with a single-flight refresh shared with the study-room socket. Role change or logout resets role-scoped stores. Route, nav and error tables: [permissions](permissions.md) § Frontend route guards.
 

@@ -95,13 +95,13 @@ yarn build
 yarn start
 yarn lint
 yarn lint:fix
-yarn test        # vitest run (src/**/*.test.ts, môi trường node)
+yarn test        # vitest run (src/**/*.test.{ts,tsx}; mặc định môi trường node)
 ```
 
 Ghi chú:
 
 - Frontend dev server chạy trên port `5173` qua `vite --host 0.0.0.0 --port 5173`.
-- Frontend có `yarn test` (vitest, cấu hình `vitest.config.ts`); test hiện tập trung vào logic thuần trong `src/lib/**` (rbac, quiz-practice, admin-roles).
+- Frontend có `yarn test` (vitest, cấu hình `vitest.config.ts`). Logic thuần (`*.test.ts`, phần lớn trong `src/lib/**` và cạnh component) chạy môi trường node; test component/hook (`*.test.tsx`) khai báo `// @vitest-environment jsdom` ở đầu file và dùng `@testing-library/react` + `user-event`. `src/test/setup.ts` chỉ chạy phần DOM khi có `window` (cleanup, `matchMedia`, `ResizeObserver`, `getComputedStyle` cho antd). Mock module hook bằng `vi.mock` (được hoist), không gọi API thật.
 - `src/types/permissions.generated.ts` được sinh từ `kmaedu-be/libs/auth-jwt/src/permissions.ts`: không sửa tay, chạy `yarn gen:fe-permissions` trong `kmaedu-be` sau khi đổi catalog; CI job `fe-permissions-drift` fail nếu file lệch.
 
 ### Python AI service (`kmaedu-be/apps/ai-service`)
