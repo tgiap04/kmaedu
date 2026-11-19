@@ -7,6 +7,26 @@ last_updated: 2026-11-19
 
 ## [Unreleased]
 
+- **Changed: exam room list and detail pages** (`/k/manage-exam-room`, `/k/manage-exam-room/:id`; assessment-service gains fields and routes, nothing removed).
+  - List page: stat tiles, search / status / created-at filters, table or grid, and ticking rooms to delete them together.
+    - Each room shows its quiz set, time span, participants and status.
+    - Status is read from the sessions' times: running, upcoming, ended, or no session.
+    - `GET /examrooms/list-all` adds `sessionWindows` and `participantCount`, computed in one aggregate query. The old list fired one request per room for its recent participants; that is gone.
+  - Detail page: header actions, stat tiles, info card, a progress card (refreshed every 30 s while a session runs), and four tabs.
+    - Header actions: "Sao chép link", "Xem kết quả", "Kết thúc phòng".
+    - Candidates tab: search, filters, CSV export.
+    - Sessions tab: the former session list.
+    - Stats tab: score spread and per-session links.
+    - Settings tab: edit or delete the room.
+  - New routes:
+    - `GET /examattempts/room/:id/overview` and `/candidates`, with `exam_result:view`, host only. They read each candidate's latest attempt and count whitelisted people of private sessions as "not started".
+    - `POST /examsessions/room/:id/end`, with `exam_session:manage`, host only.
+  - Ending a room sets `endTime = now` on every running session, in one transaction with handing in every attempt still open in them, graded on the answers they saved (the exam screen auto-saves every 30 s, so the last answers may be missing). The response carries `closedAttempts`. Nobody can start or re-enter an attempt afterwards; upcoming sessions are untouched. The host, time and sessions of each end are logged.
+  - Each candidate row shows the latest attempt, and the attempt sheet opens that same attempt. A name search answers 503 when the user directory is unreachable, instead of an empty list.
+  - Fixes:
+    - Creating, editing or deleting a room never cleared the cached `list-all`, so going back to the list within 5 minutes could hide a new room.
+    - Session changes now also refresh the room list.
+  - Plan: `plans/261119-2328-exam-room-pages-redesign/`.
 - **Added: component and hook tests in the frontend.** Dev dependencies `jsdom`, `@testing-library/react`, `@testing-library/dom` and `@testing-library/user-event`; `*.test.tsx` files opt into jsdom with `// @vitest-environment jsdom` (logic tests stay in node). They cover the label picker, the labels tab, and the hooks of the flashcard list, set and create pages. Writing them found that the label picker's search box never got the focus (antd renders the popup into a portal that joins the page after React commits, so `autoFocus` focused a detached input): it is now focused once the popup is open.
 - **Changed: flashcard set list sorted by the server, label API hardening, sturdier create page.** `GET /flashcardsets` takes `sort=recent|name|cards|views` (default newest first, every order ends on the id), so "Tên A-Z", "Số thẻ" and "Lượt xem" apply to the whole list, not the page on screen. The shared `BaseRepository.paginate` accepts an `orderBy` (one key or a list) and keys its Redis cache by the order too (existing list caches miss once after deploy). Creating or renaming a flashcard label to a name the set already has answers 409 instead of 500; assign / remove label take at most 1000 card ids. Reading the card list on the owner's set page no longer writes a `FlashCardViewHistory` row. Frontend: the set page reads the whole set one read at a time and patches label changes in place; the list shows load errors with a retry and "—" for unknown stats; the create page retries a batch on 429, keeps an AI result whose save failed and saves it into the same set, warns when a create may have gone through without an answer, keeps AI settings when the file changes, and only drops answer labels ("A. ", "b) ") when every option carries its own.
 - **Fixed: assigning flashcards to a label always failed** (content-service). `POST /flashcardsets/:id/labels/:labelId/flashcards` compared `flashcardIds` with the ids of the set↔card links, which no API returns, so every assign got 400 "Một số thẻ ghi nhớ không tồn tại hoặc không thuộc bộ này". Assign and remove (`DELETE` on the same path) now take FlashCard ids like every other card route and only touch the links of the set in the URL; before, remove could clear labels on links of other sets, and it now clears only the label in the URL. The card list breaks ties of `createdAt` by the link id, so a set read page by page (the set page, Sao chép) no longer repeats or skips a card. `GET /flashcardsets/:id/flashcards` now returns each card's `label` (null without one), so the label column, filter and counts on the set page show real labels.

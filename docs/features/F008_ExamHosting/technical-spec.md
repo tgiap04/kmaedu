@@ -256,9 +256,9 @@ None.
 
 ### US044 — View Exam Room Detail (Priority: P2)
 
-**What happens:** A host navigates to the exam room detail page and sees: StatsGrid (total sessions, participants, attempts), RoomInfoSection (metadata), SessionTable (paginated session list), and ShareDialog. Non-hosts see 403.
+**What happens:** A host opens the exam room detail page and sees the room's status (read from its sessions' times: running, upcoming, ended, or no session), stat tiles, the room's span and host, a progress card (submitted / candidates, counts by status, submissions over a chosen range), and tabs: candidates, sessions (create / edit / share / delete), stats and settings. "Kết thúc phòng" sets `endTime = now` on every running session and, in the same transaction, hands in every attempt still open in them, graded on the answers they saved; nobody can start or re-enter an attempt afterwards, upcoming sessions stay. Each candidate row shows the latest attempt. A room that is not the caller's is "not found".
 **Why this priority:** Hosts need to monitor room status and manage sessions.
-**Independent Test:** GET `/api/v1/examrooms/detail/:id` returns room metadata; GET `/api/v1/examrooms/:id/sessions` returns session list.
+**Independent Test:** GET `/api/v1/examrooms/detail/:id` returns room metadata; GET `/api/v1/examrooms/:id/sessions` returns session list; GET `/api/v1/examattempts/room/:id/overview` and `/candidates` return the room's progress and candidates; POST `/api/v1/examsessions/room/:id/end` returns `{ended, endedAt}`.
 
 **Acceptance Scenarios:**
 
@@ -268,6 +268,8 @@ None.
 **Requirements fulfilled:**
 - **FR-008_01** Teachers list exam rooms — `GET /api/v1/examrooms`, `GET /api/v1/examrooms/detail/:id`
 - **FR-008_05** Room host lists sessions — `GET /api/v1/examrooms/:id/sessions`
+- Room progress and candidates — `GET /api/v1/examattempts/room/:id/overview`, `GET /api/v1/examattempts/room/:id/candidates`
+- End the room — `POST /api/v1/examsessions/room/:id/end`
 
 **Rules enforced:** PERM021 (ExamRoomAuthorEdit)
 

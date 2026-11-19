@@ -9,11 +9,12 @@
 | HistoryPage / StatsCards (SCR018/REG003) | Right panel showing aggregated study statistics | Refresh stats via button |
 | ExamHistoryPage (SCR019) | Paginated list of past exam attempts with scores and timestamps | View attempt details, navigate pages |
 | ManageExamPage (SCR021) | List of teacher's exam rooms and quiz sets | Create exam room via modal (secondary path) |
-| ManageExamRoomPage (SCR026) | Exam room listing with create form | Create exam room, click room to view detail |
-| ManageExamRoomDetailPage / StatsGrid (SCR027/REG001) | Stats overview: total sessions, participants, attempt counts | Refresh statistics |
-| ManageExamRoomDetailPage / RoomInfoSection (SCR027/REG002) | Exam room metadata display | Edit room title/description |
-| ManageExamRoomDetailPage / SessionTable (SCR027/REG003) | Paginated list of sessions with status badges | Create/edit/delete sessions via form modal |
-| ManageExamRoomDetailPage / ShareDialog (SCR027/REG004) | Session access control: public/private, access code, shareable link | Set access mode, generate/copy code |
+| ManageExamRoomPage (SCR026) | Stat tiles (rooms, running, ended, participants), search / status / created-at filters, table or grid of rooms with quiz set, time span, participants and status | Create a room, open one ("Vào phòng" / "Xem kết quả"), edit or delete from the row menu, tick rooms and delete them together |
+| ManageExamRoomDetailPage / Header (SCR027/REG001) | Room name, quiz set, status pill; stat tiles (sessions, running, ended, participants) | Copy the running (else next) session's link, open the results tab, end the room (closes every running session after a confirmation) |
+| ManageExamRoomDetailPage / Info + Progress (SCR027/REG002) | Start, end and host of the room; ring of submitted / candidates, counts by status, submissions over the last 30 min / 1 h / 24 h / 7 days | Change the chart range (numbers refresh every 30 s while a session runs) |
+| ManageExamRoomDetailPage / Candidates tab (SCR027/REG003) | Every candidate with their latest attempt (whitelisted people who have not started included): status, start, submit, score, time | Search by name, filter by status or result, export a CSV, open an attempt or the session's analytics |
+| ManageExamRoomDetailPage / Sessions tab (SCR027/REG004) | Paginated sessions with status badges, share dialog with link | Create / edit / delete sessions, refresh a session's quiz, share |
+| ManageExamRoomDetailPage / Stats and Settings tabs (SCR027/REG005) | Submitted, average score, pass rate, score spread, one row per session; room form | Open a session's analytics; edit name, description, quiz set; delete the room |
 | ExamRoomSessionAnalyticsPage (SCR028) | Score bar chart, violation pie chart, attempt leaderboard table | Sort leaderboard, click row for per-user attempt detail |
 | MyExamsPage (SCR029) | Session cards with attempt count, best score, and status | Enter session, open attempt history dialog |
 | ExamSessionPage (SCR031) | Session info, countdown timer, Start/Resume button, attempt list | Start new attempt, resume in-progress attempt, enter access code |

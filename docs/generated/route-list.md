@@ -126,7 +126,7 @@ Gateway proxies all requests to downstream services. **Routing source of truth (
 | Method | Path | Description | Auth | Owner |
 |--------|------|-------------|------|-------|
 | GET | /api/v1/examrooms/list | List exam rooms (paginated) | Bearer | assessment |
-| GET | /api/v1/examrooms/list-all | List all exam rooms | Bearer | assessment |
+| GET | /api/v1/examrooms/list-all | List all exam rooms (each with `sessionWindows` and `participantCount`) | Bearer | assessment |
 | GET | /api/v1/examrooms/detail/:id | Get exam room by ID | Bearer | assessment |
 | GET | /api/v1/examrooms/get-public/:id | Get public exam room (teaser, no email) | public | assessment |
 | POST | /api/v1/examrooms | Create exam room | Bearer | assessment |
@@ -155,6 +155,7 @@ Gateway proxies all requests to downstream services. **Routing source of truth (
 | PUT | /api/v1/examsessions/:id/sharing | Update sharing settings | Bearer | assessment |
 | POST | /api/v1/examsessions/:id/generate-code | Generate access code | Bearer | assessment |
 | GET | /api/v1/examsessions/room/:roomId/available-labels | Get available labels for room | Bearer | assessment |
+| POST | /api/v1/examsessions/room/:roomId/end | End every running session of the room now and hand in their open attempts (`exam_session:manage`, host only) | Bearer | assessment |
 
 #### Exam Attempts
 
@@ -164,6 +165,8 @@ Gateway proxies all requests to downstream services. **Routing source of truth (
 | GET | /api/v1/examattempts/list | List exam attempts (paginated) | Bearer | assessment |
 | GET | /api/v1/examattempts/history-stats | Get aggregated history statistics | Bearer | assessment |
 | GET | /api/v1/examattempts/list-by-room/:examRoomId | List attempts by room (owner) | Bearer | assessment |
+| GET | /api/v1/examattempts/room/:examRoomId/overview | Room progress: counts by candidate status, scores, submissions per time bucket (`exam_result:view`, host only) | Bearer | assessment |
+| GET | /api/v1/examattempts/room/:examRoomId/candidates | Room candidates, latest attempt each, filter by status / result / name (`exam_result:view`, host only) | Bearer | assessment |
 | GET | /api/v1/examattempts/list-by-session/:sessionId | List attempts by session (owner) | Bearer | assessment |
 | GET | /api/v1/examattempts/:attemptId/quiz | Get attempt with questions | Bearer | assessment |
 | GET | /api/v1/examattempts/:attemptId/detail | Get attempt detail (owner) | Bearer | assessment |
@@ -420,6 +423,7 @@ exam-service was split in phases 12-15; the Owner column says which service serv
 | POST | /api/v1/examsessions/:id/generate-code | Generate access code | Bearer | assessment |
 | GET | /api/v1/examsessions/users/search | Search users for whitelist (`user:search`; `q` >= 3 chars, no email) | Bearer | assessment |
 | GET | /api/v1/examsessions/room/:roomId/available-labels | Get available labels | Bearer | assessment |
+| POST | /api/v1/examsessions/room/:roomId/end | End the room's running sessions and hand in their open attempts (`exam_session:manage`, host only) | Bearer | assessment |
 
 #### Exam Attempts
 
@@ -433,6 +437,8 @@ exam-service was split in phases 12-15; the Owner column says which service serv
 | GET | /api/v1/examattempts/:id/secure-quiz | Get encrypted quiz with JWT | Bearer | assessment |
 | POST | /api/v1/examattempts/:id/secure-submit | Submit with JWT verification | Bearer | assessment |
 | GET | /api/v1/examattempts/list-by-room/:examRoomId | List attempts by room (owner) | Bearer | assessment |
+| GET | /api/v1/examattempts/room/:examRoomId/overview | Room progress: counts by candidate status, scores, submissions per time bucket (`exam_result:view`, host only) | Bearer | assessment |
+| GET | /api/v1/examattempts/room/:examRoomId/candidates | Room candidates, latest attempt each, filter by status / result / name (`exam_result:view`, host only) | Bearer | assessment |
 | GET | /api/v1/examattempts/list-by-session/:sessionId | List attempts by session (owner) | Bearer | assessment |
 | GET | /api/v1/examattempts/:id/detail | Get attempt detail (owner) | Bearer | assessment |
 | POST | /api/v1/examattempts | Create exam attempt | Bearer | assessment |
