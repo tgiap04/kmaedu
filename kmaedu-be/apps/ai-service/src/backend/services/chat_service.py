@@ -87,7 +87,8 @@ async def answer_query(params: ChatParams) -> tuple[str, list[dict[str, Any]]]:
         pre_context = result.combined_context
         sources = result.sources
         if pre_context:
-            retriever, _ = create_in_memory_retriever(pre_context)
+            # Embeds every chunk with blocking network calls: never on the gRPC event loop.
+            retriever, _ = await asyncio.to_thread(create_in_memory_retriever, pre_context)
 
     agent = SimpleChatAgent(
         custom_retriever=retriever, model_type=model_id, pre_context=pre_context, system_prompt=None

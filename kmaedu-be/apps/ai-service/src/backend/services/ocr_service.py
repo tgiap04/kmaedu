@@ -28,12 +28,14 @@ import asyncpg
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from src import db
+from src.backend.services import document_limits
 from src.llm.gemini_embeddings import get_embedding_text_limit
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_OCR_TEXT_CHUNK_OVERLAP = 200
 DEFAULT_MAX_DOWNLOAD_BYTES = 50 * 1024 * 1024  # 50MB
+DOCX_MIMETYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
 class FileExtractionError(Exception):
@@ -46,6 +48,22 @@ class DownloadValidationError(FileExtractionError):
 
 class NoContentExtractedError(Exception):
     """Raised when OCR/text extraction returns no usable content."""
+
+
+def _raise_for_status_without_url(response: httpx.Response, host: Optional[str]) -> None:
+    """Raise ``HTTPStatusError`` for an error status, naming only the status and host.
+
+    ``raise_for_status`` puts the whole URL in the message, and the presigned query
+    string (``X-Amz-Signature``) would then be logged. The status code stays on the
+    exception because ``failure_reason`` classifies by it.
+    """
+    if response.is_success:
+        return
+    raise httpx.HTTPStatusError(
+        f"Download from {host!r} failed with HTTP {response.status_code}",
+        request=response.request,
+        response=response,
+    )
 
 
 def _get_max_download_bytes() -> int:
@@ -351,7 +369,7 @@ class OCRProcessingService:
                 headers={"Host": original_hostname},
                 extensions={"sni_hostname": original_hostname},
             ) as response:
-                response.raise_for_status()
+                _raise_for_status_without_url(response, original_hostname)
 
                 content_length = response.headers.get("content-length")
                 if content_length is not None:
@@ -388,6 +406,11 @@ class OCRProcessingService:
     def _is_pdf_file(self, file_info: FileInfo) -> bool:
         """Check whether the current file should use the PDF OCR flow."""
         return file_info.mimetype == "application/pdf" or file_info.url.lower().endswith('.pdf')
+
+    @staticmethod
+    def _is_docx_file(file_info: FileInfo) -> bool:
+        """Check whether the file is a DOCX (zip-based, so it needs the inflation guard)."""
+        return file_info.mimetype == DOCX_MIMETYPE or file_info.url.lower().split("?")[0].endswith(".docx")
 
     def _create_text_splitter(self, is_pdf: bool) -> RecursiveCharacterTextSplitter:
         """Create a text splitter aligned with the HTTP ingest path."""
@@ -497,6 +520,10 @@ class OCRProcessingService:
                 logger.info(f"📝 Processing non-PDF file: {file_info.mimetype}")
                 from src.rag.retriever import extract_text_from_file
 
+                if self._is_docx_file(file_info):
+                    await asyncio.to_thread(  # zip bomb guard, before any parsing, off the event loop
+                        document_limits.check_docx_archive, temp_path
+                    )
                 extract_start = time.perf_counter()
                 extracted_text = await asyncio.to_thread(
                     extract_text_from_file, temp_path, file_info.mimetype
@@ -521,6 +548,7 @@ class OCRProcessingService:
 
             if not documents_to_store:
                 raise NoContentExtractedError("No content could be extracted from file")
+            document_limits.check_chunk_count(len(documents_to_store))  # before anything is embedded
 
             total_ms = int((time.perf_counter() - prepare_start) * 1000)
             logger.info(

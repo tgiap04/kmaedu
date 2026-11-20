@@ -25,7 +25,11 @@ from src.backend.ai_grpc_mapping import (
     to_sources,
     to_word_family,
 )
-from src.backend.auth.service_token import ServiceTokenInterceptor, ServiceTokenVerifier
+from src.backend.auth.service_token import (
+    ServiceTokenInterceptor,
+    ServiceTokenVerifier,
+    current_caller,
+)
 from src.backend.grpc_generated.kmaedu.ai.v1 import ai_pb2, ai_pb2_grpc
 from src.backend.services.chat_service import (
     ChatInputError,
@@ -72,6 +76,7 @@ class AiServicer(ai_pb2_grpc.AiServiceServicer):
     """Synchronous AI endpoints for ai-chat / vocabulary / content."""
 
     async def StreamChat(self, request, context):  # noqa: N802, D102
+        logger.info("StreamChat from %s", current_caller().subject)
         try:
             async for frame in stream_chat(_params(request)):
                 yield frame_to_proto(frame)
@@ -87,6 +92,7 @@ class AiServicer(ai_pb2_grpc.AiServiceServicer):
             await _abort_internal(context, exc, "starting the stream")
 
     async def Query(self, request, context):  # noqa: N802, D102
+        logger.info("Query from %s", current_caller().subject)
         try:
             answer, sources = await answer_query(_params(request))
         except ChatInputError as exc:

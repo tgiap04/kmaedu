@@ -14,6 +14,13 @@ COPY apps/ai-service/scripts/gen_grpc.sh scripts/gen_grpc.sh
 COPY proto /w/proto
 RUN PYTHON=python bash scripts/gen_grpc.sh
 
+# Stage 0b: the runtime source tree without the offline evaluation harness (code-execution
+# sandbox, benchmark runner) and its CSV data, which nothing imports at runtime. Pruned in
+# its own stage so those files never land in a layer of the final image.
+FROM python:3.12-slim AS runtime-src
+COPY apps/ai-service/src /app/src
+RUN rm -rf /app/src/evaluation /app/src/evaluation_result.csv /app/src/test_dataset.csv
+
 FROM python:3.12-slim AS builder
 WORKDIR /build
 
@@ -65,7 +72,7 @@ COPY --from=builder /root/.local/bin /usr/local/bin
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PORT=3000 GRPC_PORT=50051 ROLE=api
 
 # Copy source code and schema migrations
-COPY apps/ai-service/src /app/src
+COPY --from=runtime-src /app/src /app/src
 COPY apps/ai-service/alembic.ini /app/alembic.ini
 COPY apps/ai-service/alembic /app/alembic
 COPY --from=protogen /w/apps/ai-service/src/backend/grpc_generated /app/src/backend/grpc_generated

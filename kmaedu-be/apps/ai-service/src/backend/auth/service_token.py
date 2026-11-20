@@ -7,12 +7,18 @@ configured issuer, ``aud=ai`` and a future ``exp``/``iat``, carries exactly the
 ``SERVICE`` role with ``sub = svc:<name>``, and ``<name>`` is on the code-level
 allow-list. Missing or invalid token -> ``UNAUTHENTICATED``; a user token or a
 service outside the allow-list -> ``PERMISSION_DENIED``.
+
+Each RPC also has its own caller set (``METHOD_CALLERS``): an allow-listed
+service calling an RPC that is not its own gets ``PERMISSION_DENIED``, and an
+RPC missing from the table is denied for everyone. The verified caller is
+available to handlers through :func:`current_caller`.
 """
 
 from __future__ import annotations
 
 import logging
 import os
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any
 
@@ -36,6 +42,15 @@ SERVICE_SUBJECT_PREFIX = "svc:"
 ACCESS_TOKEN_TYP = "at+jwt"
 # A code constant, not env: widening who may call the ai-service is a code review.
 ALLOWED_CALLERS = frozenset({"svc:ai-chat", "svc:vocabulary", "svc:content"})
+_SERVICE_PREFIX = "/kmaedu.ai.v1.AiService/"
+# Who really calls what (ai-chat: StreamChat + Query, vocabulary: GenerateWordFamily,
+# content: ListModels). A method not listed here is denied to every caller.
+METHOD_CALLERS: dict[str, frozenset[str]] = {
+    f"{_SERVICE_PREFIX}StreamChat": frozenset({"svc:ai-chat"}),
+    f"{_SERVICE_PREFIX}Query": frozenset({"svc:ai-chat"}),
+    f"{_SERVICE_PREFIX}GenerateWordFamily": frozenset({"svc:vocabulary"}),
+    f"{_SERVICE_PREFIX}ListModels": frozenset({"svc:content"}),
+}
 
 
 class TokenError(Exception):
@@ -61,6 +76,17 @@ class ServiceCaller:
     """A verified, allow-listed service caller (``svc:<name>``)."""
 
     subject: str
+
+
+_CALLER: ContextVar[ServiceCaller | None] = ContextVar("ai_service_caller", default=None)
+
+
+def current_caller() -> ServiceCaller:
+    """Return the caller verified for the RPC being handled (raises outside an RPC)."""
+    caller = _CALLER.get()
+    if caller is None:
+        raise RuntimeError("no authenticated service caller in this context")
+    return caller
 
 
 class ServiceTokenVerifier:
@@ -158,12 +184,17 @@ class ServiceTokenInterceptor(grpc.aio.ServerInterceptor):
         if handler is None:
             return None
         verifier = self._verifier
+        method_callers = METHOD_CALLERS.get(handler_call_details.method, frozenset())
 
         async def guard(context: grpc.aio.ServicerContext) -> None:
             try:
-                await verifier.authorize(context.invocation_metadata())
+                caller = await verifier.authorize(context.invocation_metadata())
+                if caller.subject not in method_callers:
+                    logger.warning("Service caller %s may not call %s", caller.subject, handler_call_details.method)
+                    raise _denied()
             except TokenError as err:
                 await context.abort(err.code, err.message)
+            _CALLER.set(caller)
 
         if handler.unary_unary:
             inner = handler.unary_unary

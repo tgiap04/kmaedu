@@ -22,6 +22,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Tuple, Optional
 from pathlib import Path
 
+from src.backend.services import document_limits
+
 logger = logging.getLogger(__name__)
 
 # Hard ceilings applied regardless of env overrides, so a misconfigured env
@@ -132,6 +134,8 @@ class PdfOcrService:
 
             if total_pages == 0:
                 raise ValueError("PDF has no pages")
+            document_limits.check_page_count(total_pages)
+            document_limits.check_pdf_page_sizes(pdf_reader, self.DPI)
 
             logger.info(f"📄 PDF has {total_pages} pages, chunk_size={chunk_size}")
 
@@ -208,24 +212,17 @@ class PdfOcrService:
         if not TESSERACT_AVAILABLE:
             raise RuntimeError("pytesseract not available. Install: pip install pytesseract")
 
+        # Before poppler allocates the bitmaps: a huge page cannot be interrupted once started.
+        reader = PdfReader(io.BytesIO(pdf_bytes))
+        document_limits.check_pdf_page_sizes(reader, self.DPI)
+        page_count = min(len(reader.pages), self.MAX_PAGES)
+        if len(reader.pages) > self.MAX_PAGES:
+            logger.warning(f"⚠️ PDF chunk has more than MAX_PDF_PAGES={self.MAX_PAGES} pages; the rest is skipped")
+
         try:
-            logger.info("📷 Converting PDF to images for Tesseract...")
-            # Convert PDF pages to images at high DPI, capped to MAX_PAGES to
-            # bound memory/CPU use against pathologically large PDFs.
-            images = convert_from_bytes(
-                pdf_bytes,
-                dpi=self.DPI,
-                fmt='png',
-                first_page=1,
-                last_page=self.MAX_PAGES,
-            )
-
-            if len(images) >= self.MAX_PAGES:
-                logger.warning(
-                    f"⚠️ PDF chunk reached MAX_PDF_PAGES={self.MAX_PAGES}; rendering was truncated"
-                )
-
-            logger.info(f"📄 Converted {len(images)} pages to images")
+            # Each worker renders its own page, so at most `max_workers` bitmaps are alive at once
+            # (rendering the whole chunk first held every page of it in memory together).
+            logger.info(f"📷 Rendering {page_count} pages one at a time for Tesseract...")
 
             # Import preprocessing service
             preprocessing_service = None
@@ -243,9 +240,15 @@ class PdfOcrService:
 
             def _ocr_single_page(args: Tuple[int, object]) -> Tuple[int, str]:
                 """OCR one page; returns (page_index, text) for ordered reassembly."""
-                page_idx, pil_image = args
+                page_idx, _ = args
                 try:
-                    image_np = np.array(pil_image)
+                    rendered = convert_from_bytes(
+                        pdf_bytes, dpi=self.DPI, fmt='png', first_page=page_idx + 1, last_page=page_idx + 1
+                    )
+                    if not rendered:
+                        return page_idx, ""
+                    image_np = np.array(rendered[0])
+                    del rendered
                     if len(image_np.shape) == 3:
                         image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
 
@@ -271,11 +274,11 @@ class PdfOcrService:
 
             # Run pages concurrently; Tesseract spawns subprocesses (releases GIL),
             # OpenCV also releases the GIL — a bounded pool avoids CPU oversubscription.
-            page_results: List[Tuple[int, str]] = [None] * len(images)  # type: ignore[list-item]
+            page_results: List[Tuple[int, str]] = [None] * page_count  # type: ignore[list-item]
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = {
-                    executor.submit(_ocr_single_page, (i, img)): i
-                    for i, img in enumerate(images)
+                    executor.submit(_ocr_single_page, (i, None)): i
+                    for i in range(page_count)
                 }
                 for future in as_completed(futures):
                     page_idx, text = future.result()
@@ -379,6 +382,8 @@ class PdfOcrService:
                     logger.warning(f"⚠️ Chunk {i+1}: Empty text")
                     error_count += 1
 
+            except document_limits.DocumentLimitError:
+                raise
             except Exception as e:
                 logger.error(f"❌ Chunk {i+1} failed: {e}")
                 error_count += 1

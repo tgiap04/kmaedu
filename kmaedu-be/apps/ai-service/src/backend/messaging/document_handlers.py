@@ -2,7 +2,8 @@
 
 ``document.uploaded``: download -> OCR -> chunk -> embed -> queue the GraphRAG index
 (``GraphIndex`` PENDING, built by the index worker) -> outbox ``ai.document.processed``.
-A failure that retrying cannot fix publishes ``ai.document.failed`` straight away; a transient one raises so the
+A document over a size or time limit (``document_limits``) fails at once with
+``DOCUMENT_TOO_LARGE`` or ``PROCESSING_TIMEOUT``. A failure that retrying cannot fix publishes ``ai.document.failed`` straight away; a transient one raises so the
 consumer retries, and on the last attempt publishes ``ai.document.failed`` so
 document-service marks the row FAILED instead of waiting on the DLQ.
 
@@ -19,6 +20,7 @@ from typing import Any
 import httpx
 
 from src import db
+from src.backend.services import document_limits
 from src.graphrag import indexer, store
 from src.llm.model_manager import model_manager
 
@@ -40,6 +42,8 @@ def failure_reason(exc: Exception) -> str | None:
         NoContentExtractedError,
     )
 
+    if isinstance(exc, document_limits.DocumentLimitError):
+        return exc.reason
     if isinstance(exc, DownloadValidationError):
         return "DOWNLOAD_REJECTED"
     if isinstance(exc, NoContentExtractedError):
@@ -60,6 +64,11 @@ async def _queue_graph_index(storage_id: str, chunks: Sequence[Any]) -> None:
 
 
 async def _process(storage_id: str, filename: str, mimetype: str, url: str) -> int:
+    """Run :func:`_process_document` under the processing deadline; returns the page count."""
+    return await document_limits.run_with_deadline(_process_document(storage_id, filename, mimetype, url))
+
+
+async def _process_document(storage_id: str, filename: str, mimetype: str, url: str) -> int:
     """OCR + chunk + embed unless chunks already exist; returns the page count."""
     from src.backend.services.ocr_service import FileInfo, ocr_service, page_count_of
     from src.rag.vector_store_pg import get_pg_vector_store

@@ -157,7 +157,7 @@ async def test_query_maps_the_answer_and_sources(stub, monkeypatch):
             user_storage_id="doc1",
             history=[ai_pb2.ChatMessage(role="user", content="earlier")],
         ),
-        metadata=auth("svc:content"),
+        metadata=auth("svc:ai-chat"),
     )
     assert reply.answer == "42" and reply.timestamp > 0
     assert (reply.sources[0].page, reply.sources[0].title, reply.sources[0].chunk_id) == ("1-2", "T", "k1")
@@ -172,7 +172,7 @@ async def test_list_models_maps_the_catalog(stub, monkeypatch):
         return {"embeddingModel": {**dto, "id": "emb"}, "generationModels": [dto], "defaultGenerationModel": "g1"}
 
     monkeypatch.setattr(grpc_server.model_manager, "get_frontend_model_catalog", catalog)
-    reply = await stub.ListModels(ai_pb2.ListModelsRequest(), metadata=auth("svc:vocabulary"))
+    reply = await stub.ListModels(ai_pb2.ListModelsRequest(), metadata=auth("svc:content"))
     assert reply.embedding_model.id == "emb" and reply.default_generation_model == "g1"
     (model,) = reply.generation_models
     assert model.available is False and model.availability_reason == "quota" and model.specs[0].value == "1M"
@@ -207,3 +207,75 @@ async def test_word_family_maps_success_and_model_errors(stub, monkeypatch):
             metadata=auth("svc:vocabulary"),
         )
     assert bad.value.code() == grpc.StatusCode.INVALID_ARGUMENT
+
+
+CALL_BY_RPC = {
+    "StreamChat": lambda stub, md: _drain(stub.StreamChat(request(), metadata=md)),
+    "Query": lambda stub, md: stub.Query(ai_pb2.QueryRequest(query="q"), metadata=md),
+    "GenerateWordFamily": lambda stub, md: stub.GenerateWordFamily(
+        ai_pb2.GenerateWordFamilyRequest(category_slug="c", category_name="C", num_root_words=1), metadata=md
+    ),
+    "ListModels": lambda stub, md: stub.ListModels(ai_pb2.ListModelsRequest(), metadata=md),
+}
+ALLOWED_CALLER = {
+    "StreamChat": "svc:ai-chat",
+    "Query": "svc:ai-chat",
+    "GenerateWordFamily": "svc:vocabulary",
+    "ListModels": "svc:content",
+}
+
+
+async def _drain(stream):
+    return [item async for item in stream]
+
+
+@pytest.mark.parametrize(
+    ("rpc", "caller"),
+    [
+        (rpc, caller)
+        for rpc in CALL_BY_RPC
+        for caller in ("svc:ai-chat", "svc:vocabulary", "svc:content")
+        if caller != ALLOWED_CALLER[rpc]
+    ],
+)
+async def test_an_allow_listed_service_is_denied_on_an_rpc_that_is_not_its_own(stub, monkeypatch, rpc, caller):
+    ran = []
+
+    async def frames(params):
+        ran.append(rpc)
+        yield {"type": "started"}
+
+    async def answer(params):
+        ran.append(rpc)
+        return "x", []
+
+    monkeypatch.setattr(grpc_server, "stream_chat", frames)
+    monkeypatch.setattr(grpc_server, "answer_query", answer)
+    with pytest.raises(grpc.aio.AioRpcError) as caught:
+        await CALL_BY_RPC[rpc](stub, auth(caller))
+    assert caught.value.code() == grpc.StatusCode.PERMISSION_DENIED
+    assert ran == []
+
+
+async def test_the_authenticated_caller_is_available_to_the_handler(stub, monkeypatch):
+    seen = []
+
+    async def answer(params):
+        seen.append(grpc_server.current_caller().subject)
+        return "x", []
+
+    monkeypatch.setattr(grpc_server, "answer_query", answer)
+    await stub.Query(ai_pb2.QueryRequest(query="q"), metadata=auth("svc:ai-chat"))
+    assert seen == ["svc:ai-chat"]
+
+
+async def test_the_caller_is_available_inside_a_streaming_handler(stub, monkeypatch):
+    seen = []
+
+    async def frames(params):
+        seen.append(grpc_server.current_caller().subject)
+        yield {"type": "started"}
+
+    monkeypatch.setattr(grpc_server, "stream_chat", frames)
+    await _drain(stub.StreamChat(request(), metadata=auth("svc:ai-chat")))
+    assert seen == ["svc:ai-chat"]
