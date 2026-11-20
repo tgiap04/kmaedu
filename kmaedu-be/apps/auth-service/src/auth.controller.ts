@@ -485,10 +485,9 @@ export class AuthController {
         @Req() request: Request,
         @Res({ passthrough: true }) res: ExpressResponse
     ) {
-        const deviceInfo: DeviceInfo = {
-            deviceId: request.headers['x-device-id'] as string,
-            userAgent: request.headers['user-agent'],
-        };
+        // Same fallback as login/register: no X-Device-ID must not reach the
+        // NOT NULL UserSession.deviceId as undefined.
+        const deviceInfo = this.extractDeviceInfo(request);
         const result = await this.authService.googleOneTapLogin(
             body.credential,
             deviceInfo,

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '../prisma';
+import { Prisma, User } from '../prisma';
+import { caseInsensitiveEquals } from './case-insensitive-equals';
 import { PrismaService } from '../prisma';
 import { RedisService, EXPIRED_TIME } from '@kmaedu/redis';
 
@@ -23,77 +24,81 @@ export class UserRepository {
     }
 
     /**
-     * Tìm user theo email với cache
+     * Tìm user theo email với cache (không phân biệt hoa thường)
      */
     async findByEmail(
         email: string,
         cache = true,
         cacheTTL = this.defaultCacheTTL
     ): Promise<User | null> {
-        const normalizedEmail = email.toLowerCase();
-        const cacheKey = this.getCacheKey(`email:${normalizedEmail}`);
-
-        if (cache) {
-            const cached = await this.redis.get<User>(cacheKey);
-            if (cached) return cached;
-
-            const user = await this.model.findUnique({
-                where: { email: normalizedEmail },
-            });
-
-            if (user) {
-                await this.redis.set(cacheKey, user, cacheTTL);
-            }
-            return user;
-        }
-
-        return this.model.findUnique({
-            where: { email: normalizedEmail },
-        });
+        return this.findByIdentity('email', email, cache, cacheTTL);
     }
 
     /**
-     * Tìm user theo username với cache
+     * Tìm user theo username với cache (không phân biệt hoa thường)
      */
     async findByUsername(
         username: string,
         cache = true,
         cacheTTL = this.defaultCacheTTL
     ): Promise<User | null> {
-        const normalizedUsername = username.toLowerCase();
-        const cacheKey = this.getCacheKey(`username:${normalizedUsername}`);
+        return this.findByIdentity('username', username, cache, cacheTTL);
+    }
 
-        if (cache) {
-            const cached = await this.redis.get<User>(cacheKey);
-            if (cached) return cached;
+    /**
+     * Tìm user theo email hoặc username (cho login), không phân biệt hoa
+     * thường: tài khoản cũ có email/username chữ hoa vẫn đăng nhập được.
+     * Khớp chính xác trước (dùng unique index, và chọn đúng dòng khi hai
+     * username chỉ khác hoa thường cùng tồn tại), rồi mới ILIKE.
+     */
+    async findByCredential(credential: string): Promise<User | null> {
+        const exact = await this.model.findFirst({
+            where: {
+                OR: [
+                    { email: credential.toLowerCase() },
+                    { username: credential },
+                ],
+            },
+        });
+        if (exact) return exact;
 
-            const user = await this.model.findUnique({
-                where: { username: normalizedUsername },
-            });
-
-            if (user) {
-                await this.redis.set(cacheKey, user, cacheTTL);
-            }
-            return user;
-        }
-
-        return this.model.findUnique({
-            where: { username: normalizedUsername },
+        const insensitive = caseInsensitiveEquals(credential);
+        return this.model.findFirst({
+            where: { OR: [{ email: insensitive }, { username: insensitive }] },
+            orderBy: { createdAt: 'asc' },
         });
     }
 
     /**
-     * Tìm user theo email hoặc username (cho login)
+     * Exact unique-index hit first (emails are stored lower-cased since
+     * signup normalises them), then a case-insensitive match for legacy
+     * mixed-case rows (oldest row wins).
      */
-    async findByCredential(credential: string): Promise<User | null> {
-        return this.model.findFirst({
-            where: {
-                OR: [
-                    { email: credential.toLowerCase() },
-                    { username: credential.toLowerCase() },
-                ],
-            },
-        });
+    private async findByIdentity(
+        field: 'email' | 'username',
+        value: string,
+        cache: boolean,
+        cacheTTL: number
+    ): Promise<User | null> {
+        const cacheKey = this.getCacheKey(`${field}:${value.toLowerCase()}`);
+        if (cache) {
+            const cached = await this.redis.get<User>(cacheKey);
+            if (cached) return cached;
+        }
+
+        const exact: Prisma.UserWhereUniqueInput =
+            field === 'email' ? { email: value.toLowerCase() } : { username: value };
+        const user =
+            (await this.model.findUnique({ where: exact })) ??
+            (await this.model.findFirst({
+                where: { [field]: caseInsensitiveEquals(value) },
+                orderBy: { createdAt: 'asc' },
+            }));
+
+        if (cache && user) {
+            await this.redis.set(cacheKey, user, cacheTTL);
+        }
+        return user;
     }
 
     /**

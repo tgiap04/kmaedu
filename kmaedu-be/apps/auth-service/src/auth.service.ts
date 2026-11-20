@@ -17,7 +17,6 @@ import {
     MailService,
     PasswordService,
     GenerateIdService,
-    generateCode,
     RefreshTokenCipherService,
 } from '@kmaedu/common';
 import { OutboxService } from '@kmaedu/messaging';
@@ -29,6 +28,9 @@ import type { UserRegistered } from '@kmaedu/contracts/generated/kmaedu/events/v
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { sanitizeUtmSource } from './utils/utm-source.util';
+import { uniqueViolationFields } from './utils/prisma-unique-violation';
+import { writeWithFreshCode } from './utils/write-with-fresh-code';
+import { availableUsername } from './utils/available-username';
 import { UserRepository } from './repositories/user.repository';
 import { UserSessionRepository } from './devices/repositories/user-session.repository';
 import {
@@ -170,7 +172,9 @@ export class AuthService {
     }
 
     async register(registerDto: RegisterDto, deviceInfo: DeviceInfo) {
-        const { username, email, password } = registerDto;
+        const { username, password } = registerDto;
+        // Stored lower-cased: lookups (login, reset, duplicate check) ignore case.
+        const email = registerDto.email?.trim().toLowerCase();
         const utmSource = sanitizeUtmSource(registerDto.utmSource);
         if (!username || !email || !password) {
             throw new BadRequestException('Thông tin đăng ký không hợp lệ');
@@ -242,6 +246,14 @@ export class AuthService {
             if (error instanceof ConflictException) {
                 throw error;
             }
+            // A concurrent signup won the unique index after our pre-check.
+            const taken = uniqueViolationFields(error);
+            if (taken?.includes('email')) {
+                throw new ConflictException('Email đã được sử dụng');
+            }
+            if (taken?.includes('username')) {
+                throw new ConflictException('Username đã được sử dụng');
+            }
             console.log(error.message);
             throw new InternalServerErrorException('Đăng ký không thành công');
         }
@@ -265,21 +277,21 @@ export class AuthService {
                 return { message: 'Tài khoản đã được xác minh' };
             }
 
-            const code = generateCode(6);
-
-            await this.prisma.verifyAccountCode.upsert({
-                where: { userId: user.id },
-                update: {
-                    code,
-                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-                },
-                create: {
-                    id: this.generateIdService.generateId(),
-                    userId: user.id,
-                    code,
-                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-                },
-            });
+            const code = await writeWithFreshCode((code) =>
+                this.prisma.verifyAccountCode.upsert({
+                    where: { userId: user.id },
+                    update: {
+                        code,
+                        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                    },
+                    create: {
+                        id: this.generateIdService.generateId(),
+                        userId: user.id,
+                        code,
+                        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                    },
+                })
+            );
 
             this.mailService
                 .sendMail(
@@ -369,21 +381,21 @@ export class AuthService {
                 return genericResponse;
             }
 
-            const code = generateCode(6);
-
-            await this.prisma.resetPasswordCode.upsert({
-                where: { userId: user.id },
-                update: {
-                    code,
-                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-                },
-                create: {
-                    id: this.generateIdService.generateId(),
-                    userId: user.id,
-                    code,
-                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-                },
-            });
+            const code = await writeWithFreshCode((code) =>
+                this.prisma.resetPasswordCode.upsert({
+                    where: { userId: user.id },
+                    update: {
+                        code,
+                        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                    },
+                    create: {
+                        id: this.generateIdService.generateId(),
+                        userId: user.id,
+                        code,
+                        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                    },
+                })
+            );
 
             this.mailService
                 .sendMail(
@@ -460,21 +472,21 @@ export class AuthService {
     async sendCodeToChangePassword(userId: string) {
         try {
             const user = await this.loadUser(userId);
-            const code = generateCode(6);
-
-            await this.prisma.resetPasswordCode.upsert({
-                where: { userId: user.id },
-                update: {
-                    code,
-                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-                },
-                create: {
-                    id: this.generateIdService.generateId(),
-                    userId: user.id,
-                    code,
-                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-                },
-            });
+            const code = await writeWithFreshCode((code) =>
+                this.prisma.resetPasswordCode.upsert({
+                    where: { userId: user.id },
+                    update: {
+                        code,
+                        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                    },
+                    create: {
+                        id: this.generateIdService.generateId(),
+                        userId: user.id,
+                        code,
+                        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                    },
+                })
+            );
 
             this.mailService
                 .sendMail(
@@ -601,12 +613,17 @@ export class AuthService {
         let existingUser = await this.userRepository.findByEmail(email, false);
 
         if (!existingUser) {
+            // The derived name (Google display name / e-mail local part) may
+            // already belong to someone: User.username is unique.
+            const freeUsername = await availableUsername(username, (name) =>
+                this.userRepository.usernameExists(name)
+            );
             existingUser = await this.prisma.$transaction(async (tx) => {
                 const user = await tx.user.create({
                     data: {
                         id: this.generateIdService.generateId(),
-                        email,
-                        username,
+                        email: email.toLowerCase(),
+                        username: freeUsername,
                         isVerified: true,
                         password: null,
                         // Chỉ gắn nguồn khi TẠO user mới (first-touch); đăng nhập lại không đụng.
