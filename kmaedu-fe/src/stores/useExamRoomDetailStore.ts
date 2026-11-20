@@ -46,8 +46,10 @@ interface ExamRoomDetailStore {
     limit: number,
     options?: { forceRefresh?: boolean }
   ) => Promise<void>;
+  /** `silent`: no toast either way, the caller reports the outcome. */
   createSession: (
-    credentials: CredentialsCreateExamSession
+    credentials: CredentialsCreateExamSession,
+    options?: { silent?: boolean }
   ) => Promise<boolean>;
   updateSession: (
     id: string,
@@ -108,7 +110,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
     }
   },
 
-  createSession: async (credentials) => {
+  createSession: async (credentials, options) => {
     try {
       set({ mutationLoading: true });
 
@@ -137,6 +139,9 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
             questionSelectionMode: newSession.questionSelectionMode,
             labelQuestionConfig: newSession.labelQuestionConfig,
             shuffleQuestions: newSession.shuffleQuestions,
+            durationMinutes: newSession.durationMinutes ?? null,
+            antiCheatEnabled: newSession.antiCheatEnabled ?? true,
+            allowLeaveMidway: newSession.allowLeaveMidway ?? true,
             _count: { participants: 0, examAttempts: 0 },
           } as ExamSessionBasic,
           ...state.sessions,
@@ -145,12 +150,12 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
         mutationLoading: false,
       }));
 
-      toast.success("Tạo phiên thi thành công");
+      if (!options?.silent) toast.success("Tạo phiên thi thành công");
       return true;
     } catch (error) {
       console.error("Error creating session:", error);
       const code = error instanceof ApiRequestError ? error.code : undefined;
-      toast.error(createSessionErrorMessage(code) ?? "Tạo phiên thi thất bại");
+      if (!options?.silent) toast.error(createSessionErrorMessage(code) ?? "Tạo phiên thi thất bại");
       set({ mutationLoading: false });
       return false;
     }
@@ -186,6 +191,10 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
                 questionSelectionMode: updatedSession.questionSelectionMode ?? session.questionSelectionMode,
                 labelQuestionConfig: updatedSession.labelQuestionConfig ?? session.labelQuestionConfig,
                 shuffleQuestions: updatedSession.shuffleQuestions ?? session.shuffleQuestions,
+                // null is a value here (no duration limit), so only a missing field keeps the old one.
+                durationMinutes: updatedSession.durationMinutes !== undefined ? updatedSession.durationMinutes : session.durationMinutes,
+                antiCheatEnabled: updatedSession.antiCheatEnabled ?? session.antiCheatEnabled,
+                allowLeaveMidway: updatedSession.allowLeaveMidway ?? session.allowLeaveMidway,
               }
             : session
         ),

@@ -41,13 +41,13 @@ function InfoRow({ icon, label, children }: { icon: ReactNode; label: string; ch
   );
 }
 
+/** The room's own facts. End times belong to its sessions (tab Phiên thi), so the card shows when the room was created. */
 export function RoomInfoCard({ room, timeline }: { room: ExamRoom; timeline: RoomTimeline }) {
-  const end = timeline.endsAt ? formatStamp(timeline.endsAt) : timeline.startsAt ? "Không giới hạn" : "–";
   return (
     <DetailPanel title="Thông tin phòng thi">
       <dl className="divide-y divide-hairline-soft">
         <InfoRow icon={<CalendarBlankIcon aria-hidden />} label="Thời gian bắt đầu">{timeline.startsAt ? formatStamp(timeline.startsAt) : "Chưa có phiên thi"}</InfoRow>
-        <InfoRow icon={<ClockIcon aria-hidden />} label="Thời gian kết thúc">{end}</InfoRow>
+        <InfoRow icon={<ClockIcon aria-hidden />} label="Thời gian tạo">{formatStamp(room.createdAt)}</InfoRow>
         <InfoRow icon={<UserIcon aria-hidden />} label="Người tổ chức">{displayUserName(room.host)}</InfoRow>
       </dl>
       {room.sourceDeleted && (

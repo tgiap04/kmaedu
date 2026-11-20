@@ -31,7 +31,8 @@ interface ExamRoomStore {
   fetchAllExamRooms: (options?: { forceRefresh?: boolean }) => Promise<any>;
   /** `quiet` reloads the room on screen (after a session change) without the loading state. */
   fetchExamRoomById: (id: string, options?: { quiet?: boolean }) => Promise<void>;
-  createExamRoom: (credentials: CredentialsCreateExamRoom) => Promise<void>;
+  /** Resolves with the new room (its id opens the first session). */
+  createExamRoom: (credentials: CredentialsCreateExamRoom, options?: { silentSuccess?: boolean }) => Promise<ExamRoom>;
   updateExamRoom: (
     id: string,
     credentials: CredentialsUpdateExamRoom
@@ -158,7 +159,7 @@ export const useExamRoomStore = create<ExamRoomStore>((set) => ({
     }
   },
 
-  createExamRoom: async (credentials: CredentialsCreateExamRoom) => {
+  createExamRoom: async (credentials: CredentialsCreateExamRoom, options) => {
     try {
       set({ loading: true, error: null });
 
@@ -173,7 +174,9 @@ export const useExamRoomStore = create<ExamRoomStore>((set) => ({
         loading: false,
       }));
 
-      toast.success("Tạo phòng thi thành công");
+      // The create page reports the room and its first session in one toast.
+      if (!options?.silentSuccess) toast.success("Tạo phòng thi thành công");
+      return response.examRoom;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";

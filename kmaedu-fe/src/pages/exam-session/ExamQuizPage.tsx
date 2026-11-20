@@ -15,7 +15,8 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useCheatingDetection } from "@/hooks/useCheatingDetection";
 import { CheatingWarningModal } from "@/components/molecules/CheatingWarningModal";
 import { StandardMarkdownRenderer } from "@/components/molecules/StandardMarkdownRenderer";
-import { startExamAttemptApi, updateExamAttemptProgressApi, getExamAttemptDetailApi, type Question } from "@/apis/examAttemptApi";
+import { startExamAttemptApi, updateExamAttemptProgressApi, getExamAttemptDetailApi, submitExamAttemptApi, type Question } from "@/apis/examAttemptApi";
+import { useLeaveHandIn } from "./use-leave-hand-in";
 import { QuizOptionRow } from "@/components/molecules/QuizOptionRow";
 import { env } from "@/lib/env";
 import {
@@ -58,6 +59,17 @@ export default function ExamQuizPage() {
   } | null>(null);
   const [timeSpentSeconds, setTimeSpentSeconds] = useState(() => 0);
   const [timeLimitMinutes, setTimeLimitMinutes] = useState<number | null>(null);
+  // When the server stops accepting this attempt (min(start + duration, session end)); null: no limit.
+  const [deadline, setDeadline] = useState<string | null>(null);
+  /** Seconds until the attempt must be handed in: from the server deadline, else the older minute limit. */
+  function secondsLeft(): number | null {
+    if (deadline) return Math.floor((Date.parse(deadline) - Date.now()) / 1000);
+    return timeLimitMinutes ? timeLimitMinutes * 60 - timeSpentSeconds : null;
+  }
+  const pastDeadline = () => deadline !== null && Date.now() >= Date.parse(deadline);
+  // Session rules for this attempt (older servers send neither: anti-cheat on, leaving allowed).
+  const [antiCheatEnabled, setAntiCheatEnabled] = useState(true);
+  const [allowLeaveMidway, setAllowLeaveMidway] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [hasWarned30s, setHasWarned30s] = useState(false);
 
@@ -68,7 +80,13 @@ export default function ExamQuizPage() {
 
   const cheatingDetection = useCheatingDetection({
     examAttemptId: attemptId || "",
-    enabled: !!attemptId && !isSubmitted && !loading,
+    enabled: !!attemptId && !isSubmitted && !loading && antiCheatEnabled,
+  });
+
+  const leave = useLeaveHandIn({
+    attemptId,
+    active: !!attemptId && !isSubmitted && !loading && !allowLeaveMidway,
+    progress: () => ({ answers, currentIndex: currentQuestionIndex, markedQuestions: Array.from(markedForReview) }),
   });
 
   useEffect(() => {
@@ -110,13 +128,25 @@ export default function ExamQuizPage() {
     autoSubmittingRef.current = true;
 
     try {
-      await updateExamAttemptProgressApi(attemptId, {
+      // Past the deadline the server refuses late progress (409): what was saved before still counts.
+      // Before it, a failed save stops here and the candidate retries, so no newer answer is lost.
+      const late = pastDeadline();
+      const saving = updateExamAttemptProgressApi(attemptId, {
         answers,
         currentIndex: currentQuestionIndex,
         markedQuestions: Array.from(markedForReview),
       });
+      // 409: the server's clock says the deadline passed (ours may lag): what was saved still counts.
+      await saving.catch((err) => {
+        if (late || (err?.status ?? err?.response?.status) === 409) return;
+        throw err;
+      });
 
-      const result = await submitSecureQuiz(attemptId, answers, tokenMap);
+      // Question tokens expire at the deadline (+30s); only then (400) hand in the saved answers instead.
+      const result = await submitSecureQuiz(attemptId, answers, tokenMap).catch((err) => {
+        if (late && (err?.status ?? err?.response?.status) === 400) return submitExamAttemptApi(attemptId);
+        throw err;
+      });
       setResultData({
         score: result.score,
         totalQuestions: result.totalQuestions,
@@ -146,7 +176,7 @@ export default function ExamQuizPage() {
     } finally {
       autoSubmittingRef.current = false;
     }
-  }, [attemptId, answers, currentQuestionIndex, markedForReview, tokenMap]);
+  }, [attemptId, answers, currentQuestionIndex, markedForReview, tokenMap, deadline]);
 
   useEffect(() => {
     if (!examSessionId || initializing || !isAuthenticated) return;
@@ -254,6 +284,13 @@ export default function ExamQuizPage() {
         }
 
         setTimeLimitMinutes(secureQuizData.timeLimitMinutes);
+        setDeadline(secureQuizData.deadline ?? null);
+        setAntiCheatEnabled(secureQuizData.antiCheatEnabled ?? true);
+        const leaveAllowed = secureQuizData.allowLeaveMidway ?? true;
+        setAllowLeaveMidway(leaveAllowed);
+        if (!leaveAllowed && secureQuizData.status !== 1) {
+          toast.warning("Không được thoát giữa chừng", { description: "Rời trang làm bài sẽ tự động nộp bài." });
+        }
 
         if (secureQuizData.status === 1) {
           setIsSubmitted(true);
@@ -304,9 +341,8 @@ export default function ExamQuizPage() {
   }, [loading, isSubmitted, questions.length]);
 
   useEffect(() => {
-    if (timeLimitMinutes && !loading && !isSubmitted) {
-      const timeLimitSeconds = timeLimitMinutes * 60;
-      const remainingSeconds = timeLimitSeconds - timeSpentSeconds;
+    const remainingSeconds = secondsLeft();
+    if (remainingSeconds !== null && !loading && !isSubmitted) {
 
       if (remainingSeconds <= 30 && remainingSeconds > 0 && !hasWarned30s) {
         setHasWarned30s(true);
@@ -321,7 +357,7 @@ export default function ExamQuizPage() {
         handleAutoSubmit();
       }
     }
-  }, [timeSpentSeconds, timeLimitMinutes, loading, isSubmitted, hasWarned30s, handleAutoSubmit, autoSubmitFailed]);
+  }, [timeSpentSeconds, timeLimitMinutes, deadline, loading, isSubmitted, hasWarned30s, handleAutoSubmit, autoSubmitFailed]);
 
   useEffect(() => {
     if (attemptId && !loading && !isSubmitted) {
@@ -376,9 +412,8 @@ export default function ExamQuizPage() {
   };
 
   const getRemainingTime = () => {
-    if (!timeLimitMinutes) return null;
-    const remaining = timeLimitMinutes * 60 - timeSpentSeconds;
-    return Math.max(0, remaining);
+    const remaining = secondsLeft();
+    return remaining === null ? null : Math.max(0, remaining);
   };
 
   const handleAnswerSelect = (answer: string) => {
@@ -720,6 +755,19 @@ export default function ExamQuizPage() {
         confirmText="Nộp bài"
         cancelText="Tiếp tục làm"
         onConfirm={doSubmit}
+      />
+
+      <ConfirmDialog
+        open={leave.blocked}
+        onOpenChange={(open) => !open && !leave.leaving && leave.stayHere()}
+        title="Rời phòng thi?"
+        description="Phiên thi này không cho phép thoát giữa chừng. Rời trang sẽ nộp bài ngay với các câu đã trả lời."
+        confirmText="Nộp bài và rời đi"
+        cancelText="Ở lại làm tiếp"
+        variant="destructive"
+        isLoading={leave.leaving}
+        onConfirm={() => void leave.confirmLeave()}
+        onCancel={leave.stayHere}
       />
 
       <CheatingWarningModal

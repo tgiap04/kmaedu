@@ -20,6 +20,7 @@ const { useExamRoomStore } = await import("@/stores/useExamRoomStore");
 const { useAuthStore } = await import("@/stores/useAuthStore");
 const { saveBlob } = await import("@/lib/download-file");
 const { default: ManageExamRoomDetailPage } = await import("./ManageExamRoomDetailPage");
+const { formatStamp } = await import("@/lib/exam-room/room-status");
 
 const hour = 3_600_000;
 const session = (id: string, startOffset: number, endOffset: number | null) => ({
@@ -82,6 +83,10 @@ describe("the exam room detail page", () => {
     expect(screen.getByRole("tab", { name: "Phiên thi (2)" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "Đã nộp 75%" })).toBeTruthy();
     expect(screen.getByText("Admin")).toBeTruthy();
+    // The room card shows when the room was created; end times belong to sessions.
+    expect(screen.getByText("Thời gian tạo")).toBeTruthy();
+    expect(screen.getByText(formatStamp("2026-11-16T00:00:00.000Z"))).toBeTruthy();
+    expect(screen.queryByText("Thời gian kết thúc")).toBeNull();
   });
 
   it("ends the room after a confirmation, then reads the room again", async () => {

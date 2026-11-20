@@ -28,6 +28,12 @@ export type CredentialsCreateExamSession = {
   questionSelectionMode?: QUESTION_SELECTION_MODE;
   labelQuestionConfig?: LabelQuestionConfig[] | null;
   shuffleQuestions?: boolean;
+  /** Minutes each attempt may last (null: until the session ends). */
+  durationMinutes?: number | null;
+  /** Watch for tab switching and log it (cheating logs). */
+  antiCheatEnabled?: boolean;
+  /** False: leaving the quiz page hands the attempt in. */
+  allowLeaveMidway?: boolean;
 };
 
 export type CredentialsUpdateExamSession = {
@@ -47,6 +53,12 @@ export type CredentialsUpdateExamSession = {
   questionSelectionMode?: QUESTION_SELECTION_MODE;
   labelQuestionConfig?: LabelQuestionConfig[] | null;
   shuffleQuestions?: boolean;
+  /** Minutes each attempt may last (null: until the session ends). */
+  durationMinutes?: number | null;
+  /** Watch for tab switching and log it (cheating logs). */
+  antiCheatEnabled?: boolean;
+  /** False: leaving the quiz page hands the attempt in. */
+  allowLeaveMidway?: boolean;
 };
 
 export type CredentialsGetExamSessions = {

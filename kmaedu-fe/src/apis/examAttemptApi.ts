@@ -104,6 +104,19 @@ export async function updateExamAttemptProgressApi(
   return response.data;
 }
 
+export type LeaveExamAttemptResult =
+  | { handedIn: true; score: number; correctAnswers: number; totalQuestions: number }
+  | { handedIn: false };
+
+/**
+ * Leaving the quiz page: hands the attempt in (graded on the saved answers, `progress` saved first) when its
+ * session does not allow leaving midway; otherwise nothing happens.
+ */
+export async function leaveExamAttemptApi(attemptId: string, progress?: UpdateProgressDto): Promise<LeaveExamAttemptResult> {
+  const response = await api.post(`/examattempts/${attemptId}/leave`, progress ?? {});
+  return response.data;
+}
+
 /**
  * Submit exam attempt and calculate score
  */
@@ -290,6 +303,12 @@ export interface SecureQuizResponse {
   timeLimitMinutes: number | null;
   startedAt: string;
   questions: SecureQuestion[];
+  /** When this attempt must be handed in: min(start + session duration, session end); null without either. */
+  deadline?: string | null;
+  /** Session rule: watch for tab switching (missing on older servers: on). */
+  antiCheatEnabled?: boolean;
+  /** Session rule: false means leaving the quiz page hands the attempt in (missing on older servers: allowed). */
+  allowLeaveMidway?: boolean;
 }
 
 /**

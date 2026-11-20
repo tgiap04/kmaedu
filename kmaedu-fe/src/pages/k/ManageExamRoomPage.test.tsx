@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ExamRoom } from "@/types/examRoom";
 
@@ -43,6 +43,20 @@ const ROOMS = [
 ];
 
 const open = () => render(<MemoryRouter><ManageExamRoomPage /></MemoryRouter>);
+
+function Where() {
+  const location = useLocation();
+  return <p data-testid="where">{location.pathname + location.search}</p>;
+}
+const openAt = (url: string) =>
+  render(
+    <MemoryRouter initialEntries={[url]}>
+      <Routes>
+        <Route path="/k/manage-exam-room" element={<ManageExamRoomPage />} />
+        <Route path="/k/manage-exam-room/new" element={<Where />} />
+      </Routes>
+    </MemoryRouter>,
+  );
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -91,5 +105,16 @@ describe("the exam room list page", () => {
     expect(await screen.findByText("Không có phòng thi phù hợp")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
     expect(await screen.findByText("Phòng thi test 1")).toBeTruthy();
+  });
+
+  it("opens the create page from the header button", async () => {
+    openAt("/k/manage-exam-room");
+    await userEvent.click(await screen.findByRole("button", { name: /Tạo phòng thi/ }));
+    expect((await screen.findByTestId("where")).textContent).toBe("/k/manage-exam-room/new");
+  });
+
+  it("sends ?quizSetId= on to the create page, prefilled", async () => {
+    openAt("/k/manage-exam-room?quizSetId=qs%201");
+    expect((await screen.findByTestId("where")).textContent).toBe("/k/manage-exam-room/new?quizSetId=qs%201");
   });
 });

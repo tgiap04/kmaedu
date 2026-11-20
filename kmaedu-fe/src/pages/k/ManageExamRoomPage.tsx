@@ -19,15 +19,13 @@ type Pending = { kind: "one"; id: string } | { kind: "selected" } | null;
 
 export default function ManageExamRoomPage() {
   const navigate = useNavigate();
-  const { examRooms, loading, fetchAllExamRooms, createExamRoom, updateExamRoom, deleteExamRoom, deleteExamRooms } = useExamRoomStore();
+  const { examRooms, loading, fetchAllExamRooms, updateExamRoom, deleteExamRoom, deleteExamRooms } = useExamRoomStore();
   const { fetchAllQuizSets, quizSetsK } = useQuizSetStore();
   const now = useNow();
   const list = useExamRoomList(examRooms, now);
 
-  const [createOpen, setCreateOpen] = useState(false);
-  // Opened from a quiz set ("Sử dụng đề thi này"): ?quizSetId= prefills the create form once.
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [createInitial, setCreateInitial] = useState<ExamRoomFormData | undefined>();
+  // Opened from a quiz set ("Sử dụng đề thi này"): ?quizSetId= goes on to the create page, prefilled.
+  const [searchParams] = useSearchParams();
   const [editing, setEditing] = useState<{ id: string; data: ExamRoomFormData } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Pending>(null);
   const [deleting, setDeleting] = useState(false);
@@ -38,14 +36,9 @@ export default function ManageExamRoomPage() {
 
   useEffect(() => {
     const quizSetId = searchParams.get("quizSetId");
-    if (!quizSetId) return;
-    setCreateInitial({ title: "", description: "", quizSetId });
-    setCreateOpen(true);
-    setSearchParams((params) => {
-      params.delete("quizSetId");
-      return params;
-    }, { replace: true });
-  }, [searchParams, setSearchParams]);
+    if (quizSetId) navigate(`/k/manage-exam-room/new?quizSetId=${encodeURIComponent(quizSetId)}`, { replace: true });
+  }, [searchParams, navigate]);
+  const openCreate = () => navigate("/k/manage-exam-room/new");
 
   // Until the user's quiz sets arrive, the room form cannot tell a valid set from a deleted one.
   const [quizSetsLoading, setQuizSetsLoading] = useState(true);
@@ -64,16 +57,6 @@ export default function ManageExamRoomPage() {
     },
     [examRooms],
   );
-
-  const handleCreate = async (data: ExamRoomFormData) => {
-    try {
-      await createExamRoom({ title: data.title, description: data.description, quizSetId: data.quizSetId });
-      setCreateOpen(false);
-      setCreateInitial(undefined);
-    } catch {
-      // The store has told the user; the form stays open to try again.
-    }
-  };
 
   const handleEdit = async (data: ExamRoomFormData) => {
     if (!editing) return;
@@ -117,7 +100,7 @@ export default function ManageExamRoomPage() {
         eyebrow={<RoomBreadcrumb current="Danh sách phòng thi" />}
         large
         actions={
-          <Button variant="solid" size="lg" onClick={() => setCreateOpen(true)} className="!h-12 !px-6 !text-[15px] !font-semibold">
+          <Button variant="solid" size="lg" onClick={openCreate} className="!h-12 !px-6 !text-[15px] !font-semibold">
             <PlusIcon weight="bold" />
             Tạo phòng thi
           </Button>
@@ -139,26 +122,12 @@ export default function ManageExamRoomPage() {
           <RoomListPanel
             list={list}
             hasRooms={examRooms.length > 0}
-            onCreate={() => setCreateOpen(true)}
+            onCreate={openCreate}
             onDeleteSelected={() => setPendingDelete({ kind: "selected" })}
             {...handlers}
           />
         </>
       )}
-
-      <ExamRoomModal
-        open={createOpen}
-        onOpenChange={(open) => {
-          setCreateOpen(open);
-          if (!open) setCreateInitial(undefined);
-        }}
-        mode="create"
-        initialData={createInitial}
-        quizSets={quizSetOptions}
-        isLoadingQuizSets={quizSetsLoading}
-        isLoading={loading}
-        onSubmit={handleCreate}
-      />
 
       <ExamRoomModal
         open={editing !== null}

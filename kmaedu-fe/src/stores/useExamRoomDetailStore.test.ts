@@ -44,6 +44,22 @@ describe("session changes", () => {
   });
 });
 
+describe("session attempt rules in the local list", () => {
+  const rules = { durationMinutes: 45, antiCheatEnabled: false, allowLeaveMidway: false };
+
+  it("keeps the three rules of a new or edited session, so the edit form opens with them", async () => {
+    const s = useExamRoomDetailStore.getState();
+    vi.mocked(api.createExamSessionApi).mockResolvedValue({ examSession: { ...session, ...rules } } as never);
+    await s.createSession({ examRoomId: "r1", startTime: session.startTime } as never);
+    expect(useExamRoomDetailStore.getState().sessions[0]).toMatchObject(rules);
+
+    const changed = { durationMinutes: null, antiCheatEnabled: true, allowLeaveMidway: true };
+    vi.mocked(api.updateExamSessionApi).mockResolvedValue({ examSession: { ...session, ...changed } } as never);
+    await s.updateSession("s1", {});
+    expect(useExamRoomDetailStore.getState().sessions[0]).toMatchObject(changed);
+  });
+});
+
 describe("endRoom", () => {
   it("ends the running sessions, drops the cached lists and says how many", async () => {
     storeCache.set(storeCache.createKey("examroom-sessions", { examRoomId: "r1", page: 1, limit: 10 }), {});

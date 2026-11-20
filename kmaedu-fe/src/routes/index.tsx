@@ -29,6 +29,7 @@ import ManageFlashcardSetDetailPage from "@/pages/k/ManageFlashcardSetDetailPage
 import AIToolPage from "@/pages/k/AIToolPage";
 import ManageExamRoomPage from "@/pages/k/ManageExamRoomPage";
 import ManageExamRoomDetailPage from "@/pages/k/ManageExamRoomDetailPage";
+import ManageExamRoomCreatePage from "@/pages/k/ManageExamRoomCreatePage";
 import ExamRoomSessionAnalyticsPage from "@/pages/k/ExamRoomSessionAnalyticsPage";
 import MyExamsPage from "@/pages/k/MyExamsPage";
 import QuizPracticePage from "@/pages/k/QuizPracticePage";
@@ -157,6 +158,7 @@ export const router = createBrowserRouter([
   { path: "/k/manage-flashcard-set/:id", element: guarded(<ManageFlashcardSetDetailPage />, { permission: "flashcardset:manage", pageKey: "flash-card" }) },
   { path: "/k/ai-tool", element: guarded(<AIToolPage />, { permission: "ai:generate", pageKey: "ai-tool" }) },
   { path: "/k/manage-exam-room", element: guarded(<ManageExamRoomPage />, { permission: "exam_room:manage", pageKey: "manage-exam-room" }) },
+  { path: "/k/manage-exam-room/new", element: guarded(<ManageExamRoomCreatePage />, { permission: "exam_room:manage", pageKey: "manage-exam-room" }) },
   { path: "/k/manage-exam-room/:id", element: guarded(<ManageExamRoomDetailPage />, { permission: "exam_room:manage", pageKey: "manage-exam-room" }) },
   {
     path: "/k/manage-exam-room/:id/session/:sessionId",

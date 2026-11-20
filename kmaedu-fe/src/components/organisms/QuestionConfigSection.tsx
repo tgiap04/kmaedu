@@ -47,6 +47,8 @@ interface QuestionConfigSectionProps {
     shuffleQuestions?: boolean;
   }) => void;
   disabled?: boolean;
+  /** Inside a titled form section: no card frame or title of its own. */
+  bare?: boolean;
 }
 
 export function QuestionConfigSection({
@@ -54,6 +56,7 @@ export function QuestionConfigSection({
   initialData,
   onConfigChange,
   disabled = false,
+  bare = false,
 }: QuestionConfigSectionProps) {
   const [selectionMode, setSelectionMode] = useState<QUESTION_SELECTION_MODE>(
     initialData?.questionSelectionMode ?? QUESTION_SELECTION_MODE.ALL,
@@ -199,14 +202,16 @@ export function QuestionConfigSection({
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TargetIcon className="h-5 w-5" />
-          Cấu hình câu hỏi
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-5 pt-3">
+    <Card className={bare ? "!border-0 !bg-transparent" : undefined}>
+      {!bare && (
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TargetIcon className="h-5 w-5" />
+            Cấu hình câu hỏi
+          </CardTitle>
+        </CardHeader>
+      )}
+      <CardContent className={bare ? "space-y-5 p-0" : "space-y-5 pt-3"}>
         {/* Selection Mode */}
         <div className="space-y-3">
           <Label className="text-base font-medium">Chế độ chọn câu hỏi</Label>

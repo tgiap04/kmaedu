@@ -42,6 +42,9 @@ export interface ExamSession {
     questionSelectionMode?: QUESTION_SELECTION_MODE;
     labelQuestionConfig?: LabelQuestionConfig[] | null;
     shuffleQuestions?: boolean;
+    durationMinutes?: number | null;
+    antiCheatEnabled?: boolean;
+    allowLeaveMidway?: boolean;
     createdAt?: string;
     updatedAt?: string;
     // Snapshot drift (host view only)

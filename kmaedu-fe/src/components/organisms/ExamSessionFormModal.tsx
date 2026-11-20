@@ -9,11 +9,7 @@ import {
   DialogDescription,
 } from "@/components/antd/dialog";
 import { Button } from "@/components/antd/button";
-import { Input } from "@/components/antd/input";
-import { Label } from "@/components/antd/label";
-import { Switch } from "@/components/antd/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/antd/tabs";
-import { CircleNotchIcon, CalendarBlankIcon, ClockIcon, LockSimpleIcon, UsersThreeIcon, ArrowsClockwiseIcon, EyeIcon, KeyIcon, UserPlusIcon, TrophyIcon } from "@phosphor-icons/react";
+import { CircleNotchIcon, CalendarBlankIcon, ListNumbersIcon } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { ExamSessionBasic } from "@/types/examRoom";
 import {
@@ -21,17 +17,21 @@ import {
   QUESTION_SELECTION_MODE,
   LabelQuestionConfig,
 } from "@/types/examSession";
-import {
-  UserSearchInput,
-  WhitelistUser,
-} from "@/components/molecules/UserSearchInput";
+import type { WhitelistUser } from "@/components/molecules/UserSearchInput";
 import { getExamSessionSharingSettingsApi } from "@/apis/examSessionApi";
 import { QuestionConfigSection } from "./QuestionConfigSection";
+import { SessionAccessSection, type AccessType } from "./session-form/session-access-section";
+import { SessionFormSection } from "./session-form/session-form-section";
+import { SessionRulesSection } from "./session-form/session-rules-section";
+import { SessionScoringSection } from "./session-form/session-scoring-section";
+import { durationError, SessionTimeSection } from "./session-form/session-time-section";
 
-// Access type for UI
-type AccessType = "public" | "code" | "whitelist";
 
 interface ExamSessionFormData {
+  /** Minutes one attempt may last; null: until the session ends. */
+  durationMinutes: number | null;
+  antiCheatEnabled: boolean;
+  allowLeaveMidway: boolean;
   startTime: string;
   endTime: string;
   accessType: AccessType;
@@ -69,6 +69,9 @@ interface ExamSessionFormModalProps {
     questionSelectionMode?: QUESTION_SELECTION_MODE;
     labelQuestionConfig?: LabelQuestionConfig[] | null;
     shuffleQuestions?: boolean;
+    durationMinutes: number | null;
+    antiCheatEnabled: boolean;
+    allowLeaveMidway: boolean;
   }) => Promise<boolean>;
   isLoading?: boolean;
 }
@@ -86,6 +89,9 @@ const initialFormData: ExamSessionFormData = {
   // Question configuration defaults
   questionSelectionMode: QUESTION_SELECTION_MODE.ALL,
   shuffleQuestions: false,
+  durationMinutes: null,
+  antiCheatEnabled: true,
+  allowLeaveMidway: true,
 };
 
 export function ExamSessionFormModal({
@@ -161,6 +167,9 @@ export function ExamSessionFormModal({
             sessionAny.questionSelectionMode ?? QUESTION_SELECTION_MODE.ALL,
           labelQuestionConfig: sessionAny.labelQuestionConfig ?? null,
           shuffleQuestions: sessionAny.shuffleQuestions ?? false,
+          durationMinutes: sessionAny.durationMinutes ?? null,
+          antiCheatEnabled: sessionAny.antiCheatEnabled ?? true,
+          allowLeaveMidway: sessionAny.allowLeaveMidway ?? true,
         });
 
         // Load whitelist users if editing
@@ -184,14 +193,15 @@ export function ExamSessionFormModal({
     }
   }, [open, mode, session, loadWhitelistUsers]);
 
-  // Handle input change
-  const handleChange = useCallback(
-    (field: keyof ExamSessionFormData, value: any) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    },
-    []
-  );
+  // A section's change: its fields, clearing their errors.
+  const patchForm = useCallback((patch: Partial<ExamSessionFormData>) => {
+    setFormData((prev) => ({ ...prev, ...patch }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(patch) as (keyof ExamSessionFormData)[]) delete next[key];
+      return next;
+    });
+  }, []);
 
   // Handle question config change
   const handleQuestionConfigChange = useCallback(
@@ -252,6 +262,9 @@ export function ExamSessionFormModal({
       newErrors.maxAttempts = "Số lần làm phải từ 1 đến 10";
     }
 
+    const durationMessage = durationError(formData.durationMinutes);
+    if (durationMessage) newErrors.durationMinutes = durationMessage;
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [formData]);
@@ -288,6 +301,9 @@ export function ExamSessionFormModal({
           formData.questionSelectionMode ?? QUESTION_SELECTION_MODE.ALL,
         labelQuestionConfig: formData.labelQuestionConfig ?? null,
         shuffleQuestions: formData.shuffleQuestions ?? false,
+        durationMinutes: formData.durationMinutes,
+        antiCheatEnabled: formData.antiCheatEnabled,
+        allowLeaveMidway: formData.allowLeaveMidway,
       };
 
       const success = await onSubmit(submitData);
@@ -303,268 +319,49 @@ export function ExamSessionFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CalendarBlankIcon className="h-5 w-5" />
-            {mode === "create" ? "Tạo phiên thi mới" : "Chỉnh sửa phiên thi"}
-          </DialogTitle>
-          <DialogDescription>
-            {mode === "create"
-              ? "Thiết lập thời gian và cài đặt cho phiên thi mới"
-              : "Cập nhật thông tin phiên thi"}
-          </DialogDescription>
+      <DialogContent modalWidth={880} className="session-form-modal" bodyStyle={{ overflow: "visible" }}>
+        <DialogHeader className="mb-0 flex items-start gap-3.5 border-b border-hairline-soft pb-4 pr-8">
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#fde4e2] to-[#fef3f2] text-brand" aria-hidden>
+            <CalendarBlankIcon weight="duotone" className="size-6" />
+          </span>
+          <div className="min-w-0">
+            <DialogTitle className="text-xl font-bold text-ink">{mode === "create" ? "Tạo phiên thi mới" : "Chỉnh sửa phiên thi"}</DialogTitle>
+            <DialogDescription className="mt-0.5">
+              {mode === "create" ? "Thiết lập thời gian, quyền truy cập và luật làm bài cho phiên thi" : "Cập nhật thiết lập của phiên thi. Bài đã nộp giữ nguyên kết quả."}
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {/* Start Time */}
-          <div className="space-y-2">
-            <Label htmlFor="startTime" className="flex items-center gap-2">
-              <ClockIcon className="h-4 w-4" />
-              Thời gian bắt đầu <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="startTime"
-              type="datetime-local"
-              value={formData.startTime}
-              onChange={(e) => handleChange("startTime", e.target.value)}
+        {/* Only the sections scroll: the title and the actions stay in view. */}
+        <div className="-mx-6 max-h-[min(68vh,720px)] space-y-4 overflow-y-auto bg-page/60 px-6 py-5">
+          <SessionTimeSection value={formData} errors={errors} disabled={isFormLoading} onChange={patchForm} />
+          <SessionAccessSection value={formData} errors={errors} disabled={isFormLoading} onChange={patchForm} onGenerateCode={generateAccessCode} />
+          <SessionFormSection icon={<ListNumbersIcon weight="duotone" />} title="Câu hỏi" hint="Cách lấy câu hỏi từ bộ đề cho mỗi thí sinh">
+            <QuestionConfigSection
+              bare
+              examRoomId={examRoomId}
+              initialData={{
+                questionCount: formData.questionCount,
+                questionSelectionMode: formData.questionSelectionMode,
+                labelQuestionConfig: formData.labelQuestionConfig,
+                shuffleQuestions: formData.shuffleQuestions,
+              }}
+              onConfigChange={handleQuestionConfigChange}
               disabled={isFormLoading}
             />
-            {errors.startTime && (
-              <p className="text-sm text-red-500">{errors.startTime}</p>
-            )}
-          </div>
+          </SessionFormSection>
+          <SessionScoringSection value={formData} errors={errors} disabled={isFormLoading} onChange={patchForm} />
+          <SessionRulesSection value={formData} disabled={isFormLoading} onChange={patchForm} />
+        </div>
 
-          {/* End Time */}
-          <div className="space-y-2">
-            <Label htmlFor="endTime" className="flex items-center gap-2">
-              <ClockIcon className="h-4 w-4" />
-              Thời gian kết thúc
-            </Label>
-            <Input
-              id="endTime"
-              type="datetime-local"
-              value={formData.endTime}
-              onChange={(e) => handleChange("endTime", e.target.value)}
-              disabled={isFormLoading}
-            />
-            <p className="text-xs text-muted-foreground">
-              Để trống nếu không giới hạn thời gian
-            </p>
-          </div>
-
-          {/* Access Configuration */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2">
-              <LockSimpleIcon className="h-4 w-4" />
-              Quyền truy cập
-            </Label>
-            <Tabs
-              value={formData.accessType}
-              onValueChange={(value) =>
-                handleChange("accessType", value as AccessType)
-              }
-              className="w-full"
-            >
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger
-                  value="public"
-                  className="flex items-center gap-1.5"
-                >
-                  <UsersThreeIcon className="h-3.5 w-3.5" />
-                  Công khai
-                </TabsTrigger>
-                <TabsTrigger value="code" className="flex items-center gap-1.5">
-                  <KeyIcon className="h-3.5 w-3.5" />
-                  Mã số
-                </TabsTrigger>
-                <TabsTrigger
-                  value="whitelist"
-                  className="flex items-center gap-1.5"
-                >
-                  <UserPlusIcon className="h-3.5 w-3.5" />
-                  Whitelist
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="public" className="mt-3">
-                <p className="text-sm text-muted-foreground">
-                  Mọi người đều có thể tham gia phiên thi này.
-                </p>
-              </TabsContent>
-
-              <TabsContent value="code" className="mt-3 space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="accessCode">
-                    Mã truy cập (6 chữ số){" "}
-                    <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="accessCode"
-                      type="text"
-                      maxLength={6}
-                      placeholder="Nhập mã 6 chữ số"
-                      value={formData.accessCode}
-                      onChange={(e) => {
-                        const value = e.target.value
-                          .replace(/\D/g, "")
-                          .slice(0, 6);
-                        handleChange("accessCode", value);
-                      }}
-                      disabled={isFormLoading}
-                      className="font-mono text-center tracking-widest"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={generateAccessCode}
-                      disabled={isFormLoading}
-                      title="Tạo mã ngẫu nhiên"
-                    >
-                      <ArrowsClockwiseIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {errors.accessCode && (
-                    <p className="text-sm text-red-500">{errors.accessCode}</p>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="whitelist" className="mt-3 space-y-3">
-                <UserSearchInput
-                  selectedUsers={formData.whitelistUsers}
-                  onUsersChange={(users) =>
-                    handleChange("whitelistUsers", users)
-                  }
-                  disabled={isFormLoading}
-                />
-                {errors.whitelistUsers && (
-                  <p className="text-sm text-red-500">
-                    {errors.whitelistUsers}
-                  </p>
-                )}
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Question Configuration */}
-          <QuestionConfigSection
-            examRoomId={examRoomId}
-            initialData={{
-              questionCount: formData.questionCount,
-              questionSelectionMode: formData.questionSelectionMode,
-              labelQuestionConfig: formData.labelQuestionConfig,
-              shuffleQuestions: formData.shuffleQuestions,
-            }}
-            onConfigChange={handleQuestionConfigChange}
-            disabled={isFormLoading}
-          />
-
-          {/* Show Answers After Submit */}
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <Label className="flex items-center gap-2">
-                <EyeIcon className="h-4 w-4" />
-                Xem đáp án sau khi nộp
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Cho phép thí sinh xem đáp án chi tiết sau khi nộp bài
-              </p>
-            </div>
-            <Switch
-              checked={formData.showAnswersAfterSubmit}
-              onCheckedChange={(checked) =>
-                handleChange("showAnswersAfterSubmit", checked)
-              }
-              disabled={isFormLoading}
-            />
-          </div>
-
-          {/* Allow Retake */}
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <Label>Cho phép làm lại</Label>
-              <p className="text-xs text-muted-foreground">
-                Thí sinh có thể làm bài nhiều lần
-              </p>
-            </div>
-            <Switch
-              checked={formData.allowRetake}
-              onCheckedChange={(checked) =>
-                handleChange("allowRetake", checked)
-              }
-              disabled={isFormLoading}
-            />
-          </div>
-
-          {/* Max Attempts */}
-          {formData.allowRetake && (
-            <div className="space-y-2">
-              <Label htmlFor="maxAttempts">Số lần làm tối đa</Label>
-              <Input
-                id="maxAttempts"
-                type="number"
-                min={1}
-                value={formData.maxAttempts}
-                onChange={(e) =>
-                  handleChange(
-                    "maxAttempts",
-                    Number.parseInt(e.target.value) || 1
-                  )
-                }
-                disabled={isFormLoading}
-              />
-              {errors.maxAttempts && (
-                <p className="text-sm text-red-500">{errors.maxAttempts}</p>
-              )}
-            </div>
-          )}
-
-          {/* Passing Score */}
-          <div className="space-y-2">
-            <Label htmlFor="passingScore" className="flex items-center gap-2">
-              <TrophyIcon className="h-4 w-4" />
-              Điểm đạt (%)
-            </Label>
-            <div className="">
-              <Input
-                id="passingScore"
-                type="number"
-                min={0}
-                max={100}
-                value={formData.passingScore}
-                onChange={(e) => {
-                  const value = Math.min(
-                    100,
-                    Math.max(0, Number.parseInt(e.target.value) || 0)
-                  );
-                  handleChange("passingScore", value);
-                }}
-                disabled={isFormLoading}
-                className="w-full"
-              />
-            </div>
-          </div>
-
-          {/* Submit Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isFormLoading}
-            >
-              Hủy
-            </Button>
-            <Button onClick={handleFormSubmit} disabled={isFormLoading}>
-              {isFormLoading && (
-                <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {mode === "create" ? "Tạo phiên thi" : "Lưu thay đổi"}
-            </Button>
-          </div>
+        <div className="-mx-6 -mb-1 flex items-center justify-between gap-3 border-t border-hairline-soft px-6 pt-4">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isFormLoading} className="!h-11 !px-5">
+            Hủy
+          </Button>
+          <Button onClick={handleFormSubmit} disabled={isFormLoading} variant="solid" className="!h-11 !px-6 !font-semibold">
+            {isFormLoading && <CircleNotchIcon className="mr-2 h-4 w-4 animate-spin" />}
+            {mode === "create" ? "Tạo phiên thi" : "Lưu thay đổi"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

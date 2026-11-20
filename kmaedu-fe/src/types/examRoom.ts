@@ -49,6 +49,9 @@ export interface ExamSessionBasic {
   questionSelectionMode?: number;
   labelQuestionConfig?: any[] | null;
   shuffleQuestions?: boolean;
+  durationMinutes?: number | null;
+  antiCheatEnabled?: boolean;
+  allowLeaveMidway?: boolean;
   distinctUserCount?: number;
   // Snapshot drift (host views). snapshotOutdated null = content unavailable
   snapshotOutdated?: boolean | null;

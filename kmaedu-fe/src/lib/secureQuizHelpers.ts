@@ -111,6 +111,9 @@ export interface SecureQuizState {
   timeLimitMinutes: number | null;
   startedAt: string;
   questions: DecryptedQuestion[];
+  deadline?: string | null;
+  antiCheatEnabled?: boolean;
+  allowLeaveMidway?: boolean;
   tokenMap: QuestionTokenMap;
 }
 
@@ -133,6 +136,9 @@ export async function fetchAndDecryptSecureQuiz(
     markedQuestions: response.markedQuestions,
     totalQuestions: response.totalQuestions,
     timeLimitMinutes: response.timeLimitMinutes,
+    deadline: response.deadline,
+    antiCheatEnabled: response.antiCheatEnabled,
+    allowLeaveMidway: response.allowLeaveMidway,
     startedAt: response.startedAt,
     questions: decryptedQuestions,
     tokenMap,
