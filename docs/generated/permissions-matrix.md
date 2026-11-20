@@ -143,6 +143,7 @@ Every Nest gRPC handler and its guard decorator (`ServiceOnly` lists the allowed
 | R2Service | DeleteFile | `@ServiceOnly('auth')` | `apps/r2-service/src/r2-service.controller.ts` |
 | R2Service | DeleteObjects | `@ServiceOnly('auth', 'vocabulary', 'document', 'ai-chat', 'content')` | `apps/r2-service/src/r2-service.controller.ts` |
 | R2Service | GetFileUrl | `@ServiceOnly('auth')` | `apps/r2-service/src/r2-service.controller.ts` |
+| R2Service | InspectObject | `@ServiceOnly('document')` | `apps/r2-service/src/r2-service.controller.ts` |
 | R2Service | ListUserFiles | `@RequirePermissionsOrService([])` | `apps/r2-service/src/r2-service.controller.ts` |
 | R2Service | UploadFile | `@ServiceOnly('auth', 'document', 'content')` | `apps/r2-service/src/r2-service.controller.ts` |
 | WordFamilyAdminService | DeleteCategory | `@RequirePermissions('word_family:admin')` | `apps/vocabulary-service/src/modules/word-family/word-family-admin.grpc.controller.ts` |

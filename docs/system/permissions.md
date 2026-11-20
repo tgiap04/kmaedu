@@ -134,6 +134,7 @@ Every Nest gRPC handler carries a guard declaration (`handler-declarations.spec.
 | R2Service | DeleteFile | `@ServiceOnly('auth')` | `apps/r2-service/src/r2-service.controller.ts` |
 | R2Service | DeleteObjects | `@ServiceOnly('auth', 'vocabulary', 'document', 'ai-chat', 'content')` | `apps/r2-service/src/r2-service.controller.ts` |
 | R2Service | GetFileUrl | `@ServiceOnly('auth')` | `apps/r2-service/src/r2-service.controller.ts` |
+| R2Service | InspectObject | `@ServiceOnly('document')` | `apps/r2-service/src/r2-service.controller.ts` |
 | R2Service | ListUserFiles | `@RequirePermissionsOrService([])` | `apps/r2-service/src/r2-service.controller.ts` |
 | R2Service | UploadFile | `@ServiceOnly('auth', 'document', 'content')` | `apps/r2-service/src/r2-service.controller.ts` |
 | WordFamilyAdminService | DeleteCategory | `@RequirePermissions('word_family:admin')` | `apps/vocabulary-service/src/modules/word-family/word-family-admin.grpc.controller.ts` |
@@ -240,8 +241,13 @@ Plain `@Authenticated()` handlers (allowlist, each with a two-user negative spec
 | Format | Code must match `^\d{6}$`, else 400 `INVALID_CODE_FORMAT` (not counted). `GET study/:id` on a code-gated set the caller has no grant for: 403 `CODE_REQUIRED` (send the code to `with-code`) |
 | Counter | Redis `content:codefail:<resourceId>:<userId>` / `assessment:codefail:<resourceId>:<userId>`; every evaluated attempt does an atomic `INCR` (`EXPIRE 900 NX`), so the limit is per resource AND user (an attacker only locks themselves) |
 | Lockout | More than 5 attempts in 15 min: 429 `CODE_LOCKED` `{ retryAfterSeconds }` before comparing (a correct code is refused too); the 5th wrong code also answers 429 |
+| Per resource | A second counter `content:codefail-res:<resourceId>` / `assessment:codefail-res:<resourceId>` counts wrong codes from every user (500 per 15 min, `CODE_RESOURCE_FAIL_LIMIT`), so an account farm cannot walk the 10^6 codes; above it every attempt on that resource is 429 `CODE_LOCKED`. Regenerating the code (quiz set sharing, flashcard set, exam session) clears it |
 | Compare | `timingSafeEqual(sha256(stored), sha256(given))` (fixed length, no early exit). Wrong code below the limit: 400 `INVALID_CODE`. Success deletes the counter |
 | Redis down | 503 `CODE_CHECK_UNAVAILABLE` (fail-closed) |
+
+**Study-room invite code** (8 characters of `A-H J K M N P-Z 2-9`, input upper-cased with spaces and dashes dropped; old 6-digit codes replaced by migration `20261121150000_invite_code_8_chars`; `study-room-code-guard.ts`, `joinByCode` and `joinById`): a slot is taken with `INCR` before comparing and a right code gives it back. Limits: 10 wrong codes per user per 15 min, then 500 per room per 15 min (`joinById`) or 3000 per minute across the service (`joinByCode`, no room known); above a limit 429 `CODE_LOCKED`, Redis down 503 `CODE_CHECK_UNAVAILABLE`. Socket events are validated and rate limited in `study-room-ws-payload-guard.ts` (`maxHttpBufferSize` 16 KB).
+
+**One-time e-mail codes** (auth: verify account, reset and change password): 5 wrong guesses per code (column `attempts`, migration `20261121120000_one_time_code_attempts`), then the code is deleted. Issuing is limited per account and kind (`utils/code-issue-limiter.ts`): 60 s between two codes, 5 per hour, 429 `CODE_RATE_LIMITED` `{ retryAfterSeconds }`; reset is keyed by the e-mail hash so an unknown address answers the same way. Past the hourly cap a reset is not refused (anyone can spend the cap of someone else's address): the code that is live is mailed again (at most once per 5 minutes, `RESEND_GAP_SECONDS`) with its spent guesses kept and 10 more minutes, no live code means nothing is sent, and the answer is the same generic 200 either way.
 
 content-service and assessment-service have no `ThrottlerModule`; per-IP rate limits for `verify-code` / `with-code` (5 / 60 s) and `users/search` (30 / 60 s) live in gateway `routes.yaml`.
 
