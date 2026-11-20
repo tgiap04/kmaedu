@@ -150,7 +150,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Gắn nguồn first-touch (nếu có) để quy kết đăng ký.
       const utmSource = getUtmSource() ?? undefined;
       const response = await signupApi({ ...credentials, utmSource });
-      if (response.success && response.token) {
+      if (response.success) {
         clearUtmSource();
         get().applySession(response);
         set({ initializing: false });

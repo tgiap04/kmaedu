@@ -20,7 +20,7 @@ type RetryableRequestConfig = AxiosRequestConfig & {
   skipAuthRefresh?: boolean;
 };
 
-let refreshPromise: Promise<string | null> | null = null;
+let refreshPromise: Promise<void> | null = null;
 
 /** Error carried to callers: keeps the HTTP status and the gateway `code` (the message alone loses them). */
 export class ApiRequestError extends Error {
@@ -102,20 +102,19 @@ export const api = axios.create({
 });
 
 /** Single-flight session refresh, shared by the axios interceptor and the study-room socket. */
-export async function refreshAccessToken() {
+export async function refreshAccessToken(): Promise<void> {
   if (!refreshPromise) {
-    // SECURITY: the refresh token lives in an httpOnly cookie; the backend
-    // reads it from there (cookie-first) and reissues fresh httpOnly cookies
-    // on this response via Set-Cookie. We never read/write the token or
-    // refresh token from JS — the returned `token` is only used as a
-    // success signal for the retried request below.
+    // SECURITY: cookie-only. The refresh token lives in an httpOnly cookie;
+    // the backend reads it from there and reissues fresh httpOnly cookies on
+    // this response via Set-Cookie. No token is ever in the body: a 2xx with
+    // `success: true` is the success signal.
     refreshPromise = api
       .post("/auth/refresh", undefined, {
         skipAuthRefresh: true,
       } as RetryableRequestConfig)
       .then((response) => {
-        const data = response.data as Partial<SessionPayload> & { token?: string };
-        if (!data?.token) {
+        const data = response.data as Partial<SessionPayload> & { success?: boolean };
+        if (data?.success !== true) {
           throw new Error("Làm mới phiên đăng nhập thất bại");
         }
         // Apply the new roles/permissions BEFORE the original request is
@@ -127,7 +126,6 @@ export async function refreshAccessToken() {
             permissions: data.permissions,
           });
         }
-        return data.token;
       })
       .finally(() => {
         refreshPromise = null;
@@ -175,12 +173,8 @@ api.interceptors.response.use(
       console.warn("[auth-api] interceptor caught 401, attempting refresh");
       try {
         originalRequest._retry = true;
-        const newToken = await refreshAccessToken();
-
-        if (newToken && originalRequest.headers) {
-          originalRequest.headers.authorization = `Bearer ${newToken}`;
-        }
-
+        // The retried request carries the fresh accessToken cookie.
+        await refreshAccessToken();
         return api(originalRequest);
       } catch (refreshError) {
         // Only the refresh can throw here: the retried request is returned

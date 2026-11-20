@@ -22,26 +22,19 @@ export interface CredentialsSignup {
   utmSource?: string;
 }
 
+/** Tokens never appear here: they travel only in httpOnly cookies (cookie-only web client). */
 export interface LoginResponse {
   success: boolean;
   message?: string;
   user?: User;
   roles?: Role[];
   permissions?: Permission[];
-  token?: string;
-  refreshToken?: string;
-  sessionId?: string;
-  deviceId?: string;
   redirectTo?: string;
 }
 
 export interface SignupResponse {
   success: boolean;
   message: string;
-  token?: string;
-  refreshToken?: string;
-  sessionId?: string;
-  deviceId?: string;
   user?: User;
   roles?: Role[];
   permissions?: Permission[];

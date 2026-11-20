@@ -102,13 +102,8 @@ export interface ExamSessionPublicInfo {
   };
 }
 
+/** The study view never carries questions: exam content only comes with an attempt (secure-quiz). */
 export interface ExamSessionForStudy extends ExamSession {
-  questions: {
-    id: string;
-    question: string;
-    options: string[];
-    answer?: string; // Only present for owners
-  }[];
   creator: {
     id: string;
     username: string;

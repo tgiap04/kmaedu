@@ -10,6 +10,20 @@ import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import "katex/dist/katex.min.css";
 import { cn } from "@/lib/utils";
 
+/**
+ * Class names KaTeX puts on its output, and nothing else. Author HTML in shared sets must not reach app
+ * utility classes (`fixed inset-0 z-50 ...` would cover the page with a fake screen).
+ */
+export const KATEX_CLASSES: RegExp[] = [
+  /^katex(-[a-z]+)*$/,
+  /^m(ord|op|bin|rel|open|close|punct|inner|space|tight|supsub|frac|table|ath[a-z]*)$/,
+  /^(base|strut|pstrut|sizing|mult|accent|accent-body|accent-full|(over|under)line(-line)?|frac-line|nulldelimiter|delimcenter|sqrt|hide-tail|text)$/,
+  /^(vlist|vlist-[trs]|vlist-t2|delimsizing|delim-size\d|reset-size\d+|size\d+|fontsize-ensurer)$/,
+  /^(svg-align|stretchy|rule|newline|tag|eqn-num|op-symbol|large-op|small-op|op-limits|amsrm|boldsymbol)$/,
+  /^(text(rm|it|bf|sf|tt)|col-align-[lcr]|arraycolsep|enclosing|boxpad|fbox|cancel-pad|sout|[bx]?cancel)$/,
+  /^(llap|rlap|clap|inner|fix|root|hbox|thinbox|nobreak|allowbreak|x-arrow(-pad)?|brace-[a-z]+)$/,
+];
+
 interface StandardMarkdownRendererProps {
   content: string;
   className?: string;
@@ -42,9 +56,9 @@ export function StandardMarkdownRenderer({
                 "*": [],
                 img: ["src", "alt", "width", "height"],
                 a: ["href", "name", "target", "rel"],
-                // KaTeX needs class names for math rendering; do not allow inline styles.
-                span: [...(defaultSchema.attributes?.span || []), "className", "class"],
-                div: [...(defaultSchema.attributes?.div || []), "className", "class"],
+                // KaTeX needs its own class names for math; any other class and inline styles are dropped.
+                span: [...(defaultSchema.attributes?.span || []), ["className", ...KATEX_CLASSES]],
+                div: [...(defaultSchema.attributes?.div || []), ["className", ...KATEX_CLASSES]],
                 math: ["display"], // Allow math elements
                 annotation: ["encoding"], // Allow math annotations
               },

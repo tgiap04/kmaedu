@@ -12,6 +12,7 @@ import { Input } from "@/components/antd/input";
 import { toast } from "@/components/antd/toast";
 import { useStudyRoomStore } from "@/stores/useStudyRoomStore";
 import { apiErrorMessage } from "@/lib/api-error-message";
+import { isInviteCode, normalizeInviteCode } from "@/lib/study-room/invite-code";
 
 interface Props {
   open: boolean;
@@ -25,9 +26,9 @@ export function JoinByCodeModal({ open, onOpenChange, onJoined }: Props) {
   const [joining, setJoining] = useState(false);
 
   const submit = async () => {
-    const clean = code.replace(/\D/g, "");
-    if (clean.length !== 6) {
-      toast.error("Mã mời gồm 6 chữ số");
+    const clean = normalizeInviteCode(code);
+    if (!isInviteCode(clean)) {
+      toast.error("Mã mời gồm 8 ký tự chữ và số");
       return;
     }
     setJoining(true);
@@ -52,16 +53,17 @@ export function JoinByCodeModal({ open, onOpenChange, onJoined }: Props) {
       <DialogContent modalWidth={400}>
         <DialogHeader>
           <DialogTitle>Tham gia bằng mã mời</DialogTitle>
-          <DialogDescription>Nhập mã 6 chữ số từ chủ phòng.</DialogDescription>
+          <DialogDescription>Nhập mã 8 ký tự (chữ và số) từ chủ phòng.</DialogDescription>
         </DialogHeader>
         <Input
-          placeholder="000000"
+          placeholder="K7M2Q9XA"
           value={code}
-          inputMode="numeric"
-          maxLength={6}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+          autoCapitalize="characters"
+          autoComplete="off"
+          spellCheck={false}
+          onChange={(e) => setCode(normalizeInviteCode(e.target.value))}
           onPressEnter={submit}
-          className="!text-center !text-2xl !tracking-[0.5em]"
+          className="!text-center !text-2xl !font-mono !tracking-[0.3em]"
         />
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

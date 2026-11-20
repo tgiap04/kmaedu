@@ -58,10 +58,9 @@ export function GoogleOneTap() {
         credential: response.credential,
         utmSource: getUtmSource() ?? undefined,
       });
-      // SECURITY: the backend already set the httpOnly auth cookie on this
-      // response; never persist result.data.token in localStorage. Reload so
-      // the app re-hydrates auth state from the cookie.
-      if (result.data?.token) {
+      // The backend set the httpOnly session cookies on this response; tokens never travel in the body.
+      // Reload so the app re-hydrates auth state from the cookies.
+      if (result.data?.success === true) {
         clearUtmSource(); // consume-once: đã quy kết xong
         window.location.reload();
       }
