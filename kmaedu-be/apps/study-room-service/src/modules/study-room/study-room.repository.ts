@@ -133,9 +133,6 @@ export class StudyRoomRepository extends BaseRepository<StudyRoom> {
             | 'updatedAt'
             | 'createdBy'
             | 'updatedBy'
-            | 'accessType'
-            | 'whitelist'
-            | 'playlistAddPermission'
         >,
         hostUserId: string
     ): Promise<any> {

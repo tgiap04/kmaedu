@@ -1,4 +1,5 @@
 import {
+    Inject,
     Injectable,
     ConflictException,
     NotFoundException,
@@ -7,15 +8,30 @@ import {
 } from '@nestjs/common';
 import { GenerateIdService } from '@kmaedu/common';
 import { StudyRoomMember } from '../../prisma';
-import { randomInt } from 'crypto';
+import { createHash, randomInt, timingSafeEqual } from 'crypto';
 import { StudyRoomRepository } from './study-room.repository';
-import { StudyRoomRole, AccessType } from './study-room.constants';
+import {
+    StudyRoomRole,
+    AccessType,
+    PlaylistAddPermission,
+    INVITE_CODE_ALPHABET,
+    INVITE_CODE_LENGTH,
+} from './study-room.constants';
+import { StudyRoomCodeGuard } from './study-room-code-guard';
 import { CreateStudyRoomDto, UpdateStudyRoomDto } from './dto/study-room.dto';
 import { StudyRoomBroadcaster } from './study-room-broadcaster.service';
 import type { AuthUser } from '@kmaedu/auth-jwt';
 
+const digest = (value: string): Buffer =>
+    createHash('sha256').update(value, 'utf8').digest();
+
 @Injectable()
 export class StudyRoomService {
+    // Property injection (not a 4th constructor argument) so the many specs that
+    // build the service by hand keep working; every join-by-code path uses it.
+    @Inject(StudyRoomCodeGuard)
+    private readonly codeGuard: StudyRoomCodeGuard;
+
     constructor(
         private readonly repo: StudyRoomRepository,
         private readonly generateIdService: GenerateIdService,
@@ -23,9 +39,12 @@ export class StudyRoomService {
     ) {}
 
     private async generateUniqueInviteCode(): Promise<string> {
-        // 6-digit CSPRNG, retry vài lần nếu trùng (không gian 900k đủ rộng cho quy mô này).
+        // 8 ký tự CSPRNG từ INVITE_CODE_ALPHABET (randomInt không lệch phân bố); trùng thì thử lại.
         for (let attempt = 0; attempt < 8; attempt++) {
-            const code = String(randomInt(100000, 1000000));
+            let code = '';
+            for (let i = 0; i < INVITE_CODE_LENGTH; i++) {
+                code += INVITE_CODE_ALPHABET[randomInt(INVITE_CODE_ALPHABET.length)];
+            }
             if (!(await this.repo.inviteCodeExists(code))) return code;
         }
         throw new ConflictException('Không tạo được mã mời, thử lại sau');
@@ -54,6 +73,11 @@ export class StudyRoomService {
                 currentMediaUrl: null,
                 isActive: true,
                 maxParticipants: dto.maxParticipants ?? 20,
+                // Never dropped: a CODE/WHITELIST room must not silently become public.
+                accessType: dto.accessType ?? AccessType.PUBLIC,
+                whitelist: [...new Set(dto.whitelist ?? [])],
+                playlistAddPermission:
+                    dto.playlistAddPermission ?? PlaylistAddPermission.COHOST,
             },
             user.id
         );
@@ -68,15 +92,20 @@ export class StudyRoomService {
     }
 
     // Xác nhận user là member và (tuỳ chọn) đủ role tối thiểu. Trả về member record.
-    // Cached 60s — chạy trên MỌI sự kiện WS (chat/timer/media), không đánh DB mỗi lần.
+    // Cached 60s — chạy trên MỌI sự kiện WS (chat/timer/media), không đánh DB mỗi lần (ban xoá cache ngay).
+    // Member bị ban không còn quyền gì (kể cả co-host); chỉ đường rời/vào phòng truyền `allowBanned`.
     async assertRole(
         studyRoomId: string,
         userId: string,
-        minRole: StudyRoomRole = StudyRoomRole.MEMBER
+        minRole: StudyRoomRole = StudyRoomRole.MEMBER,
+        { allowBanned = false }: { allowBanned?: boolean } = {}
     ): Promise<StudyRoomMember> {
         const member = await this.repo.findMemberCached(studyRoomId, userId);
         if (!member) {
             throw new ForbiddenException('Bạn không ở trong phòng này');
+        }
+        if (member.isBanned && !allowBanned) {
+            throw new ForbiddenException('Bạn đã bị cấm khỏi phòng này');
         }
         if (member.role < minRole) {
             throw new ForbiddenException('Bạn không có quyền thực hiện thao tác này');
@@ -111,9 +140,12 @@ export class StudyRoomService {
     }
 
     // Vào phòng bằng mã mời (không cần biết roomId trước).
+    // Mỗi lần thử tốn một slot (giới hạn theo user + toàn service); mã đúng được hoàn slot.
     async joinByCode(user: AuthUser, inviteCode: string) {
+        const refund = await this.codeGuard.takeGuess(user.id);
         const room = await this.repo.findByInviteCode(inviteCode);
         if (!room) throw new NotFoundException('Mã mời không hợp lệ');
+        await refund();
         return this.applyJoin(user, room, true);
     }
 
@@ -121,10 +153,16 @@ export class StudyRoomService {
     async joinById(user: AuthUser, roomId: string, inviteCode?: string) {
         const room = await this.repo.findRoom(roomId);
         if (!room) throw new NotFoundException('Phòng không tồn tại');
-        const codeVerified =
-            room.accessType === AccessType.CODE &&
-            !!inviteCode &&
-            inviteCode === room.inviteCode;
+        let codeVerified = false;
+        // Chỉ phòng CODE mới so mã; mỗi lần thử tốn slot (theo user + theo phòng), so sánh constant-time.
+        if (room.accessType === AccessType.CODE && inviteCode) {
+            const refund = await this.codeGuard.takeGuess(user.id, roomId);
+            codeVerified = timingSafeEqual(
+                digest(room.inviteCode),
+                digest(inviteCode)
+            );
+            if (codeVerified) await refund();
+        }
         return this.applyJoin(user, room, codeVerified);
     }
 
@@ -166,7 +204,7 @@ export class StudyRoomService {
     }
 
     async leaveRoom(id: string, user: AuthUser) {
-        const member = await this.assertRole(id, user.id);
+        const member = await this.assertRole(id, user.id, StudyRoomRole.MEMBER, { allowBanned: true });
         if (member.role === StudyRoomRole.HOST) {
             throw new BadRequestException(
                 'Host không thể rời phòng. Hãy xoá phòng hoặc đóng phòng.'

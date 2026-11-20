@@ -8,9 +8,17 @@ export enum StudyRoomRole {
 // Chế độ vào phòng (mirror ExamSession.assessType).
 export enum AccessType {
     PUBLIC = 0, // user đã đăng nhập là vào được
-    CODE = 1, // cần mã mời 6 số
+    CODE = 1, // cần mã mời 8 ký tự (INVITE_CODE_ALPHABET)
     WHITELIST = 2, // chỉ userId trong whitelist
 }
+
+/**
+ * Mã mời: 8 ký tự chữ hoa + số, bỏ các ký tự dễ đọc nhầm (0/O, 1/I/L) → 31^8 ≈ 8.5e11 giá trị, đủ xa tầm
+ * đoán dù có nhiều tài khoản. Người dùng gõ chữ thường, khoảng trắng hay gạch nối đều được chuẩn hóa ở DTO.
+ */
+export const INVITE_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+export const INVITE_CODE_LENGTH = 8;
+export const INVITE_CODE_PATTERN = new RegExp(`^[${INVITE_CODE_ALPHABET}]{${INVITE_CODE_LENGTH}}$`);
 
 // Ai được thêm bài vào playlist.
 export enum PlaylistAddPermission {
@@ -48,6 +56,10 @@ export const StudyRoomKeys = {
     focusDirtySet: () => 'studyroom:focus-dirty',
     playback: (roomId: string) => `studyroom:${roomId}:playback`, // {currentIndex}
     playlistCount: (roomId: string) => `studyroom:${roomId}:plcount`, // số item playlist (gate onLeave)
+    // Đếm lần đoán mã mời sai (xem study-room-code-guard.ts).
+    codeFailUser: (userId: string) => `studyroom:codefail:user:${userId}`,
+    codeFailRoom: (roomId: string) => `studyroom:codefail:room:${roomId}`,
+    codeFailGlobal: () => 'studyroom:codefail:global',
 };
 
 export const FOCUS_CREDIT_SECONDS = 30; // cộng mỗi nhịp heartbeat hợp lệ

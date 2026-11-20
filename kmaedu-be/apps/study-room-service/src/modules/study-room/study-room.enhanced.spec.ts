@@ -32,6 +32,10 @@ function make() {
     const gen = { generateId: jest.fn().mockReturnValue('gen-id') };
     const broadcaster = { closeRoom: jest.fn().mockResolvedValue(undefined) };
     const service = new StudyRoomService(repo, gen as any, broadcaster as any);
+    // Join-by-code guessing limiter (S-04): allow-all here, covered in study-room.service.hardening.spec.ts.
+    (service as any).codeGuard = {
+        takeGuess: jest.fn().mockResolvedValue(jest.fn().mockResolvedValue(undefined)),
+    };
     return { service, repo, gen, broadcaster };
 }
 

@@ -30,6 +30,7 @@ import {
     sanitizeChat,
 } from './study-room.util';
 import { StudyRoomPlaylistService } from './study-room-playlist.service';
+import { createPacketGuard } from './study-room-ws-payload-guard';
 import {
     StudyRoomWsExceptionFilter,
     runSafely,
@@ -79,6 +80,8 @@ function wsAllowedOrigins(): string[] {
 @WebSocketGateway({
     path: WS_STUDY_PATH,
     cors: { origin: wsAllowedOrigins(), credentials: true },
+    // Largest legit packet is a 100-id playlist reorder (~4 KB); the default is 1 MB.
+    maxHttpBufferSize: 16 * 1024,
 })
 export class StudyRoomGateway
     implements
@@ -117,6 +120,18 @@ export class StudyRoomGateway
                 socket.data.av = session.av;
                 socket.data.exp = session.exp;
                 socket.data.rooms = new Set<string>();
+                // Validate + throttle every inbound packet before any handler (S-03/S-07).
+                socket.use(
+                    createPacketGuard((_event, reason) => {
+                        socket.emit(ServerEvents.ERROR, {
+                            code: reason,
+                            message:
+                                reason === 'VALIDATION'
+                                    ? 'Dữ liệu gửi lên không hợp lệ'
+                                    : 'Bạn thao tác quá nhanh, hãy chậm lại',
+                        });
+                    })
+                );
                 next();
             } catch (err) {
                 // The code is the `connect_error` message ('TOKEN_STALE' => refresh + reconnect).
@@ -201,7 +216,8 @@ export class StudyRoomGateway
         const user = socket.data.user;
         let member;
         try {
-            member = await this.service.assertRole(roomId, user.id);
+            // allowBanned: a banned member gets the BANNED answer below, not FORBIDDEN.
+            member = await this.service.assertRole(roomId, user.id, StudyRoomRole.MEMBER, { allowBanned: true });
         } catch {
             socket.emit(ServerEvents.ERROR, {
                 code: 'FORBIDDEN',

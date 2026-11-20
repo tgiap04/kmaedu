@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { ApiProperty } from '@nestjs/swagger';
+import { INVITE_CODE_PATTERN } from '../study-room.constants';
 
 // Cấu hình Pomodoro dùng chung cho create/update.
 const PomodoroConfigSchema = {
@@ -43,26 +44,27 @@ export const UpdateStudyRoomSchema = z.object({
 
 export class UpdateStudyRoomDto extends createZodDto(UpdateStudyRoomSchema) {}
 
+// Spaces and dashes are dropped and letters upper-cased, so a code read aloud or copied as `k7m2-q9xa` works.
+const InviteCodeSchema = z
+    .string()
+    .transform((value) => value.replace(/[\s-]/g, '').toUpperCase())
+    .pipe(z.string().regex(INVITE_CODE_PATTERN, { message: 'Mã mời gồm 8 ký tự chữ và số' }));
+
 export const JoinByCodeSchema = z.object({
-    inviteCode: z
-        .string()
-        .regex(/^\d{6}$/, { message: 'Mã mời phải gồm 6 chữ số' }),
+    inviteCode: InviteCodeSchema,
 });
 
 export class JoinByCodeDto extends createZodDto(JoinByCodeSchema) {
-    @ApiProperty({ example: '123456' })
+    @ApiProperty({ example: 'K7M2Q9XA' })
     inviteCode: string;
 }
 
 // Join bằng roomId (public/whitelist không cần mã; code thì kèm inviteCode).
 export const JoinRoomSchema = z.object({
-    inviteCode: z
-        .string()
-        .regex(/^\d{6}$/, { message: 'Mã mời phải gồm 6 chữ số' })
-        .optional(),
+    inviteCode: InviteCodeSchema.optional(),
 });
 
 export class JoinRoomDto extends createZodDto(JoinRoomSchema) {
-    @ApiProperty({ required: false, example: '123456' })
+    @ApiProperty({ required: false, example: 'K7M2Q9XA' })
     inviteCode?: string;
 }

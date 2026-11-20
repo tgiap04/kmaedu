@@ -34,6 +34,10 @@ function make() {
     const gen = { generateId: jest.fn().mockReturnValue('gen-id') };
     const broadcaster = { closeRoom: jest.fn().mockResolvedValue(undefined) };
     const service = new StudyRoomService(repo, gen as any, broadcaster as any);
+    // Join-by-code guessing limiter (S-04): allow-all here, covered in study-room.service.hardening.spec.ts.
+    (service as any).codeGuard = {
+        takeGuess: jest.fn().mockResolvedValue(jest.fn().mockResolvedValue(undefined)),
+    };
     return { service, repo, gen, broadcaster };
 }
 
@@ -47,7 +51,7 @@ describe('StudyRoomService', () => {
             await service.createRoom(user, { name: 'Phòng A' } as any);
             expect(repo.inviteCodeExists).toHaveBeenCalledTimes(2);
             const arg = repo.createWithHost.mock.calls[0][0];
-            expect(arg.inviteCode).toMatch(/^\d{6}$/);
+            expect(arg.inviteCode).toMatch(/^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{8}$/);
             expect(repo.createWithHost.mock.calls[0][1]).toBe('u1');
         });
     });
@@ -74,6 +78,31 @@ describe('StudyRoomService', () => {
             await expect(
                 service.assertRole('r1', 'u1', StudyRoomRole.COHOST)
             ).resolves.toBe(m);
+        });
+        it('ném Forbidden với member bị ban, kể cả co-host: ban thu hồi mọi quyền', async () => {
+            const { service, repo } = make();
+            repo.findMember.mockResolvedValue({ role: StudyRoomRole.COHOST, isBanned: true });
+            await expect(service.assertRole('r1', 'u1')).rejects.toBeInstanceOf(ForbiddenException);
+            await expect(
+                service.assertRole('r1', 'u1', StudyRoomRole.COHOST)
+            ).rejects.toBeInstanceOf(ForbiddenException);
+        });
+        it('chỉ đường rời phòng/vào phòng mới nhận member bị ban (allowBanned)', async () => {
+            const { service, repo } = make();
+            const m = { role: StudyRoomRole.MEMBER, isBanned: true };
+            repo.findMember.mockResolvedValue(m);
+            await expect(
+                service.assertRole('r1', 'u1', StudyRoomRole.MEMBER, { allowBanned: true })
+            ).resolves.toBe(m);
+        });
+    });
+
+    describe('leaveRoom', () => {
+        it('member bị ban vẫn rời được phòng, và dòng member (lệnh ban) được giữ lại', async () => {
+            const { service, repo } = make();
+            repo.findMember.mockResolvedValue({ role: StudyRoomRole.MEMBER, isBanned: true });
+            await expect(service.leaveRoom('r1', user)).resolves.toEqual({ success: true });
+            expect(repo.removeMember).not.toHaveBeenCalled();
         });
     });
 

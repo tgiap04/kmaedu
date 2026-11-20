@@ -427,7 +427,7 @@ export const rows: Record<'content' | 'assessment' | 'studyroom' | 'vocabulary' 
             name: 'POST /studyrooms/join',
             method: 'post',
             path: '/studyrooms/join',
-            body: { inviteCode: '123456' },
+            body: { inviteCode: 'K7M2Q9XA' },
             expect: {
                 STUDENT: '2xx',
                 TEACHER: '2xx',

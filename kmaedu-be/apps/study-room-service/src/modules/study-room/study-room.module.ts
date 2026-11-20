@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { GenerateIdService } from '@kmaedu/common';
 import { StudyRoomController } from './study-room.controller';
 import { StudyRoomService } from './study-room.service';
+import { StudyRoomCodeGuard } from './study-room-code-guard';
 import { StudyRoomRepository } from './study-room.repository';
 import { StudyRoomStateService } from './study-room-state.service';
 import { StudyRoomGateway } from './study-room.gateway';
@@ -18,6 +19,7 @@ import { StudyRoomShutdown } from './study-room-shutdown.service';
     providers: [
         GenerateIdService,
         StudyRoomService,
+        StudyRoomCodeGuard,
         StudyRoomRepository,
         StudyRoomStateService,
         StudyRoomGateway,

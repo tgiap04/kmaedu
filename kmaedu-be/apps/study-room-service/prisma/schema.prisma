@@ -34,7 +34,7 @@ model StudyRoom {
     name                  String
     description           String?
     hostId                String
-    inviteCode            String   @unique // 6-digit
+    inviteCode            String   @unique // 8 chars, INVITE_CODE_ALPHABET
     accessType            Int      @default(0) // 0 PUBLIC(auth) | 1 CODE | 2 WHITELIST
     whitelist             String[] @default([]) // userId cho accessType=WHITELIST
     playlistAddPermission Int      @default(1) // 0 EVERYONE | 1 COHOST+ | 2 HOST
