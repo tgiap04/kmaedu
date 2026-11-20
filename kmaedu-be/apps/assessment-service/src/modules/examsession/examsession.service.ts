@@ -45,6 +45,7 @@ import { toQuizSetBrief } from '../examroom/quiz-set-titles.cache';
 import { QuizSetDeletedException, snapshotColumns } from '../snapshot/quiz-snapshot';
 import { canRefresh, SnapshotDrift } from '../snapshot/snapshot-drift';
 import {
+    questionCountOf,
     answersByQuestionId,
     gradeAnswers,
     labelStats,
@@ -79,6 +80,24 @@ export class ExamSessionService {
 
     private withRoomQuizSet<S extends { examRoom: { quizSetId: string; quizSetTitle: string } }>(session: S) {
         return { ...session, examRoom: this.withQuizSet(session.examRoom) };
+    }
+
+    /** Questions one attempt gets, by the session's selection mode (`questionCountOf`; snapshot LRU-cached). */
+    private async questionsPerAttempt(
+        id: string,
+        session: {
+            questionSelectionMode: number;
+            questionCount: number | null;
+            labelQuestionConfig: unknown;
+            quizSnapshotHash: string;
+        }
+    ): Promise<number> {
+        const snapshot = await this.snapshots.load(id, session.quizSnapshotHash);
+        return questionCountOf(snapshot, {
+            mode: session.questionSelectionMode,
+            questionCount: session.questionCount,
+            labelConfig: (session.labelQuestionConfig as LabelQuestionConfig[] | null) ?? null,
+        });
     }
 
     /** `examRoom.host` comes from auth (one batched lookup), never from a relation include. */
@@ -232,7 +251,10 @@ export class ExamSessionService {
             metadata
         );
         const { attemptCount: _attemptCount, ...view } = annotated;
-        return this.withHost(this.withRoomQuizSet(view as never));
+        // A display figure: a snapshot that cannot be read must not take the host's page down with it
+        // (SnapshotStore already logs a malformed one).
+        const totalQuestions = await this.questionsPerAttempt(id, examSession).catch(() => null);
+        return this.withHost(this.withRoomQuizSet({ ...view, totalQuestions } as never));
     }
 
     async deleteExamSession(id: string, user: AuthUser) {
@@ -939,13 +961,19 @@ export class ExamSessionService {
                 maxAttempts: true,
                 questionCount: true,
                 questionSelectionMode: true,
+                labelQuestionConfig: true,
                 shuffleQuestions: true,
                 quizSnapshotHash: true,
+                durationMinutes: true,
+                antiCheatEnabled: true,
+                allowLeaveMidway: true,
                 examRoom: {
                     select: {
                         id: true,
                         title: true,
                         description: true,
+                        hostId: true,
+                        quizSetTitle: true,
                     },
                 },
             },
@@ -954,6 +982,8 @@ export class ExamSessionService {
         if (!examSession) {
             throw new NotFoundException('Phiên thi không tồn tại');
         }
+        // Public profile only (id, username, name); null when auth has none.
+        const { host } = await this.users.withHost({ hostId: examSession.examRoom.hostId });
 
         // Calculate duration in minutes if endTime exists
         let durationMinutes: number | null = null;
@@ -963,10 +993,7 @@ export class ExamSessionService {
             durationMinutes = Math.floor((end - start) / (1000 * 60));
         }
 
-        // Total questions of the session's snapshot
-        const totalQuestions = (
-            await this.snapshots.load(id, examSession.quizSnapshotHash)
-        ).questions.length;
+        const totalQuestions = await this.questionsPerAttempt(id, examSession);
 
         // Get user's attempts for this session
         const userAttempts = await this.prisma.examAttempt.findMany({
@@ -1030,6 +1057,14 @@ export class ExamSessionService {
             questionCount: examSession.questionCount,
             questionSelectionMode: examSession.questionSelectionMode,
             shuffleQuestions: examSession.shuffleQuestions,
+            // Waiting-page details. `durationMinutes` above stays the session window for old clients;
+            // `attemptDurationMinutes` is the limit of one attempt (null = until the session ends).
+            examRoomId: examSession.examRoom.id,
+            quizSetTitle: examSession.examRoom.quizSetTitle,
+            host,
+            attemptDurationMinutes: examSession.durationMinutes,
+            antiCheatEnabled: examSession.antiCheatEnabled,
+            allowLeaveMidway: examSession.allowLeaveMidway,
         };
     }
 

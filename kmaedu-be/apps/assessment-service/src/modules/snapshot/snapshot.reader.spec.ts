@@ -4,6 +4,7 @@ import {
     answersByQuestionId,
     countCorrect,
     labelStats,
+    questionCountOf,
     questionsOf,
     selectQuestionIds,
     validateSelectionConfig,
@@ -15,6 +16,29 @@ const snapshot = buildSnapshot();
 const base = { questionCount: null, labelConfig: null, shuffle: false };
 /** Deterministic "random": always picks the first remaining element (Fisher-Yates with j = 0 .. i). */
 const first = () => 0;
+
+describe('questionCountOf', () => {
+    const configs = [
+        { ...base, mode: QUESTION_SELECTION_MODE.ALL },
+        // A count left over from an earlier RANDOM_TOTAL setting does not apply to ALL.
+        { ...base, mode: QUESTION_SELECTION_MODE.ALL, questionCount: 2 },
+        { ...base, mode: QUESTION_SELECTION_MODE.RANDOM_TOTAL, questionCount: 3 },
+        { ...base, mode: QUESTION_SELECTION_MODE.RANDOM_TOTAL, questionCount: 30 },
+        { ...base, mode: QUESTION_SELECTION_MODE.RANDOM_TOTAL, questionCount: null },
+        { ...base, mode: QUESTION_SELECTION_MODE.RANDOM_BY_LABEL, labelConfig: [{ labelId: 'la', count: 2 }, { labelId: 'unlabeled', count: 1 }] },
+        { ...base, mode: QUESTION_SELECTION_MODE.RANDOM_BY_LABEL, labelConfig: [{ labelId: 'la', count: 9 }] },
+        { ...base, mode: QUESTION_SELECTION_MODE.RANDOM_BY_LABEL, labelConfig: [{ labelId: 'label-added-later', count: 3 }] },
+        { ...base, mode: QUESTION_SELECTION_MODE.RANDOM_BY_LABEL, labelConfig: [] },
+    ];
+
+    it.each(configs)('is the number of questions an attempt draws (%o)', (config) => {
+        expect(questionCountOf(snapshot, config)).toBe(selectQuestionIds(snapshot, config).length);
+    });
+
+    it('gives the expected figures', () => {
+        expect(configs.map((c) => questionCountOf(snapshot, c))).toEqual([5, 5, 3, 5, 5, 3, 3, 0, 5]);
+    });
+});
 
 describe('selectQuestionIds', () => {
     it('ALL keeps every question in snapshot order', () => {

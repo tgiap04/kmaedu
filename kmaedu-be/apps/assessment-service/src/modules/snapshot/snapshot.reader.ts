@@ -37,6 +37,25 @@ export function selectQuestionIds(
     return config.shuffle ? shuffled(ids, random) : ids;
 }
 
+/**
+ * How many questions one attempt of this config gets: the same rules as `selectQuestionIds`, without drawing.
+ * Waiting pages show it, so it must never differ from what an attempt really holds.
+ */
+export function questionCountOf(snapshot: QuizSnapshotV1, config: Omit<SelectionConfig, 'shuffle'>): number {
+    const { mode, questionCount, labelConfig } = config;
+    const all = snapshot.questions;
+    if (mode === QUESTION_SELECTION_MODE.RANDOM_TOTAL && questionCount && questionCount > 0) {
+        return Math.min(questionCount, all.length);
+    }
+    if (mode === QUESTION_SELECTION_MODE.RANDOM_BY_LABEL && labelConfig && labelConfig.length > 0) {
+        return labelConfig.reduce((sum, c) => {
+            const labelId = c.labelId === UNLABELED ? null : c.labelId;
+            return sum + Math.min(Math.max(0, c.count), all.filter((q) => q.labelId === labelId).length);
+        }, 0);
+    }
+    return all.length;
+}
+
 /** The questions the selection mode draws; every question when the mode's own setting is missing. */
 function pickQuestions(all: SnapshotQuestion[], config: SelectionConfig, random: Random): SnapshotQuestion[] {
     const { mode, questionCount, labelConfig } = config;
