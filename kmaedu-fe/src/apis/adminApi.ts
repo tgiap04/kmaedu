@@ -59,7 +59,13 @@ export interface SourceBreakdownResponse {
   rows: SourceBreakdownRow[];
 }
 
-export interface ListUsersQuery {
+/** `from`/`to` (ISO timestamps) are the picked date range; sent as `createdFrom`/`createdTo`. */
+interface DateRangeQuery {
+  from?: string;
+  to?: string;
+}
+
+export interface ListUsersQuery extends DateRangeQuery {
   search?: string;
   isSystemAdmin?: boolean;
   isBanned?: boolean;
@@ -67,11 +73,9 @@ export interface ListUsersQuery {
   pageSize?: number;
 }
 
-export interface ListAuditQuery {
+export interface ListAuditQuery extends DateRangeQuery {
   adminId?: string;
   action?: string;
-  from?: string;
-  to?: string;
   page?: number;
   pageSize?: number;
 }
@@ -95,8 +99,20 @@ export interface RecentLogLine {
 
 // ==================== API Functions ====================
 
+/**
+ * admin-service names the range `createdFrom`/`createdTo` and rejects unknown
+ * query keys (`.strict()`), so `from`/`to` must never reach it.
+ */
+function withCreatedRange<T extends DateRangeQuery>({ from, to, ...rest }: T) {
+  return {
+    ...rest,
+    ...(from !== undefined && { createdFrom: from }),
+    ...(to !== undefined && { createdTo: to }),
+  };
+}
+
 export async function listUsersApi(query: ListUsersQuery = {}) {
-  const response = await api.get("/admin/users", { params: query });
+  const response = await api.get("/admin/users", { params: withCreatedRange(query) });
   return response.data;
 }
 
@@ -129,7 +145,7 @@ export function unbanUserApi(id: string) {
 }
 
 export async function listAuditApi(query: ListAuditQuery = {}) {
-  const response = await api.get("/admin/audit", { params: query });
+  const response = await api.get("/admin/audit", { params: withCreatedRange(query) });
   return response.data;
 }
 

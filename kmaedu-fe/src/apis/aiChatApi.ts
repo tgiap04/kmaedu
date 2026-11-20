@@ -312,12 +312,14 @@ export const aiChatApi = {
   },
 
   /**
-   * Stream regenerate response via SSE
+   * Stream regenerate response via SSE.
+   * Frames sent by ai-chat-service: `user_message` (the re-saved user message, after the old message and
+   * everything after it were deleted), `chunk`*, then `done` or an `error` frame. There is no `messages_deleted`.
    */
   streamRegenerate: (
     messageId: string,
     onChunk: (chunk: string) => void,
-    onMessagesDeleted: (chatId: string, userMessage: AIChatMessage) => void,
+    onUserMessage: (userMessage: AIChatMessage) => void,
     onComplete: (assistantMessage: AIChatMessage | null) => void,
     onError: (error: string) => void
   ): (() => void) => {
@@ -360,8 +362,8 @@ export const aiChatApi = {
             if (line.startsWith("data: ")) {
               try {
                 const event = JSON.parse(line.slice(6));
-                if (event.type === "messages_deleted") {
-                  onMessagesDeleted(event.data.chatId, event.data.userMessage);
+                if (event.type === "user_message") {
+                  onUserMessage(event.data);
                 } else if (event.type === "chunk") {
                   onChunk(event.data);
                 } else if (event.type === "done") {
