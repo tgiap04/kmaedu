@@ -16,6 +16,7 @@ import { PomodoroConfig, StudyRoomSummary } from "@/types/studyRoom";
 import { PomodoroConfigFields } from "./pomodoro-config-fields";
 import { RoomAccessSettings } from "./room-access-settings";
 import { DEFAULT_POMODORO } from "./study-room-actions";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 interface Props {
   room: StudyRoomSummary;
@@ -35,8 +36,8 @@ export function RoomSettingsMenu({ room, config, onClosed }: Props) {
       const res = await regenerateStudyRoomCodeApi(room.id);
       setCode(res.inviteCode);
       toast.success("Đã tạo mã mời mới");
-    } catch {
-      toast.error("Không thể tạo mã mới");
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Không thể tạo mã mới"));
     }
   };
 
@@ -45,8 +46,8 @@ export function RoomSettingsMenu({ room, config, onClosed }: Props) {
     try {
       await updateRoom(room.id, draft);
       toast.success("Đã lưu cấu hình phòng");
-    } catch {
-      toast.error("Lưu thất bại");
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Lưu thất bại"));
     } finally {
       setBusy(false);
     }

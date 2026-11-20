@@ -23,6 +23,7 @@ import { useStudyRoomStore } from "@/stores/useStudyRoomStore";
 import { AccessType, PomodoroConfig } from "@/types/studyRoom";
 import { PomodoroConfigFields } from "./pomodoro-config-fields";
 import { DEFAULT_POMODORO } from "./study-room-actions";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 interface Props {
   open: boolean;
@@ -58,8 +59,8 @@ export function CreateRoomModal({ open, onOpenChange, onCreated }: Props) {
         onOpenChange(false);
         onCreated(room.id);
       }
-    } catch {
-      toast.error("Tạo phòng thất bại");
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Tạo phòng thất bại"));
     } finally {
       setSaving(false);
     }

@@ -15,6 +15,7 @@ import {
   buildSharingDelta,
   type WhitelistChange,
 } from "./sharing-delta";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 /** What a resource (quiz set, flashcard set) must offer to be shared with this form. */
 export interface SharingApi {
@@ -49,7 +50,7 @@ export function useSharingForm(api: SharingApi, open: boolean, resourceId: strin
     api
       .get()
       .then((view) => !cancelled && adopt(view))
-      .catch(() => toast.error("Không thể tải cài đặt chia sẻ"))
+      .catch((error) => toast.error(apiErrorMessage(error, "Không thể tải cài đặt chia sẻ")))
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;

@@ -8,6 +8,7 @@ import { useStudentMaterialsStore } from "@/stores/useStudentMaterialsStore";
 import { ItemRow } from "@/components/k-page/item-row";
 import { SectionMessage, RowsSkeleton, SectionCard, SectionPager, ViewAllButton } from "@/components/k-page/section-card";
 import { usePagedList } from "./use-paged-list";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 const PAGE_SIZE = 12;
 const PREVIEW = 2;
@@ -33,9 +34,9 @@ export function MyFlashcardsSection() {
     setPinned(set.id, pinned);
     try {
       await togglePinFlashcardApi(set.id);
-    } catch {
+    } catch (error) {
       setPinned(set.id, !pinned);
-      toast.error("Không thể ghim tài liệu");
+      toast.error(apiErrorMessage(error, "Không thể ghim tài liệu"));
     }
   };
 

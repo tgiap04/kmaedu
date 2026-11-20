@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { getExamAttemptDetailApi, type ExamAttemptDetail } from "@/apis/examAttemptApi";
 import { getUserAttemptsWithLogsApi, type UserAttemptWithLogs } from "@/apis/cheatingLogApi";
 import { toast } from "@/components/antd/toast";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 /**
  * The attempt sheet's data for one candidate of a session: every attempt with its violation logs,
@@ -32,7 +33,7 @@ export function useAttemptDetail() {
       if (token === latest.current) setAttempt(detail);
     } catch (error) {
       console.error("Failed to load attempt detail:", error);
-      if (token === latest.current) toast.error("Không thể tải chi tiết");
+      if (token === latest.current) toast.error(apiErrorMessage(error, "Không thể tải chi tiết"));
     } finally {
       if (token === latest.current) setLoading(false);
     }

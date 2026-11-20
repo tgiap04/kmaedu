@@ -11,6 +11,7 @@ import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
 import { toast } from "@/components/antd/toast";
 import { useStudyRoomStore } from "@/stores/useStudyRoomStore";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 interface Props {
   open: boolean;
@@ -39,8 +40,8 @@ export function JoinByCodeModal({ open, onOpenChange, onJoined }: Props) {
       } else {
         toast.error("Không tìm thấy phòng");
       }
-    } catch {
-      toast.error("Mã mời không hợp lệ");
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Mã mời không hợp lệ"));
     } finally {
       setJoining(false);
     }

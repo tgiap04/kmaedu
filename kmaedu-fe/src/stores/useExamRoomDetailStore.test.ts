@@ -94,3 +94,28 @@ describe("endRoom", () => {
     expect(useExamRoomDetailStore.getState().mutationLoading).toBe(false);
   });
 });
+
+describe("error toasts", () => {
+  const backendError = (message: string, status: number) => Object.assign(new Error(message), { status });
+
+  it("show the backend's message for a rejected change instead of the generic text", async () => {
+    const s = useExamRoomDetailStore.getState();
+    vi.mocked(api.updateExamSessionApi).mockRejectedValue(backendError("Phiên thi đã có bài làm, không thể sửa", 409));
+    expect(await s.updateSession("s1", {})).toBe(false);
+    expect(toast.error).toHaveBeenLastCalledWith("Phiên thi đã có bài làm, không thể sửa");
+
+    vi.mocked(api.deleteExamSessionApi).mockRejectedValue(backendError("Không tìm thấy phiên thi", 404));
+    expect(await s.deleteSession("s1", "r1")).toBe(false);
+    expect(toast.error).toHaveBeenLastCalledWith("Không tìm thấy phiên thi");
+
+    vi.mocked(api.createExamSessionApi).mockRejectedValue(backendError("Thời gian kết thúc phải sau thời gian bắt đầu", 400));
+    expect(await s.createSession({ examRoomId: "r1", startTime: session.startTime } as never)).toBe(false);
+    expect(toast.error).toHaveBeenLastCalledWith("Thời gian kết thúc phải sau thời gian bắt đầu");
+  });
+
+  it("keep the generic text when the server failed (5xx)", async () => {
+    vi.mocked(api.updateExamSessionApi).mockRejectedValue(backendError("Internal server error", 500));
+    await useExamRoomDetailStore.getState().updateSession("s1", {});
+    expect(toast.error).toHaveBeenLastCalledWith("Cập nhật phiên thi thất bại");
+  });
+});

@@ -17,6 +17,7 @@ import {
   PlaylistAddPermission,
   StudyRoomSummary,
 } from "@/types/studyRoom";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 interface Props {
   room: StudyRoomSummary;
@@ -51,8 +52,8 @@ export function RoomAccessSettings({ room }: Props) {
         whitelist: access === AccessType.WHITELIST ? whitelist : undefined,
       });
       toast.success("Đã lưu quyền truy cập");
-    } catch {
-      toast.error("Lưu thất bại");
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Lưu thất bại"));
     } finally {
       setBusy(false);
     }

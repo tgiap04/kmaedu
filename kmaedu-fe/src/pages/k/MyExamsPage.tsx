@@ -13,6 +13,7 @@ import { MyExamsSkeleton, OverviewPills, OverviewPillsSkeleton, SectionHeading }
 import { ExamsPagination } from "./components/my-exams-pagination"
 import { SessionCard } from "./components/session-card"
 import { SessionHistoryDialog } from "./components/session-history-dialog"
+import { apiErrorMessage } from "@/lib/api-error-message"
 
 const PAGE_SIZE = 50
 
@@ -59,7 +60,7 @@ export default function MyExamsPage() {
         setExamAttempts([])
         setTotal(0)
         setFailed(true)
-        toast.error("Không thể tải lịch sử thi")
+        toast.error(apiErrorMessage(error, "Không thể tải lịch sử thi"))
       } finally {
         if (load === latestLoad.current) setLoading(false)
       }
@@ -87,13 +88,13 @@ export default function MyExamsPage() {
     )
     try {
       await togglePinExamRoomApi(session.examRoomId)
-    } catch {
+    } catch (error) {
       setExamAttempts((prev) =>
         prev.map((a) =>
           a.examSession.examRoom.id === session.examRoomId ? { ...a, isPinned: !newPinned } : a,
         ),
       )
-      toast.error("Không thể ghim phòng thi")
+      toast.error(apiErrorMessage(error, "Không thể ghim phòng thi"))
     }
   }
 

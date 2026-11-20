@@ -15,6 +15,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { PageHeader } from "@/components/k-page/page-header";
 import { ProfileSummaryCard } from "./components/profile/profile-summary-card";
 import { ProfileTabs, type ProfileTab } from "./components/profile/profile-tabs";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 export default function ProfilePage() {
   const { getUser } = useAuthStore();
@@ -33,7 +34,7 @@ export default function ProfilePage() {
         setProfile(data);
       } catch (error) {
         console.error("Không thể tải hồ sơ:", error);
-        toast.error("Không thể tải hồ sơ.");
+        toast.error(apiErrorMessage(error, "Không thể tải hồ sơ."));
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +61,7 @@ export default function ProfilePage() {
       toast.success("Cập nhật hồ sơ thành công!");
     } catch (error) {
       console.error("Không thể cập nhật hồ sơ:", error);
-      toast.error("Không thể cập nhật hồ sơ. Vui lòng thử lại.");
+      toast.error(apiErrorMessage(error, "Không thể cập nhật hồ sơ. Vui lòng thử lại."));
     } finally {
       setIsSubmitting(false);
     }

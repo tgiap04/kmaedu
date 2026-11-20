@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/antd/alert-dialog";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 export function DeviceList() {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -30,8 +31,8 @@ export function DeviceList() {
       setIsLoading(true);
       const result = await getDevicesApi();
       setDevices(result.devices);
-    } catch {
-      toast.error("Không thể tải danh sách thiết bị");
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Không thể tải danh sách thiết bị"));
     } finally {
       setIsLoading(false);
     }
@@ -45,8 +46,8 @@ export function DeviceList() {
       await logoutDeviceApi(sessionId);
       toast.success("Đã đăng xuất thiết bị");
       setDevices((prev) => prev.filter((d) => d.id !== sessionId));
-    } catch {
-      toast.error("Không thể đăng xuất thiết bị");
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Không thể đăng xuất thiết bị"));
     } finally {
       setLogoutingId(null);
     }
@@ -58,8 +59,8 @@ export function DeviceList() {
       const result = await logoutAllOthersApi();
       toast.success(`Đã đăng xuất ${result.devicesLoggedOut} thiết bị khác`);
       setDevices((prev) => prev.filter((d) => d.isCurrent));
-    } catch {
-      toast.error("Không thể đăng xuất các thiết bị khác");
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Không thể đăng xuất các thiết bị khác"));
     } finally {
       setIsLogoutingAll(false);
     }

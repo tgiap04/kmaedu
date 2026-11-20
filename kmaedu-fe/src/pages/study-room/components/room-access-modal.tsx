@@ -13,6 +13,7 @@ import { regenerateStudyRoomCodeApi } from "@/apis/studyRoomApi";
 import { useStudyRoomStore } from "@/stores/useStudyRoomStore";
 import { StudyRoomSummary } from "@/types/studyRoom";
 import { RoomAccessSettings } from "./room-access-settings";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 interface Props {
   room: StudyRoomSummary | null;
@@ -46,8 +47,8 @@ export function RoomAccessModal({ room, open, onOpenChange }: Props) {
       setFreshCode(res.inviteCode);
       await fetchMyRooms({ forceRefresh: true });
       toast.success("Đã tạo mã mời mới");
-    } catch {
-      toast.error("Đổi mã thất bại");
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Đổi mã thất bại"));
     } finally {
       setBusy(false);
     }

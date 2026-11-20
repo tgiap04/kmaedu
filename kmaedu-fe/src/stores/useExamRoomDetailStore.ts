@@ -17,6 +17,7 @@ import { storeCache, CacheTTL } from "@/lib/storeCache";
 import { toast } from "@/components/antd/toast";
 import { ApiRequestError } from "@/apis/api";
 import { createSessionErrorMessage } from "@/lib/exam-session/snapshot-banner";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 /**
  * Every cached list a session change makes stale: the room's sessions, session lists, and the room list,
@@ -105,7 +106,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
       });
     } catch (error) {
       console.error("Error fetching sessions:", error);
-      toast.error("Không thể tải danh sách phiên thi");
+      toast.error(apiErrorMessage(error, "Không thể tải danh sách phiên thi"));
       set({ loadingSessions: false });
     }
   },
@@ -155,7 +156,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
     } catch (error) {
       console.error("Error creating session:", error);
       const code = error instanceof ApiRequestError ? error.code : undefined;
-      if (!options?.silent) toast.error(createSessionErrorMessage(code) ?? "Tạo phiên thi thất bại");
+      if (!options?.silent) toast.error(createSessionErrorMessage(code) ?? apiErrorMessage(error, "Tạo phiên thi thất bại"));
       set({ mutationLoading: false });
       return false;
     }
@@ -205,7 +206,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
       return true;
     } catch (error) {
       console.error("Error updating session:", error);
-      toast.error("Cập nhật phiên thi thất bại");
+      toast.error(apiErrorMessage(error, "Cập nhật phiên thi thất bại"));
       set({ mutationLoading: false });
       return false;
     }
@@ -231,7 +232,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
       return true;
     } catch (error) {
       console.error("Error deleting session:", error);
-      toast.error("Xóa phiên thi thất bại");
+      toast.error(apiErrorMessage(error, "Xóa phiên thi thất bại"));
       set({ mutationLoading: false });
       return false;
     }
@@ -261,7 +262,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
         storeCache.invalidate("examroom-sessions:");
         return "locked";
       }
-      toast.error("Cập nhật đề thất bại");
+      toast.error(apiErrorMessage(error, "Cập nhật đề thất bại"));
       return "error";
     }
   },
@@ -276,7 +277,7 @@ export const useExamRoomDetailStore = create<ExamRoomDetailStore>((set) => ({
       return true;
     } catch (error) {
       console.error("Error ending exam room:", error);
-      toast.error("Không thể kết thúc phòng thi");
+      toast.error(apiErrorMessage(error, "Không thể kết thúc phòng thi"));
       return false;
     } finally {
       set({ mutationLoading: false });
