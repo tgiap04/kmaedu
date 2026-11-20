@@ -1,6 +1,7 @@
 import * as request from 'supertest';
 import { createTokenVerifier } from '@kmaedu/auth-jwt';
 import {
+    accessTokenOf,
     AuthApp,
     SERVICE_SECRETS,
     bootAuthApp,
@@ -79,7 +80,7 @@ describe('service tokens: POST /internal/token (e2e)', () => {
     it('a user access token is not accepted where a service token is required (aud/roles differ) and vice versa', async () => {
         const { email } = await registerUser(ctx);
         const login = await loginVerified(ctx, email);
-        const claims = decodeClaims(login.body.token);
+        const claims = decodeClaims(accessTokenOf(login));
         expect(claims.roles).not.toContain('SERVICE');
         expect(String(claims.sub).startsWith('svc:')).toBe(false);
     });

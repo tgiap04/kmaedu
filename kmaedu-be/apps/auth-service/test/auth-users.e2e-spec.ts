@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { authUsersV1, authV1, PROTO_FILES } from '@kmaedu/contracts';
 import { createTestGrpcClient } from '@kmaedu/grpc/testing';
 import {
+    accessTokenOf,
     AuthApp,
     SERVICE_SECRETS,
     bootAuthApp,
@@ -37,7 +38,7 @@ describe('auth user RPCs of phase 10 (e2e, real Postgres + real guards)', () => 
         const u = await registerUser(ctx);
         await ctx.prisma.user.update({ where: { id: u.id }, data: patch });
         const login = await loginVerified(ctx, u.email);
-        return { id: u.id, email: u.email, username: u.username, token: login.body.token as string };
+        return { id: u.id, email: u.email, username: u.username, token: accessTokenOf(login) as string };
     }
 
     beforeAll(async () => {

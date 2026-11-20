@@ -67,7 +67,8 @@ describe('AuthService identity normalisation and collisions', () => {
             {} as never,
             { publish: jest.fn() } as never,
             { invalidateUser: jest.fn(), revokeSession: jest.fn() } as never,
-            {} as never
+            {} as never,
+            { claim: jest.fn().mockResolvedValue(undefined) } as never
         );
     });
 
@@ -157,6 +158,137 @@ describe('AuthService identity normalisation and collisions', () => {
             const data = tx.user.create.mock.calls[0][0].data;
             expect(data.username).toBe('bob');
             expect(data.email).toBe('bob@example.com');
+        });
+    });
+
+    describe('Google sign-in onto an existing account', () => {
+        let updateMany: jest.Mock;
+        let revokeAllInTx: jest.Mock;
+        let pushRevoked: jest.Mock;
+        let publish: jest.Mock;
+        let codes: { verify: jest.Mock; reset: jest.Mock };
+
+        beforeEach(() => {
+            updateMany = jest.fn().mockResolvedValue({ count: 1 });
+            (tx.user as any).updateMany = updateMany;
+            (tx.user as any).findUniqueOrThrow = jest.fn(async () => ({ ...user, isVerified: true, password: null, authzVersion: 2 }));
+            codes = { verify: jest.fn().mockResolvedValue({ count: 1 }), reset: jest.fn().mockResolvedValue({ count: 0 }) };
+            (tx as any).verifyAccountCode = { deleteMany: codes.verify };
+            (tx as any).resetPasswordCode = { deleteMany: codes.reset };
+            revokeAllInTx = jest.fn().mockResolvedValue([{ id: 's1', sessionId: 'sid-attacker', userId: 'user-1' }]);
+            pushRevoked = jest.fn().mockResolvedValue(undefined);
+            publish = jest.fn();
+            (service as any).sessionRevoker = { revokeAllInTx, pushRevoked };
+            (service as any).authzPublisher = { publish };
+            (userRepository as any).invalidateCaches = jest.fn();
+        });
+
+        it('takes over an unverified password account in one transaction: verified, password and codes dropped, sessions revoked', async () => {
+            // Someone registered the address with a password but never proved the mailbox; Google now proves it.
+            userRepository.findByEmail.mockResolvedValue({ ...user, isVerified: false, password: 'attacker-hash' });
+
+            await (service as any).handleOAuthLogin('bob@example.com', 'bob');
+
+            // Conditional on still being unverified, so a concurrent mailbox verification wins cleanly.
+            expect(updateMany.mock.calls[0][0]).toMatchObject({
+                where: { id: 'user-1', isVerified: false },
+                data: { isVerified: true, password: null, authzVersion: { increment: 1 } },
+            });
+            expect(codes.verify).toHaveBeenCalledWith({ where: { userId: 'user-1' } });
+            expect(codes.reset).toHaveBeenCalledWith({ where: { userId: 'user-1' } });
+            expect(publish).toHaveBeenCalledTimes(1);
+            // Revoked inside the same transaction: a crash after commit cannot leave the registrant's sessions alive.
+            expect(revokeAllInTx).toHaveBeenCalledWith(tx, 'user-1');
+            expect(pushRevoked).toHaveBeenCalledWith([{ id: 's1', sessionId: 'sid-attacker', userId: 'user-1' }]);
+        });
+
+        it('does nothing more when the account was verified meanwhile', async () => {
+            userRepository.findByEmail.mockResolvedValue({ ...user, isVerified: false, password: 'h' });
+            updateMany.mockResolvedValue({ count: 0 });
+
+            await (service as any).handleOAuthLogin('bob@example.com', 'bob');
+
+            expect(publish).not.toHaveBeenCalled();
+            expect(revokeAllInTx).not.toHaveBeenCalled();
+            expect(mail.sendMail).not.toHaveBeenCalled();
+        });
+
+        it('leaves a verified account and its sessions alone', async () => {
+            userRepository.findByEmail.mockResolvedValue({ ...user, isVerified: true, password: 'own-hash' });
+
+            await (service as any).handleOAuthLogin('bob@example.com', 'bob');
+
+            expect(updateMany).not.toHaveBeenCalled();
+            expect(revokeAllInTx).not.toHaveBeenCalled();
+            expect(mail.sendMail).not.toHaveBeenCalled();
+        });
+
+        describe('notice mail after a takeover', () => {
+            it('tells the mailbox owner, after commit, that the password was removed and every device signed out', async () => {
+                userRepository.findByEmail.mockResolvedValue({ ...user, isVerified: false, password: 'attacker-hash' });
+                const order: string[] = [];
+                prisma.$transaction.mockImplementation(async (fn: (t: typeof tx) => unknown) => {
+                    const out = await fn(tx);
+                    order.push('commit');
+                    return out;
+                });
+                mail.sendMail.mockImplementation(async () => {
+                    order.push('mail');
+                });
+
+                await (service as any).handleOAuthLogin('bob@example.com', 'bob');
+
+                expect(mail.sendMail).toHaveBeenCalledTimes(1);
+                const [to, subject, template, context] = mail.sendMail.mock.calls[0];
+                expect(to).toBe('bob@example.com');
+                expect(subject).toContain('Google');
+                expect(template).toBe('google-account-linked.template');
+                expect(context).toMatchObject({ username: 'Bob' });
+                expect(context.resetPasswordUrl).toContain('/forgot-password');
+                expect(order).toEqual(['commit', 'mail']);
+            });
+
+            it('sends nothing when the unverified account never had a password', async () => {
+                userRepository.findByEmail.mockResolvedValue({ ...user, isVerified: false, password: null });
+
+                await (service as any).handleOAuthLogin('bob@example.com', 'bob');
+
+                expect(revokeAllInTx).toHaveBeenCalled();
+                expect(mail.sendMail).not.toHaveBeenCalled();
+            });
+
+            it('still signs the user in when the mail cannot be sent, and logs the failure', async () => {
+                userRepository.findByEmail.mockResolvedValue({ ...user, isVerified: false, password: 'attacker-hash' });
+                mail.sendMail.mockRejectedValue(new Error('smtp down'));
+                const logged = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+                const result = await (service as any).handleOAuthLogin('bob@example.com', 'bob');
+                await new Promise((r) => setImmediate(r));
+
+                expect(result.success).toBe(true);
+                expect(logged).toHaveBeenCalledWith(
+                    expect.stringContaining('bob@example.com'),
+                    expect.any(Error)
+                );
+                logged.mockRestore();
+            });
+        });
+    });
+
+    describe('Google One Tap', () => {
+        it('refuses a credential whose email Google has not verified', async () => {
+            jest.doMock('google-auth-library', () => ({
+                OAuth2Client: jest.fn().mockImplementation(() => ({
+                    verifyIdToken: jest.fn().mockResolvedValue({
+                        getPayload: () => ({ email: 'bob@example.com', email_verified: false, name: 'Bob' }),
+                    }),
+                })),
+            }));
+            const spy = jest.spyOn(service as any, 'handleOAuthLogin');
+
+            await expect(service.googleOneTapLogin('credential')).rejects.toThrow();
+            expect(spy).not.toHaveBeenCalled();
+            jest.dontMock('google-auth-library');
         });
     });
 });

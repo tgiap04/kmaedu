@@ -9,7 +9,6 @@ import {
     OnModuleInit,
 } from '@nestjs/common';
 import { Prisma, User } from './prisma';
-import * as crypto from 'crypto';
 
 // Shared libs imports
 import { PrismaService } from './prisma';
@@ -30,6 +29,8 @@ import { RegisterDto } from './dto/register.dto';
 import { sanitizeUtmSource } from './utils/utm-source.util';
 import { uniqueViolationFields } from './utils/prisma-unique-violation';
 import { writeWithFreshCode } from './utils/write-with-fresh-code';
+import { consumeCodeAttempt, MAX_WRONG_CODE_GUESSES, type CodeStore } from './utils/one-time-code-attempt';
+import { CodeIssueLimiter } from './utils/code-issue-limiter';
 import { availableUsername } from './utils/available-username';
 import { UserRepository } from './repositories/user.repository';
 import { UserSessionRepository } from './devices/repositories/user-session.repository';
@@ -75,7 +76,8 @@ export class AuthService {
         private readonly refreshTokenCipher: RefreshTokenCipherService,
         private readonly authzPublisher: AuthzChangedPublisher,
         private readonly gatewayControl: GatewayControlClient,
-        private readonly sessionRevoker: SessionRevoker
+        private readonly sessionRevoker: SessionRevoker,
+        private readonly codeIssueLimiter: CodeIssueLimiter
     ) {}
 
     /**
@@ -108,17 +110,25 @@ export class AuthService {
         }
     }
 
-    /**
-     * Constant-time comparison for verification/reset/change codes, to
-     * avoid leaking match-length information through response timing.
-     */
-    private isCodeMatch(expected: string, provided: string): boolean {
-        const expectedBuf = Buffer.from(expected);
-        const providedBuf = Buffer.from(provided);
-        if (expectedBuf.length !== providedBuf.length) {
-            return false;
-        }
-        return crypto.timingSafeEqual(expectedBuf, providedBuf);
+    /** The user's row of one code table, for `consumeCodeAttempt` (both tables share their columns). */
+    private codeStore(
+        table: 'verifyAccountCode' | 'resetPasswordCode',
+        userId: string
+    ): CodeStore {
+        const delegate = this.prisma[table] as unknown as Prisma.ResetPasswordCodeDelegate;
+        return {
+            find: () => delegate.findUnique({ where: { userId } }),
+            claimAttempt: async (max, now, code) =>
+                (
+                    await delegate.updateMany({
+                        where: { userId, code, attempts: { lt: max }, expiresAt: { gt: now } },
+                        data: { attempts: { increment: 1 } },
+                    })
+                ).count,
+            deleteIfExhausted: async (max, code) => {
+                await delegate.deleteMany({ where: { userId, code, attempts: { gte: max } } });
+            },
+        };
     }
 
     async login(loginDto: LoginDto, deviceInfo: DeviceInfo) {
@@ -271,6 +281,8 @@ export class AuthService {
     }
 
     async sendVerificationEmail(userId: string) {
+        // Outside the try: a 429/503 from the limiter must reach the client as is, not become a 500.
+        await this.codeIssueLimiter.claim('verify', userId);
         try {
             const user = await this.loadUser(userId);
             if (user.isVerified) {
@@ -283,6 +295,7 @@ export class AuthService {
                     update: {
                         code,
                         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                        attempts: 0,
                     },
                     create: {
                         id: this.generateIdService.generateId(),
@@ -326,22 +339,15 @@ export class AuthService {
      */
     async verifyAccount(userId: string, code: string, sessionId: string) {
         try {
-            const verificationCode =
-                await this.prisma.verifyAccountCode.findUnique({
-                    where: { userId },
-                });
-
-            if (!verificationCode) {
-                throw new NotFoundException('Mã xác minh không hợp lệ');
-            }
-
-            if (!this.isCodeMatch(verificationCode.code, code)) {
-                throw new BadRequestException('Mã xác minh không chính xác');
-            }
-
-            if (new Date() > verificationCode.expiresAt) {
-                throw new BadRequestException('Mã xác minh đã hết hạn');
-            }
+            await consumeCodeAttempt(
+                this.codeStore('verifyAccountCode', userId),
+                code,
+                {
+                    invalid: 'Mã xác minh không hợp lệ',
+                    wrong: 'Mã xác minh không chính xác',
+                    expired: 'Mã xác minh đã hết hạn',
+                }
+            );
 
             await this.userRepository.update(
                 userId,
@@ -349,7 +355,8 @@ export class AuthService {
                 userId
             );
 
-            await this.prisma.verifyAccountCode.delete({
+            // deleteMany: a parallel guess may already have removed the used-up row.
+            await this.prisma.verifyAccountCode.deleteMany({
                 where: { userId },
             });
 
@@ -374,6 +381,12 @@ export class AuthService {
         const genericResponse = {
             message: 'Email đặt lại mật khẩu đã được gửi',
         };
+        // Keyed by e-mail and taken before the lookup: an unknown e-mail is limited the same way. Past the
+        // hourly cap (which anyone can spend for someone else's address) the owner still gets the code that is
+        // already live, never a fresh one: a fresh code would hand out a new guess budget.
+        const mode = await this.codeIssueLimiter.claim('reset', String(email ?? '').trim().toLowerCase(), {
+            overCap: 'resend',
+        });
         try {
             const user = await this.userRepository.findByEmail(email, false);
 
@@ -381,21 +394,14 @@ export class AuthService {
                 return genericResponse;
             }
 
-            const code = await writeWithFreshCode((code) =>
-                this.prisma.resetPasswordCode.upsert({
-                    where: { userId: user.id },
-                    update: {
-                        code,
-                        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-                    },
-                    create: {
-                        id: this.generateIdService.generateId(),
-                        userId: user.id,
-                        code,
-                        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-                    },
-                })
-            );
+            const code =
+                mode === 'resend'
+                    ? await this.extendLiveResetCode(user.id)
+                    : await this.issueFreshResetCode(user.id);
+            if (!code) {
+                // Cap reached and no live code (spent by wrong guesses): nothing is sent, same answer.
+                return genericResponse;
+            }
 
             this.mailService
                 .sendMail(
@@ -423,31 +429,59 @@ export class AuthService {
         }
     }
 
+    /** A new reset code (fresh guess budget, 10 minutes). */
+    private issueFreshResetCode(userId: string): Promise<string> {
+        return writeWithFreshCode((code) =>
+            this.prisma.resetPasswordCode.upsert({
+                where: { userId },
+                update: {
+                    code,
+                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                    attempts: 0,
+                },
+                create: {
+                    id: this.generateIdService.generateId(),
+                    userId,
+                    code,
+                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                },
+            })
+        );
+    }
+
+    /**
+     * The reset code that is live for `userId`, given 10 more minutes. Its code and its spent guesses stay as
+     * they are, so re-sending it hands nobody new guesses. `null` when there is none (or it is used up).
+     */
+    private async extendLiveResetCode(userId: string): Promise<string | null> {
+        const current = await this.prisma.resetPasswordCode.findUnique({ where: { userId } });
+        if (!current || current.attempts >= MAX_WRONG_CODE_GUESSES) return null;
+        const { count } = await this.prisma.resetPasswordCode.updateMany({
+            where: { userId, code: current.code, attempts: { lt: MAX_WRONG_CODE_GUESSES } },
+            data: { expiresAt: new Date(Date.now() + 10 * 60 * 1000) },
+        });
+        return count === 1 ? current.code : null;
+    }
+
     async resetPassword(email: string, code: string, newPassword: string) {
         try {
             const user = await this.userRepository.findByEmail(email, false);
+            const invalidCode = 'Mã đặt lại mật khẩu không hợp lệ';
 
+            // An unknown e-mail answers like a known account with no pending code: no account enumeration.
             if (!user) {
-                throw new NotFoundException('Không tìm thấy người dùng');
+                throw new NotFoundException(invalidCode);
             }
 
-            const resetCode = await this.prisma.resetPasswordCode.findUnique({
-                where: { userId: user.id },
-            });
-
-            if (!resetCode) {
-                throw new NotFoundException('Mã đặt lại mật khẩu không hợp lệ');
-            }
-
-            if (!this.isCodeMatch(resetCode.code, code)) {
-                throw new BadRequestException(
-                    'Mã đặt lại mật khẩu không chính xác'
-                );
-            }
-
-            if (new Date() > resetCode.expiresAt) {
-                throw new BadRequestException('Mã đặt lại mật khẩu đã hết hạn');
-            }
+            await consumeCodeAttempt(
+                this.codeStore('resetPasswordCode', user.id),
+                code,
+                {
+                    invalid: invalidCode,
+                    wrong: 'Mã đặt lại mật khẩu không chính xác',
+                    expired: 'Mã đặt lại mật khẩu đã hết hạn',
+                }
+            );
 
             await this.rotatePassword(user, newPassword);
 
@@ -470,6 +504,7 @@ export class AuthService {
     }
 
     async sendCodeToChangePassword(userId: string) {
+        await this.codeIssueLimiter.claim('change', userId);
         try {
             const user = await this.loadUser(userId);
             const code = await writeWithFreshCode((code) =>
@@ -478,6 +513,7 @@ export class AuthService {
                     update: {
                         code,
                         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                        attempts: 0,
                     },
                     create: {
                         id: this.generateIdService.generateId(),
@@ -536,21 +572,15 @@ export class AuthService {
                 }
             }
 
-            const resetCode = await this.prisma.resetPasswordCode.findUnique({
-                where: { userId: user.id },
-            });
-
-            if (!resetCode) {
-                throw new NotFoundException('Mã xác minh không hợp lệ');
-            }
-
-            if (!this.isCodeMatch(resetCode.code, code)) {
-                throw new BadRequestException('Mã xác minh không chính xác');
-            }
-
-            if (new Date() > resetCode.expiresAt) {
-                throw new BadRequestException('Mã xác minh đã hết hạn');
-            }
+            await consumeCodeAttempt(
+                this.codeStore('resetPasswordCode', user.id),
+                code,
+                {
+                    invalid: 'Mã xác minh không hợp lệ',
+                    wrong: 'Mã xác minh không chính xác',
+                    expired: 'Mã xác minh đã hết hạn',
+                }
+            );
 
             await this.rotatePassword(user, newPassword);
 
@@ -595,7 +625,8 @@ export class AuthService {
                     isBanned: true,
                 },
             });
-            await tx.resetPasswordCode.delete({ where: { userId: user.id } });
+            // deleteMany: the row may already be gone (a parallel guess removed the used-up code).
+            await tx.resetPasswordCode.deleteMany({ where: { userId: user.id } });
             await this.authzPublisher.publish(tx, updated, 'password');
             return updated.authzVersion;
         });
@@ -639,6 +670,8 @@ export class AuthService {
 
                 return user;
             });
+        } else if (!existingUser.isVerified) {
+            existingUser = await this.adoptUnverifiedAccount(existingUser);
         }
 
         // The access token needs a session id. Without deviceInfo (the
@@ -648,6 +681,64 @@ export class AuthService {
             return { user: sanitizeUser(existingUser), success: true };
         }
         return this.startSession(existingUser.id, deviceInfo);
+    }
+
+    /**
+     * Google just proved the mailbox of an account nobody verified. Whoever registered it with a password may
+     * not own the address (account pre-hijacking), so in ONE transaction, and only while it is still unverified:
+     * mark it verified, drop that password and any pending verify/reset code, bump `authzVersion` + publish
+     * `authz_changed`, and revoke every session (durable events). A crash after commit cannot leave the
+     * registrant's sessions alive; the gateway fast paths run after commit.
+     */
+    private async adoptUnverifiedAccount(user: User): Promise<User> {
+        const result = await this.prisma.$transaction(async (tx) => {
+            const { count } = await tx.user.updateMany({
+                where: { id: user.id, isVerified: false },
+                data: {
+                    isVerified: true,
+                    password: null,
+                    authzVersion: { increment: 1 },
+                    updatedBy: user.id,
+                },
+            });
+            const current = await tx.user.findUniqueOrThrow({ where: { id: user.id } });
+            // Verified meanwhile (the mailbox owner entered their code): nothing to take over.
+            if (count === 0) return { adopted: current, changed: false, revoked: [] };
+            await tx.verifyAccountCode.deleteMany({ where: { userId: user.id } });
+            await tx.resetPasswordCode.deleteMany({ where: { userId: user.id } });
+            await this.authzPublisher.publish(tx, current, 'password');
+            const revoked = await this.sessionRevoker.revokeAllInTx(tx, user.id);
+            return { adopted: current, changed: true, revoked };
+        });
+        if (result.changed) {
+            await this.userRepository.invalidateCaches(user);
+            await this.gatewayControl.invalidateUser(user.id, result.adopted.authzVersion);
+            await this.sessionRevoker.pushRevoked(result.revoked);
+            // A password was dropped: tell the mailbox owner (after commit; best effort, never fails the login).
+            if (user.password) this.sendGoogleLinkedNotice(result.adopted);
+        }
+        return result.adopted;
+    }
+
+    private sendGoogleLinkedNotice(user: User): void {
+        const frontendUrl = (process.env.FRONTEND_URL || '').replace(/\/+$/, '');
+        this.mailService
+            .sendMail(
+                user.email,
+                'Tài khoản của bạn đã được liên kết với Google',
+                'google-account-linked.template',
+                {
+                    username: user.username,
+                    useremail: user.email,
+                    resetPasswordUrl: `${frontendUrl}/forgot-password`,
+                }
+            )
+            .catch((error) => {
+                console.error(
+                    `Failed to send Google link notice to ${user.email}:`,
+                    error
+                );
+            });
     }
 
     /**
@@ -697,7 +788,8 @@ export class AuthService {
             audience: process.env.GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
-        if (!payload || !payload.email) {
+        // Only a mailbox Google has verified may sign in (and take over an unverified account with that address).
+        if (!payload || !payload.email || payload.email_verified !== true) {
             throw new BadRequestException('Invalid Google credential');
         }
         const { email, name } = payload;
@@ -740,18 +832,41 @@ export class AuthService {
         }
     }
 
-    async refreshAccessToken(refreshToken: string): Promise<{
+    /**
+     * Rotates the refresh token and issues a new access token.
+     *
+     * Grace window (M-04): a token rotated away less than 60 s ago (another tab of the same browser
+     * refreshed first) still gets an access token, but `refreshToken` is undefined: the live refresh token
+     * is never handed to whoever presents an old one, and the browser already got the new cookie from the
+     * request that rotated. A rotated-out token seen AFTER the window means two parties share the session
+     * (theft or a replayed log line): the whole session is revoked.
+     *
+     * Same device (`X-Device-ID` matches the session): a rotated-out token means the browser lost the
+     * response that rotated (reload or network drop mid-refresh). It gets a fresh refresh token instead of
+     * an access-only answer or a revocation, so it is not logged out at its next refresh.
+     */
+    async refreshAccessToken(refreshToken: string, deviceId?: string): Promise<{
         token: string;
-        refreshToken: string;
+        /** Only when this call rotated (or re-issued for the same device); undefined otherwise. */
+        refreshToken?: string;
         user: any;
         roles: Role[];
         permissions: Permission[];
     }> {
-        // Find session by refresh token
-        const session =
-            await this.userSessionRepository.findByRefreshToken(refreshToken);
+        const sameDevice = (s: { deviceId?: string | null }) => !!deviceId && s.deviceId === deviceId;
 
-        if (!session || !session.isActive) {
+        // Find session by refresh token (current, or previous inside the grace window)
+        let session = await this.userSessionRepository.findByRefreshToken(refreshToken);
+
+        if (!session) {
+            const rotatedOut = await this.userSessionRepository.findByRotatedOutToken(refreshToken);
+            if (!rotatedOut || !sameDevice(rotatedOut)) {
+                if (rotatedOut) await this.revokeOnRefreshTokenReuse(refreshToken);
+                throw new UnauthorizedException('Invalid or expired refresh token');
+            }
+            session = rotatedOut;
+        }
+        if (!session.isActive) {
             throw new UnauthorizedException('Invalid or expired refresh token');
         }
 
@@ -769,34 +884,52 @@ export class AuthService {
             session.sessionId
         );
 
-        // rotateRefreshTokenIfCurrent trả về refresh
-        // token hợp lệ để cấp lại: token mới nếu rotate thành công, hoặc token
-        // hiện hành nếu request đến trong grace window (tab khác đã rotate).
-        const nextRefreshToken = this.generateRefreshToken();
-        const effectiveRefreshToken =
+        let rotation =
             await this.userSessionRepository.rotateRefreshTokenIfCurrent(
                 session.sessionId,
                 refreshToken,
-                nextRefreshToken
+                this.generateRefreshToken()
             );
 
-        if (!effectiveRefreshToken) {
+        if ((!rotation || !rotation.rotated) && sameDevice(session)) {
+            const next = this.generateRefreshToken();
+            if (await this.userSessionRepository.reissueForRotatedOutToken(session.sessionId, refreshToken, next)) {
+                rotation = { rotated: true, refreshToken: next };
+            }
+        }
+
+        if (!rotation) {
             throw new UnauthorizedException('Refresh token was already used');
         }
 
         return {
             token,
-            refreshToken: effectiveRefreshToken,
+            refreshToken: rotation.rotated ? rotation.refreshToken : undefined,
             user: sanitizeUser(user),
             roles,
             permissions,
         };
     }
 
+    /** Reuse detection: a rotated-out token past its grace window revokes its session (event + gateway). */
+    private async revokeOnRefreshTokenReuse(refreshToken: string): Promise<void> {
+        const reused =
+            await this.userSessionRepository.findByRotatedOutToken(refreshToken);
+        if (!reused) return;
+        console.warn(
+            `Refresh token reuse detected on session ${reused.sessionId}; revoking it`
+        );
+        await this.sessionRevoker.revokeBySid(reused.sessionId);
+    }
+
+    /**
+     * Confirms the caller's session is live and touches its activity. The refresh token itself is
+     * never returned or re-sent: it lives only in the HttpOnly cookie set by login/refresh.
+     */
     async syncRefreshTokenBySession(
         userId: string,
         sessionId: string
-    ): Promise<{ refreshToken: string }> {
+    ): Promise<{ success: true }> {
         const session = await this.userSessionRepository.findBySessionId(
             sessionId
         );
@@ -811,12 +944,7 @@ export class AuthService {
         }
 
         await this.userSessionRepository.updateLastActivity(session.sessionId);
-
-        // session.refreshToken is stored sealed at rest — open() it before
-        // handing it back to the client, which must only ever see plaintext.
-        return {
-            refreshToken: this.refreshTokenCipher.open(session.refreshToken),
-        };
+        return { success: true };
     }
 
     async createSession(

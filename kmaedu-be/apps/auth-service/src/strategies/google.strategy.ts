@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback, StrategyOptionsWithRequest } from 'passport-google-oauth20';
 import { Request } from 'express';
@@ -25,6 +25,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         done: VerifyCallback
     ): Promise<any> {
         const { name, emails } = profile;
+        // Only a mailbox Google has verified may sign in (and take over an unverified account with that address).
+        const emailVerified = profile?._json?.email_verified ?? emails?.[0]?.verified;
+        if (!emails?.[0]?.value || emailVerified !== true) {
+            done(new UnauthorizedException('Email Google chưa được xác minh'), false);
+            return;
+        }
         const user = {
             email: emails[0].value,
             firstName: name.givenName,

@@ -59,6 +59,19 @@ export class UserSessionRepository {
         });
     }
 
+    /**
+     * The active session whose PREVIOUS (rotated-out) token is `refreshToken`, whatever its grace deadline.
+     * Seeing that token after the grace window means two parties hold the same session: reuse detection.
+     */
+    async findByRotatedOutToken(refreshToken: string): Promise<UserSession | null> {
+        return this.prisma.userSession.findFirst({
+            where: {
+                previousRefreshToken: this.refreshTokenCipher.seal(refreshToken),
+                isActive: true,
+            },
+        });
+    }
+
     async findBySessionId(sessionId: string): Promise<UserSession | null> {
         return this.prisma.userSession.findUnique({
             where: { sessionId },
@@ -101,20 +114,20 @@ export class UserSessionRepository {
     /**
      * Rotate refresh token theo cơ chế grace-period.
      *
-     * - Nếu `currentRefreshToken` là token hiện hành: rotate sang
-     *   `nextRefreshToken`, đồng thời giữ token cũ làm `previousRefreshToken`
-     *   trong REFRESH_GRACE_MS để các request song song không bị vô hiệu hóa.
-     * - Nếu `currentRefreshToken` là một `previousRefreshToken` còn trong grace
-     *   window (request đến sau khi tab khác đã rotate): KHÔNG rotate lại, trả
-     *   về token hiện hành để dùng tiếp (idempotent).
+     * - `currentRefreshToken` là token hiện hành: rotate sang `nextRefreshToken`, giữ token cũ làm
+     *   `previousRefreshToken` trong REFRESH_GRACE_MS → `{ rotated: true, refreshToken: next }`.
+     * - `currentRefreshToken` là `previousRefreshToken` còn trong grace window (tab khác cùng trình
+     *   duyệt vừa rotate): chấp nhận nhưng KHÔNG rotate lại và KHÔNG trả token hiện hành →
+     *   `{ rotated: false }`. Trình duyệt đã nhận cookie mới từ response của tab kia; người cầm token
+     *   cũ (bị lộ) chỉ lấy được access token ngắn hạn, không lấy được refresh token đang sống.
      *
-     * @returns token hợp lệ để cấp lại cho client, hoặc null nếu không khớp.
+     * @returns kết quả rotate, hoặc null nếu token không khớp.
      */
     async rotateRefreshTokenIfCurrent(
         sessionId: string,
         currentRefreshToken: string,
         nextRefreshToken: string
-    ): Promise<string | null> {
+    ): Promise<{ rotated: true; refreshToken: string } | { rotated: false } | null> {
         const now = new Date();
         const graceUntil = new Date(
             now.getTime() + UserSessionRepository.REFRESH_GRACE_MS
@@ -122,8 +135,7 @@ export class UserSessionRepository {
         const sealedCurrent = this.refreshTokenCipher.seal(currentRefreshToken);
         const sealedNext = this.refreshTokenCipher.seal(nextRefreshToken);
 
-        // Trường hợp 1: token hiện hành → rotate. `nextRefreshToken` is
-        // returned as-is (plaintext) — it is the caller's own freshly
+        // Trường hợp 1: token hiện hành → rotate. `nextRefreshToken` is the caller's own freshly
         // generated value, never something read back from the sealed column.
         const rotated = await this.prisma.userSession.updateMany({
             where: {
@@ -141,13 +153,10 @@ export class UserSessionRepository {
         });
 
         if (rotated.count === 1) {
-            return nextRefreshToken;
+            return { rotated: true, refreshToken: nextRefreshToken };
         }
 
         // Trường hợp 2: token nằm trong grace window (đã rotate ở request khác).
-        // `session.refreshToken` is the sealed current token stored by the
-        // request that won the rotation race — open() it before handing it
-        // back to the caller, which must return plaintext to the client.
         const session = await this.prisma.userSession.findFirst({
             where: {
                 sessionId,
@@ -156,11 +165,39 @@ export class UserSessionRepository {
                 isActive: true,
                 expiresAt: { gt: now },
             },
+            select: { id: true },
         });
 
-        return session
-            ? this.refreshTokenCipher.open(session.refreshToken)
-            : null;
+        return session ? { rotated: false } : null;
+    }
+
+    /**
+     * The browser whose rotating response was lost still holds the rotated-out token. For that same device
+     * (checked by the caller) hand it a fresh token: rotate the session to `nextRefreshToken`, keep the presented
+     * token as the previous one for another grace window. The undelivered current token is dropped.
+     *
+     * @returns whether the session still had `presentedRefreshToken` as its previous token.
+     */
+    async reissueForRotatedOutToken(
+        sessionId: string,
+        presentedRefreshToken: string,
+        nextRefreshToken: string
+    ): Promise<boolean> {
+        const now = new Date();
+        const { count } = await this.prisma.userSession.updateMany({
+            where: {
+                sessionId,
+                previousRefreshToken: this.refreshTokenCipher.seal(presentedRefreshToken),
+                isActive: true,
+                expiresAt: { gt: now },
+            },
+            data: {
+                refreshToken: this.refreshTokenCipher.seal(nextRefreshToken),
+                previousTokenExpiresAt: new Date(now.getTime() + UserSessionRepository.REFRESH_GRACE_MS),
+                lastActivity: now,
+            },
+        });
+        return count === 1;
     }
 
     async deactivateSession(id: string): Promise<void> {

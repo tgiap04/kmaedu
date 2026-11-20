@@ -7,10 +7,15 @@ function setup() {
     const updated = { id: 'u1', authzVersion: 5, role: 'STUDENT', isSystemAdmin: false, isBanned: false };
     const tx = {
         user: { update: jest.fn().mockResolvedValue(updated) },
-        resetPasswordCode: { delete: jest.fn() },
+        resetPasswordCode: { deleteMany: jest.fn().mockResolvedValue({ count: 1 }) },
     };
     const prisma = {
-        resetPasswordCode: { findUnique: jest.fn().mockResolvedValue({ code: '123456', expiresAt: new Date(Date.now() + 60_000) }) },
+        resetPasswordCode: {
+            findUnique: jest.fn().mockResolvedValue({ code: '123456', expiresAt: new Date(Date.now() + 60_000) }),
+            // One guess spent per check (per-account limit), the code survives it.
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+            deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+        },
         $transaction: jest.fn(async (fn: (t: typeof tx) => unknown) => fn(tx)),
         user: { findUnique: jest.fn().mockResolvedValue(user) },
     };
@@ -41,7 +46,8 @@ function setup() {
         {} as never,
         { publish: jest.fn() } as never,
         gateway as never,
-        revoker as never
+        revoker as never,
+        { claim: jest.fn() } as never
     );
     return { service, prisma, sessions, gateway, userRepository, revoker };
 }

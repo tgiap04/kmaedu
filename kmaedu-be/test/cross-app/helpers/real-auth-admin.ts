@@ -3,9 +3,11 @@ import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
 import type { PrismaService as AdminPrisma } from '../../../apps/admin-service/src/prisma';
 import {
+    accessTokenOf,
     AuthApp,
     bootAuthApp,
     loginVerified,
+    refreshTokenOf,
     registerUser,
 } from '../../../apps/auth-service/test/helpers/auth-app';
 
@@ -92,7 +94,8 @@ export async function makeUser(auth: AuthApp, data: Record<string, unknown> = {}
     if (Object.keys(data).length) await auth.prisma.user.update({ where: { id: u.id }, data });
     created.push(u.id);
     const login = await loginVerified(auth, u.email);
-    return { id: u.id, email: u.email, username: u.username, token: login.body.token, refreshToken: login.body.refreshToken };
+    // Tokens live only in the httpOnly cookies now, never in the JSON body.
+    return { id: u.id, email: u.email, username: u.username, token: accessTokenOf(login), refreshToken: refreshTokenOf(login) };
 }
 
 /** Leave exactly these users as the active admins (the DB is shared across suites). */

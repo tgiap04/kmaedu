@@ -1,6 +1,8 @@
 import * as request from 'supertest';
 import { createTokenVerifier, permissionsOf, ROLE_PERMISSIONS } from '@kmaedu/auth-jwt';
 import {
+    accessTokenOf,
+    refreshTokenOf,
     AuthApp,
     PASSWORD,
     bootAuthApp,
@@ -37,7 +39,7 @@ describe('auth tokens (e2e, real Postgres)', () => {
         expect(res.body.roles).toEqual(['STUDENT']);
         expect(res.body.permissions.sort()).toEqual([...ROLE_PERMISSIONS.STUDENT].sort());
 
-        const me = await request(ctx.url).get('/api/v1/auth/me').set(bearer(res.body.token));
+        const me = await request(ctx.url).get('/api/v1/auth/me').set(bearer(accessTokenOf(res)));
         expect(me.status).toBe(200);
         expect(me.body.roles).toEqual(['STUDENT']);
         expect(me.body.permissions.sort()).toEqual([...ROLE_PERMISSIONS.STUDENT].sort());
@@ -50,7 +52,7 @@ describe('auth tokens (e2e, real Postgres)', () => {
 
     it('the issued token verifies against /.well-known/jwks.json with kid, typ and every claim', async () => {
         const { res, id } = await registerUser(ctx);
-        const token = res.body.token as string;
+        const token = accessTokenOf(res) as string;
 
         expect(decodeHeader(token)).toMatchObject({ alg: 'RS256', typ: 'at+jwt', kid: expect.any(String) });
         const claims = decodeClaims(token);
@@ -88,7 +90,7 @@ describe('auth tokens (e2e, real Postgres)', () => {
 
     it('unverified users are denied on @Authenticated routes but allowed on the pinned list; verifyAccount re-issues the token', async () => {
         const { res, id } = await registerUser(ctx);
-        const t0 = res.body.token as string;
+        const t0 = accessTokenOf(res) as string;
 
         const denied = await request(ctx.url).get('/api/v1/profile').set(bearer(t0));
         expect(denied.status).toBe(403);
@@ -104,7 +106,7 @@ describe('auth tokens (e2e, real Postgres)', () => {
             .set(bearer(t0))
             .send({ code: '123456' });
         expect(verified.status).toBe(201);
-        const t1 = verified.body.token as string;
+        const t1 = accessTokenOf(verified) as string;
         expect(decodeClaims(t1)).toMatchObject({ email_verified: true, sid: decodeClaims(t0).sid });
         expect((await request(ctx.url).get('/api/v1/profile').set(bearer(t1))).status).toBe(200);
         expect(String(verified.headers['set-cookie'])).toMatch(/accessToken=/);
@@ -121,18 +123,18 @@ describe('auth tokens (e2e, real Postgres)', () => {
         const { email, id } = await registerUser(ctx);
         const login = await loginVerified(ctx, email);
         expect(login.status).toBe(201);
-        expect(decodeClaims(login.body.token)).toMatchObject({ roles: ['STUDENT'], av: 0 });
+        expect(decodeClaims(accessTokenOf(login))).toMatchObject({ roles: ['STUDENT'], av: 0 });
 
         await ctx.prisma.user.update({ where: { id }, data: { role: 'TEACHER', authzVersion: { increment: 1 } } });
 
         const refreshed = await request(ctx.url)
             .post('/api/v1/auth/refresh')
-            .send({ refreshToken: login.body.refreshToken });
+            .send({ refreshToken: refreshTokenOf(login) });
         expect(refreshed.status).toBe(201);
         expect(refreshed.body.roles).toEqual(['TEACHER']);
         expect(refreshed.body.permissions).toEqual(permissionsOf(['TEACHER']));
-        expect(decodeClaims(refreshed.body.token)).toMatchObject({ roles: ['TEACHER'], av: 1, email_verified: true });
-        expect(refreshed.body.refreshToken).not.toBe(login.body.refreshToken);
+        expect(decodeClaims(accessTokenOf(refreshed))).toMatchObject({ roles: ['TEACHER'], av: 1, email_verified: true });
+        expect(refreshTokenOf(refreshed)).not.toBe(refreshTokenOf(login));
     });
 
     it('refresh of a banned user is 401 ACCOUNT_DISABLED and the session is revoked', async () => {
@@ -140,10 +142,10 @@ describe('auth tokens (e2e, real Postgres)', () => {
         const login = await loginVerified(ctx, email);
         await ctx.prisma.user.update({ where: { id }, data: { isBanned: true } });
 
-        const res = await request(ctx.url).post('/api/v1/auth/refresh').send({ refreshToken: login.body.refreshToken });
+        const res = await request(ctx.url).post('/api/v1/auth/refresh').send({ refreshToken: refreshTokenOf(login) });
         expect(res.status).toBe(401);
         expect(res.body.code).toBe('ACCOUNT_DISABLED');
-        const session = await ctx.prisma.userSession.findUnique({ where: { sessionId: decodeClaims(login.body.token).sid as string } });
+        const session = await ctx.prisma.userSession.findUnique({ where: { sessionId: decodeClaims(accessTokenOf(login)).sid as string } });
         expect(session?.isActive).toBe(false);
     });
 
@@ -161,9 +163,9 @@ describe('auth tokens (e2e, real Postgres)', () => {
     it('logout deactivates the token sid session (not a client cookie)', async () => {
         const { email } = await registerUser(ctx);
         const login = await loginVerified(ctx, email);
-        const out = await request(ctx.url).post('/api/v1/auth/logout').set(bearer(login.body.token));
+        const out = await request(ctx.url).post('/api/v1/auth/logout').set(bearer(accessTokenOf(login)));
         expect(out.status).toBe(201);
-        const session = await ctx.prisma.userSession.findUnique({ where: { sessionId: decodeClaims(login.body.token).sid as string } });
+        const session = await ctx.prisma.userSession.findUnique({ where: { sessionId: decodeClaims(accessTokenOf(login)).sid as string } });
         expect(session?.isActive).toBe(false);
     });
 
@@ -181,7 +183,7 @@ describe('auth tokens (e2e, real Postgres)', () => {
             });
             const res = await request(ctx.url)
                 .post('/api/v1/auth/change-password')
-                .set(bearer(login.body.token))
+                .set(bearer(accessTokenOf(login)))
                 .send({ code: '654321', currentPassword: PASSWORD, newPassword: 'N3wPassw0rd!' });
             expect(res.status).toBe(201);
 
@@ -194,7 +196,7 @@ describe('auth tokens (e2e, real Postgres)', () => {
             });
             expect(await ctx.prisma.resetPasswordCode.count({ where: { userId: id } })).toBe(0);
             // All sessions died with the credential rotation.
-            const session = await ctx.prisma.userSession.findUnique({ where: { sessionId: decodeClaims(login.body.token).sid as string } });
+            const session = await ctx.prisma.userSession.findUnique({ where: { sessionId: decodeClaims(accessTokenOf(login)).sid as string } });
             expect(session?.isActive).toBe(false);
         });
 

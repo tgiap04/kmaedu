@@ -16,6 +16,7 @@ import { MessagingModule } from '@kmaedu/messaging';
 
 // Local imports
 import { AuthService } from './auth.service';
+import { CodeIssueLimiter } from './utils/code-issue-limiter';
 import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { UserRepository } from './repositories/user.repository';
@@ -57,6 +58,7 @@ import { HttpThrottlerGuard } from './auth/guards/http-throttler.guard';
         MailService,
         UserRepository,
         RefreshTokenCipherService,
+        CodeIssueLimiter,
         // Global rate limiting applied to all auth endpoints
         { provide: APP_GUARD, useClass: HttpThrottlerGuard },
     ],

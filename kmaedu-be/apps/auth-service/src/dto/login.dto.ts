@@ -52,30 +52,4 @@ export class LoginResponse {
         example: true,
     })
     success: boolean;
-
-    @ApiProperty({
-        description:
-            'JWT token (fallback cho trường hợp cookie không hoạt động)',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-        required: false,
-    })
-    token?: string;
-
-    @ApiProperty({
-        description: 'Device ID để identify thiết bị',
-        required: false,
-    })
-    deviceId?: string;
-
-    @ApiProperty({
-        description: 'Session ID for device tracking',
-        required: false,
-    })
-    sessionId?: string;
-
-    @ApiProperty({
-        description: 'Refresh token để renew access token',
-        required: false,
-    })
-    refreshToken?: string;
 }

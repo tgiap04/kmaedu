@@ -4,6 +4,7 @@ import { lastValueFrom } from 'rxjs';
 import { authV1, PROTO_FILES } from '@kmaedu/contracts';
 import { createTestGrpcClient } from '@kmaedu/grpc/testing';
 import {
+    accessTokenOf,
     AuthApp,
     SERVICE_SECRETS,
     bootAuthApp,
@@ -37,7 +38,7 @@ describe('auth gRPC identity RPCs behind the real guards (e2e)', () => {
     async function studentWithToken() {
         const u = await registerUser(ctx);
         const login = await loginVerified(ctx, u.email);
-        return { ...u, token: login.body.token as string };
+        return { ...u, token: accessTokenOf(login) as string };
     }
 
     it('GetPublicProfilesByIds has no email key (student token, real DB, input order)', async () => {
@@ -85,7 +86,7 @@ describe('auth gRPC identity RPCs behind the real guards (e2e)', () => {
         const res = await lastValueFrom(
             client.listUsers(
                 { query: t.username, role: authV1.BaseRole.BASE_ROLE_TEACHER, page: 1, limit: 10 },
-                md(adminLogin.body.token)
+                md(accessTokenOf(adminLogin))
             )
         );
         expect(res.users.map((u) => u.id)).toEqual([t.id]);
@@ -116,7 +117,7 @@ describe('auth gRPC identity RPCs behind the real guards (e2e)', () => {
         const res = await lastValueFrom(
             client.setUserRole(
                 { userId: target.id, role: authV1.BaseRole.BASE_ROLE_TEACHER, reason: 'e2e promote' },
-                md(adminLogin.body.token)
+                md(accessTokenOf(adminLogin))
             )
         );
         expect(res.user?.role).toBe(authV1.BaseRole.BASE_ROLE_TEACHER);
@@ -130,7 +131,7 @@ describe('auth gRPC identity RPCs behind the real guards (e2e)', () => {
 
         // The admin cannot change their own role over gRPC.
         await expect(
-            lastValueFrom(client.setUserRole({ userId: admin.id, role: authV1.BaseRole.BASE_ROLE_TEACHER, reason: '' }, md(adminLogin.body.token)))
+            lastValueFrom(client.setUserRole({ userId: admin.id, role: authV1.BaseRole.BASE_ROLE_TEACHER, reason: '' }, md(accessTokenOf(adminLogin))))
         ).rejects.toMatchObject({ code: 7, details: 'CANNOT_CHANGE_OWN_ROLE' });
     });
 });

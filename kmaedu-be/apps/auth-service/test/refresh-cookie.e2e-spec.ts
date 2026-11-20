@@ -34,7 +34,7 @@ describe('POST /auth/refresh cookie rotation (e2e, real Postgres)', () => {
         expect(rotated).toBeTruthy();
         expect(rotated).not.toBe(firstRefreshCookie);
         expect(cookieValue(first, 'accessToken')).toBeTruthy();
-        expect(first.body.refreshToken).toBeTruthy();
+        expect(first.body).not.toHaveProperty('refreshToken');
 
         // Fast-forward past REFRESH_GRACE_MS: the previous token is no longer accepted.
         await ctx.prisma.userSession.updateMany({

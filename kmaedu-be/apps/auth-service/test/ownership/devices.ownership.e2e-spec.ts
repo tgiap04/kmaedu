@@ -1,5 +1,6 @@
 import * as request from 'supertest';
 import {
+    accessTokenOf,
     AuthApp,
     PASSWORD,
     bootAuthApp,
@@ -24,8 +25,8 @@ describe('devices ownership (e2e)', () => {
         ctx = await bootAuthApp();
         const a = await registerUser(ctx);
         const b = await registerUser(ctx);
-        aToken = (await loginVerified(ctx, a.email)).body.token;
-        bToken = (await loginVerified(ctx, b.email)).body.token;
+        aToken = accessTokenOf(await loginVerified(ctx, a.email));
+        bToken = accessTokenOf(await loginVerified(ctx, b.email));
         // A second, older session for A, so there is something to revoke.
         const aOther = await request(ctx.url)
             .post('/api/v1/auth/login')

@@ -130,3 +130,13 @@ export const decodeClaims = (jwt: string): Record<string, unknown> =>
     JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString());
 export const decodeHeader = (jwt: string): Record<string, unknown> =>
     JSON.parse(Buffer.from(jwt.split('.')[0], 'base64url').toString());
+
+/** Value of one Set-Cookie of a response (tokens only travel in HttpOnly cookies, never in the body). */
+export const cookieOf = (res: request.Response, name: string): string | undefined =>
+    ([] as string[])
+        .concat(res.headers['set-cookie'] ?? [])
+        .find((c) => c.startsWith(`${name}=`))
+        ?.split(';')[0]
+        .slice(name.length + 1);
+export const accessTokenOf = (res: request.Response): string => cookieOf(res, 'accessToken') as string;
+export const refreshTokenOf = (res: request.Response): string => cookieOf(res, 'refreshToken') as string;

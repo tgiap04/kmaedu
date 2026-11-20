@@ -25,7 +25,9 @@ describe('AuthService refresh token flow', () => {
     };
     let userSessionRepository: {
         findByRefreshToken: jest.Mock;
+        findByRotatedOutToken: jest.Mock;
         rotateRefreshTokenIfCurrent: jest.Mock;
+        reissueForRotatedOutToken: jest.Mock;
         deactivateSession: jest.Mock;
         create: jest.Mock;
         findBySessionId: jest.Mock;
@@ -38,6 +40,7 @@ describe('AuthService refresh token flow', () => {
         generateId: jest.Mock;
         generateSecureToken: jest.Mock;
     };
+    let sessionRevoker: { revokeBySid: jest.Mock };
     let authService: AuthService;
 
     const issued = (token = 'new-access-token') => ({
@@ -69,7 +72,9 @@ describe('AuthService refresh token flow', () => {
 
         userSessionRepository = {
             findByRefreshToken: jest.fn(),
+            findByRotatedOutToken: jest.fn(),
             rotateRefreshTokenIfCurrent: jest.fn(),
+            reissueForRotatedOutToken: jest.fn(),
             deactivateSession: jest.fn(),
             create: jest.fn(),
             findBySessionId: jest.fn(),
@@ -84,6 +89,8 @@ describe('AuthService refresh token flow', () => {
             generateId: jest.fn(),
             generateSecureToken: jest.fn(),
         };
+
+        sessionRevoker = { revokeBySid: jest.fn().mockResolvedValue([]) };
 
         mockRefreshTokenCipher.seal.mockClear();
         mockRefreshTokenCipher.open.mockClear();
@@ -100,7 +107,8 @@ describe('AuthService refresh token flow', () => {
             mockRefreshTokenCipher as any,
             { publish: jest.fn() } as any,
             { invalidateUser: jest.fn(), revokeSession: jest.fn() } as any,
-            {} as any
+            sessionRevoker as any,
+            { claim: jest.fn() } as any
         );
     });
 
@@ -117,9 +125,10 @@ describe('AuthService refresh token flow', () => {
             'refresh-part-1_refresh-part-2'
         );
 
-        userSessionRepository.rotateRefreshTokenIfCurrent.mockResolvedValue(
-            'refresh-part-1_refresh-part-2'
-        );
+        userSessionRepository.rotateRefreshTokenIfCurrent.mockResolvedValue({
+            rotated: true,
+            refreshToken: 'refresh-part-1_refresh-part-2',
+        });
 
         const result = await authService.refreshAccessToken('old-refresh-token');
 
@@ -149,28 +158,80 @@ describe('AuthService refresh token flow', () => {
         expect(result.user.password).toBeUndefined();
     });
 
-    it('reuses the current token when refreshing within the grace window', async () => {
-        userSessionRepository.findByRefreshToken.mockResolvedValue({
-            id: 'session-row-id',
-            sessionId: 'session-123',
-            userId: 'user-123',
-            isActive: true,
-            expiresAt: new Date(Date.now() + 60_000),
-        });
+    it('within the grace window issues an access token but never hands out the live refresh token', async () => {
+        userSessionRepository.findByRefreshToken.mockResolvedValue(liveSession());
         accessTokens.issue.mockResolvedValue(issued());
-        generateIdService.generateSecureToken.mockReturnValue(
-            'refresh-part-1_refresh-part-2'
-        );
-        // Grace path: a concurrent request already rotated, so the repo returns
-        // the existing current token instead of the freshly generated one.
-        userSessionRepository.rotateRefreshTokenIfCurrent.mockResolvedValue(
-            'already-rotated-token'
-        );
+        generateIdService.generateSecureToken.mockReturnValue('refresh-part-1_refresh-part-2');
+        // Grace path: a concurrent request (another tab, same cookie jar) already rotated.
+        userSessionRepository.rotateRefreshTokenIfCurrent.mockResolvedValue({ rotated: false });
 
         const result = await authService.refreshAccessToken('stale-but-grace-token');
 
         expect(result.token).toBe('new-access-token');
-        expect(result.refreshToken).toBe('already-rotated-token');
+        expect(result.refreshToken).toBeUndefined();
+        expect(mockRefreshTokenCipher.open).not.toHaveBeenCalled();
+    });
+
+    it('treats a rotated-out token presented after the grace window as theft: the whole session is revoked', async () => {
+        userSessionRepository.findByRefreshToken.mockResolvedValue(null);
+        userSessionRepository.findByRotatedOutToken.mockResolvedValue({
+            ...liveSession(),
+            previousTokenExpiresAt: new Date(Date.now() - 1_000),
+        });
+
+        await expect(authService.refreshAccessToken('stolen-old-token')).rejects.toBeInstanceOf(
+            UnauthorizedException
+        );
+        expect(userSessionRepository.findByRotatedOutToken).toHaveBeenCalledWith('stolen-old-token');
+        expect(sessionRevoker.revokeBySid).toHaveBeenCalledWith('session-123');
+        expect(accessTokens.issue).not.toHaveBeenCalled();
+    });
+
+    it('re-issues for the same device when the rotating response was lost (no logout 15 minutes later)', async () => {
+        // The browser never received the rotated cookie and presents the old token after the grace window.
+        userSessionRepository.findByRefreshToken.mockResolvedValue(null);
+        userSessionRepository.findByRotatedOutToken.mockResolvedValue({ ...liveSession(), deviceId: 'dev-1' });
+        userSessionRepository.rotateRefreshTokenIfCurrent.mockResolvedValue(null);
+        userSessionRepository.reissueForRotatedOutToken.mockResolvedValue(true);
+        accessTokens.issue.mockResolvedValue(issued());
+        generateIdService.generateSecureToken.mockReturnValue('fresh_token');
+
+        const result = await authService.refreshAccessToken('lost-response-token', 'dev-1');
+
+        expect(sessionRevoker.revokeBySid).not.toHaveBeenCalled();
+        expect(userSessionRepository.reissueForRotatedOutToken).toHaveBeenCalledWith('session-123', 'lost-response-token', 'fresh_token');
+        expect(result.refreshToken).toBe('fresh_token');
+    });
+
+    it('re-issues inside the grace window too when the device matches', async () => {
+        userSessionRepository.findByRefreshToken.mockResolvedValue({ ...liveSession(), deviceId: 'dev-1' });
+        userSessionRepository.rotateRefreshTokenIfCurrent.mockResolvedValue({ rotated: false });
+        userSessionRepository.reissueForRotatedOutToken.mockResolvedValue(true);
+        accessTokens.issue.mockResolvedValue(issued());
+        generateIdService.generateSecureToken.mockReturnValue('fresh_token');
+
+        const result = await authService.refreshAccessToken('grace-token', 'dev-1');
+
+        expect(result.refreshToken).toBe('fresh_token');
+    });
+
+    it('still treats a rotated-out token from another device as theft', async () => {
+        userSessionRepository.findByRefreshToken.mockResolvedValue(null);
+        userSessionRepository.findByRotatedOutToken.mockResolvedValue({ ...liveSession(), deviceId: 'dev-1' });
+
+        await expect(authService.refreshAccessToken('stolen-old-token', 'dev-attacker')).rejects.toBeInstanceOf(
+            UnauthorizedException
+        );
+        expect(sessionRevoker.revokeBySid).toHaveBeenCalledWith('session-123');
+        expect(userSessionRepository.reissueForRotatedOutToken).not.toHaveBeenCalled();
+    });
+
+    it('does not revoke anything for an unknown token', async () => {
+        userSessionRepository.findByRefreshToken.mockResolvedValue(null);
+        userSessionRepository.findByRotatedOutToken.mockResolvedValue(null);
+
+        await expect(authService.refreshAccessToken('garbage')).rejects.toBeInstanceOf(UnauthorizedException);
+        expect(sessionRevoker.revokeBySid).not.toHaveBeenCalled();
     });
 
     it('rejects a refresh token that is outside the grace window', async () => {
@@ -262,7 +323,7 @@ describe('AuthService refresh token flow', () => {
             .mockResolvedValueOnce({ ...issued('t1'), roles: ['STUDENT'] })
             .mockResolvedValueOnce({ ...issued('t2'), roles: ['TEACHER'] });
         generateIdService.generateSecureToken.mockReturnValue('next');
-        userSessionRepository.rotateRefreshTokenIfCurrent.mockResolvedValue('next');
+        userSessionRepository.rotateRefreshTokenIfCurrent.mockResolvedValue({ rotated: true, refreshToken: 'next' });
 
         const first = await authService.refreshAccessToken('r');
         const second = await authService.refreshAccessToken('r');
@@ -273,7 +334,7 @@ describe('AuthService refresh token flow', () => {
     });
 
     describe('syncRefreshTokenBySession', () => {
-        it('opens the sealed stored token and returns plaintext to the caller', async () => {
+        it('confirms the session without ever returning (or even opening) the refresh token', async () => {
             userSessionRepository.findBySessionId.mockResolvedValue({
                 id: 'session-row-id',
                 sessionId: 'session-123',
@@ -288,10 +349,9 @@ describe('AuthService refresh token flow', () => {
                 'session-123'
             );
 
-            expect(mockRefreshTokenCipher.open).toHaveBeenCalledWith(
-                'sealed:plaintext-current-token'
-            );
-            expect(result).toEqual({ refreshToken: 'plaintext-current-token' });
+            expect(mockRefreshTokenCipher.open).not.toHaveBeenCalled();
+            expect(JSON.stringify(result)).not.toContain('plaintext-current-token');
+            expect(result).toEqual({ success: true });
             expect(
                 userSessionRepository.updateLastActivity
             ).toHaveBeenCalledWith('session-123');

@@ -67,7 +67,8 @@ describe('AuthService registration outbox', () => {
             {} as never,
             { publish: jest.fn() } as never,
             { invalidateUser: jest.fn(), revokeSession: jest.fn() } as never,
-            {} as never
+            {} as never,
+            { claim: jest.fn() } as never
         );
     });
 
@@ -158,8 +159,8 @@ describe('AuthService registration outbox', () => {
         });
     });
 
-    it('OAuth login of an existing user writes no event', async () => {
-        userRepository.findByEmail.mockResolvedValue(user);
+    it('OAuth login of an existing verified user writes no event', async () => {
+        userRepository.findByEmail.mockResolvedValue({ ...user, isVerified: true });
 
         await (service as any).handleOAuthLogin('new@example.com', 'newbie');
 

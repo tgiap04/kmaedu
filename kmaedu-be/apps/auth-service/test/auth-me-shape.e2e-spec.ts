@@ -1,5 +1,5 @@
 import * as request from 'supertest';
-import { AuthApp, PASSWORD, bootAuthApp, loginVerified, registerUser } from './helpers/auth-app';
+import { accessTokenOf, AuthApp, PASSWORD, bootAuthApp, loginVerified, registerUser } from './helpers/auth-app';
 
 const FORBIDDEN_USER_KEYS = ['wallet', 'subscription', 'isAdmin', 'password'];
 
@@ -31,7 +31,7 @@ describe('/auth/me, login, refresh response shape (e2e)', () => {
             expect(login.status).toBe(201);
             expectShape(login.body);
 
-            const me = await request(ctx.url).get('/api/v1/auth/me').set(bearer(login.body.token));
+            const me = await request(ctx.url).get('/api/v1/auth/me').set(bearer(accessTokenOf(login)));
             expect(me.status).toBe(200);
             expectShape(me.body);
             expect(me.body.roles).toEqual([role]);

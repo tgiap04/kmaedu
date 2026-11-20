@@ -36,6 +36,8 @@ import {
     Authenticated,
     Public,
     type AuthUser,
+    type Permission,
+    type Role,
 } from '@kmaedu/auth-jwt';
 import { StrictThrottle } from './auth/guards/strict-throttle.decorator';
 import {
@@ -52,6 +54,17 @@ import {
     RefreshTokenResponseDto,
 } from './dto/auth-response.dto';
 import * as crypto from 'crypto';
+
+interface SessionCookieSource {
+    token?: string;
+    refreshToken?: string;
+    user: LoginResponse['user'];
+    roles?: Role[];
+    permissions?: Permission[];
+    success: boolean;
+}
+
+type SessionBody = Pick<LoginResponse, 'user' | 'roles' | 'permissions' | 'success'>;
 
 @ApiTags('Auth')
 @ApiExtraModels(
@@ -104,6 +117,27 @@ export class AuthController {
             user: oauthUser.user,
             sessionId: session.sessionId,
             refreshToken: session.refreshToken,
+        };
+    }
+
+    /**
+     * Sets the HttpOnly session cookies and returns what the web client may
+     * see: tokens and the session id never go into the JSON body (cookie-only).
+     * No `refreshToken` (refresh inside the grace window) → access cookie only.
+     */
+    private setSessionCookies(
+        res: ExpressResponse,
+        session: SessionCookieSource
+    ): SessionBody {
+        res.cookie('accessToken', session.token, accessTokenCookie());
+        if (session.refreshToken) {
+            res.cookie('refreshToken', session.refreshToken, refreshTokenCookie());
+        }
+        return {
+            user: session.user,
+            roles: session.roles ?? [],
+            permissions: session.permissions ?? [],
+            success: session.success,
         };
     }
 
@@ -202,34 +236,9 @@ export class AuthController {
         // Extract device info from request
         const deviceInfo = this.extractDeviceInfo(request);
 
-        const {
-            token,
-            user,
-            roles,
-            permissions,
-            success,
-            sessionId,
-            refreshToken,
-            deviceId,
-            message,
-        } = await this.authService.register(registerDto, deviceInfo);
+        const result = await this.authService.register(registerDto, deviceInfo);
 
-        // Set cookies like login does
-        res.cookie('accessToken', token, accessTokenCookie());
-        if (refreshToken) {
-            res.cookie('refreshToken', refreshToken, refreshTokenCookie());
-        }
-
-        return {
-            message,
-            user,
-            roles,
-            permissions,
-            success,
-            token,
-            refreshToken,
-            deviceId,
-        };
+        return { message: result.message, ...this.setSessionCookies(res, result) };
     }
 
     @Post('login')
@@ -255,31 +264,8 @@ export class AuthController {
         // Extract device info from request
         const deviceInfo = this.extractDeviceInfo(request);
 
-        const {
-            token,
-            user,
-            roles,
-            permissions,
-            success,
-            sessionId,
-            refreshToken,
-            deviceId,
-        } = await this.authService.login(loginDto, deviceInfo);
-
-        res.cookie('accessToken', token, accessTokenCookie());
-        if (refreshToken) {
-            res.cookie('refreshToken', refreshToken, refreshTokenCookie());
-        }
-
-        return {
-            user,
-            roles,
-            permissions,
-            success,
-            token,
-            refreshToken,
-            deviceId,
-        };
+        const result = await this.authService.login(loginDto, deviceInfo);
+        return this.setSessionCookies(res, result);
     }
 
     @Post('logout')
@@ -329,30 +315,19 @@ export class AuthController {
         }
 
         try {
-            const result =
-                await this.authService.refreshAccessToken(refreshToken);
+            // The device id lets the same browser recover a lost rotating response instead of being logged out.
+            const deviceId = request.headers?.['x-device-id'];
+            const result = await this.authService.refreshAccessToken(
+                refreshToken,
+                typeof deviceId === 'string' ? deviceId : undefined
+            );
 
-            // Set new access token
-            response.cookie('accessToken', result.token, accessTokenCookie());
             // The refresh token rotates on every call; the old one is only
             // honored for a short grace window, so the browser must receive
-            // the new one or its next refresh fails and logs the user out.
-            if (result.refreshToken) {
-                response.cookie(
-                    'refreshToken',
-                    result.refreshToken,
-                    refreshTokenCookie()
-                );
-            }
-
-            return {
-                success: true,
-                token: result.token,
-                refreshToken: result.refreshToken,
-                user: result.user,
-                roles: result.roles,
-                permissions: result.permissions,
-            };
+            // the new cookie or its next refresh fails and logs the user out.
+            // Inside the grace window there is no new refresh token: only the
+            // access cookie is set (the browser holds the live refresh cookie).
+            return this.setSessionCookies(response, { ...result, success: true });
         } catch (error) {
             // Keep a deliberate 401 (e.g. ACCOUNT_DISABLED) intact.
             if (error instanceof UnauthorizedException) throw error;
@@ -399,7 +374,7 @@ export class AuthController {
 
         // The old access token still says email_verified=false: swap it now.
         res.cookie('accessToken', result.token, accessTokenCookie());
-        return result;
+        return { message: result.message };
     }
 
     @Post('send-code-reset-password')
@@ -494,12 +469,7 @@ export class AuthController {
             body.utmSource
         );
 
-        res.cookie('accessToken', result.token, accessTokenCookie());
-        if (result.refreshToken) {
-            res.cookie('refreshToken', result.refreshToken, refreshTokenCookie());
-        }
-
-        return result;
+        return this.setSessionCookies(res, result);
     }
 
     @Get('google/callback')
@@ -561,9 +531,9 @@ export class AuthController {
                 // Store tokens in Redis with 60s TTL — one-time use
                 await this.redisService.set(
                     `oauth:exchange:${exchangeCode}`,
+                    // No refresh token: it never leaves the HttpOnly cookie.
                     JSON.stringify({
                         token,
-                        refreshToken,
                         sessionId,
                         userId: user?.id,
                     }),
@@ -610,17 +580,13 @@ export class AuthController {
         @Req() request: Request,
         @Res({ passthrough: true }) response: ExpressResponse
     ) {
-        const result = await this.authService.syncRefreshTokenBySession(
+        // Kept for route compatibility: it only confirms the session. The
+        // refresh token is never returned nor re-sent (a Set-Cookie would hand
+        // it to any non-browser client holding just the access token).
+        return this.authService.syncRefreshTokenBySession(
             req.user.id,
             req.user.sid
         );
-
-        response.cookie('refreshToken', result.refreshToken, refreshTokenCookie());
-
-        return {
-            success: true,
-            refreshToken: result.refreshToken,
-        };
     }
 
     private extractDeviceInfo(request: Request): DeviceInfo {
@@ -674,7 +640,6 @@ export class AuthController {
         @Body('code') code: string
     ): Promise<{
         token: string;
-        refreshToken: string;
         sessionId: string;
         userId: string;
     }> {
@@ -697,11 +662,16 @@ export class AuthController {
         try {
             const parsed = JSON.parse(data) as {
                 token: string;
-                refreshToken: string;
                 sessionId: string;
                 userId: string;
             };
-            return parsed;
+            // Pick the fields: an entry written before the refresh token was
+            // dropped from it must not hand that token out.
+            return {
+                token: parsed.token,
+                sessionId: parsed.sessionId,
+                userId: parsed.userId,
+            };
         } catch {
             throw new UnauthorizedException('Malformed exchange data');
         }
