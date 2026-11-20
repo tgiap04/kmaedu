@@ -232,8 +232,8 @@ export default function HistoryPage() {
     [toast],
   );
 
-  // No per-attempt page exists yet: a row opens the full exam history.
-  const handleExamClick = useCallback(() => navigate("/k/history/exam"), [navigate]);
+  // No per-attempt page exists yet: a row opens the candidate's exam list.
+  const handleExamClick = useCallback(() => navigate("/k/my-exams"), [navigate]);
 
   if (isLoading) {
     return (

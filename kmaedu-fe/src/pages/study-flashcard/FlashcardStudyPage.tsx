@@ -5,7 +5,6 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/antd/button";
 import { Input } from "@/components/antd/input";
 import { Label } from "@/components/antd/label";
-import { Avatar, AvatarFallback } from "@/components/antd/avatar";
 import {
   Dialog,
   DialogContent,
@@ -14,9 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/antd/dialog";
-import { CaretCircleLeftIcon, CaretCircleRightIcon, EyeIcon, LockSimpleIcon, SpeakerHighIcon, SpeakerSlashIcon, HouseIcon, ArrowCounterClockwiseIcon, ShuffleIcon, XIcon } from "@phosphor-icons/react";
-import { StandardMarkdownRenderer } from "@/components/molecules/StandardMarkdownRenderer";
-import { cn } from "@/lib/utils";
+import { LockSimpleIcon, HouseIcon, XIcon } from "@phosphor-icons/react";
 import { setRedirectBackTarget } from "@/lib/authRedirect";
 import { useAuthStore } from "@/stores/useAuthStore";
 import {
@@ -24,7 +21,14 @@ import {
   getFlashcardSetPublicInfo,
   getFlashcardSetForStudy,
 } from "@/apis/flashcardSetApi";
-import { getProgressApi, addStudiedCardApi } from "@/apis/flashcardStudyApi";
+import { getProgressApi, addStudiedCardApi, saveProgressApi } from "@/apis/flashcardStudyApi";
+import { toast } from "@/components/antd/toast";
+import { applyVerdict, studiedPercent, type CardVerdict } from "@/lib/flashcard/study-progress";
+import { StudyHeader } from "./components/study-header";
+import { StudyProgressRow } from "./components/study-progress-row";
+import { StudyFlipCard } from "./components/study-flip-card";
+import { StudyActions } from "./components/study-actions";
+import { StudyNav } from "./components/study-nav";
 import type {
   FlashcardSetPublicInfo,
   AccessCheckResult,
@@ -187,12 +191,20 @@ export default function FlashcardStudyPage() {
       setCurrentCardIndex(currentCardIndex + 1);
       setIsFlipped(false);
       playSound("next");
-      const currentCard = flashcards[currentCardIndex];
-      if (currentCard && !studiedCards.has(currentCard.id)) {
-        setStudiedCards((prev) => new Set([...prev, currentCard.id]));
-        addStudiedCardApi(id, currentCard.id).catch(() => {});
-      }
     }
+  };
+
+  /** "Đã nhớ" counts the card as studied, "Chưa nhớ" takes it back out; both then move on. */
+  const handleVerdict = (verdict: CardVerdict) => {
+    const card = flashcards[currentCardIndex];
+    if (!card) return;
+    const { next, changed } = applyVerdict(studiedCards, card.id, verdict);
+    if (changed) {
+      setStudiedCards(next);
+      const saving = verdict === "remembered" ? addStudiedCardApi(id, card.id) : saveProgressApi(id, [...next]);
+      saving.catch(() => toast.error("Chưa lưu được tiến độ học", { description: "Kiểm tra kết nối rồi thử lại." }));
+    }
+    handleNext();
   };
 
   const handleShuffle = () => {
@@ -204,6 +216,12 @@ export default function FlashcardStudyPage() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || !flashcards.length || showAccessModal) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      // Typing in a field, or Space/Enter on a focused button or link (which already acts on its own).
+      if (target?.isContentEditable || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if ((e.key === " " || e.key === "Enter") && (tag === "BUTTON" || tag === "A")) return;
       if (e.key === "ArrowLeft") handlePrevious();
       else if (e.key === "ArrowRight") handleNext();
       else if (e.key === " " || e.key === "Enter") {
@@ -333,211 +351,34 @@ export default function FlashcardStudyPage() {
 
   const currentCard = flashcards[currentCardIndex];
   const totalCards = flashcards.length;
-  const progress = Math.round((studiedCards.size / totalCards) * 100);
+  const studied = studiedPercent(studiedCards, flashcards.map((card) => card.id));
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden bg-canvas">
+    <div className="flex min-h-[100dvh] flex-col bg-page bg-[radial-gradient(55rem_40rem_at_-8%_12%,color-mix(in_oklab,var(--brand-soft)_85%,transparent),transparent_60%),radial-gradient(40rem_30rem_at_108%_100%,rgba(251,191,36,0.10),transparent_60%)]">
       <audio ref={audioRef} />
+      <StudyHeader
+        title={flashcardSetTitle}
+        cardCount={totalCards}
+        creatorName={creator ? displayUserName(creator) : null}
+        viewCount={viewCount}
+        soundOn={settings.soundEffects}
+        onHome={() => navigate("/k")}
+        onShuffle={handleShuffle}
+        onToggleSound={() => setSettings((prev) => ({ ...prev, soundEffects: !prev.soundEffects }))}
+      />
 
-      {/* Header — editorial minimal */}
-      <header className="z-10 flex-shrink-0">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/k")}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-hairline text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink"
-              aria-label="Về trang chủ"
-            >
-              <HouseIcon className="h-4 w-4" />
-            </button>
-            <div className="min-w-0">
-              <h1 className="truncate font-display text-lg tracking-tight text-ink sm:text-xl">
-                {flashcardSetTitle}
-              </h1>
-              {flashcardSetDescription && (
-                <p className="hidden truncate text-xs text-muted-foreground sm:block">
-                  {flashcardSetDescription}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
-            {creator && (
-              <div className="hidden items-center gap-2 sm:flex">
-                <Avatar className="h-6 w-6">
-                  <AvatarFallback>
-                    {displayUserName(creator).charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-xs text-muted-foreground">
-                  {displayUserName(creator)}
-                </span>
-              </div>
-            )}
-            <span className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex">
-              <EyeIcon className="h-3.5 w-3.5" />
-              {viewCount.toLocaleString()}
-            </span>
-            <button
-              onClick={handleShuffle}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-hairline text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink"
-              aria-label="Xáo trộn"
-              title="Xáo trộn thẻ"
-            >
-              <ShuffleIcon className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setSettings((prev) => ({ ...prev, soundEffects: !prev.soundEffects }))}
-              className={cn(
-                "grid h-9 w-9 place-items-center rounded-lg border border-hairline transition-colors",
-                settings.soundEffects
-                  ? "border-coral/30 bg-coral/10 text-brand-strong"
-                  : "text-muted-foreground hover:bg-surface-card hover:text-ink"
-              )}
-              aria-label={settings.soundEffects ? "Tắt âm thanh" : "Bật âm thanh"}
-            >
-              {settings.soundEffects ? <SpeakerHighIcon className="h-4 w-4" /> : <SpeakerSlashIcon className="h-4 w-4" />}
-            </button>
-          </div>
+      <main className="mx-auto w-full max-w-[920px] flex-1 px-4 pb-6 pt-8 sm:pt-10">
+        {flashcardSetDescription && <p className="sr-only">{flashcardSetDescription}</p>}
+        <StudyProgressRow index={currentCardIndex} total={totalCards} studied={studied.count} percent={studied.percent} />
+        <div className="mt-10">
+          <StudyFlipCard question={currentCard?.question || ""} answer={currentCard?.answer || ""} flipped={isFlipped} onFlip={handleFlip} />
         </div>
-
-        {/* Progress bar — thin coral line */}
-        <div className="h-[2px] bg-hairline-soft">
-          <div
-            className="h-full bg-coral transition-all duration-500 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </header>
-
-      {/* Main card area */}
-      <main className="flex flex-1 flex-col items-center justify-center px-4 py-8">
-        <div className="w-full max-w-xl">
-          {/* Card counter */}
-          <div className="mb-4 flex items-center justify-between">
-            <span className="rounded-lg bg-surface-card px-3 py-1 text-xs font-medium text-muted-foreground">
-              {currentCardIndex + 1} / {totalCards}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {studiedCards.size} đã học · {progress}%
-            </span>
-          </div>
-
-          {/* Flip card — editorial cream surface */}
-          <div
-            className="relative cursor-pointer select-none"
-            style={{ perspective: "1200px" }}
-            onClick={handleFlip}
-          >
-            <div
-              className="relative w-full transition-transform duration-600 ease-out"
-              style={{
-                transformStyle: "preserve-3d",
-                transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-              }}
-            >
-              {/* Front — cream card */}
-              <div
-                className="flex min-h-[320px] flex-col items-center justify-center rounded-lg border border-hairline bg-surface-card p-6 sm:min-h-[380px] sm:p-8"
-                style={{ backfaceVisibility: "hidden" }}
-              >
-                <span className="mb-6 inline-flex items-center gap-1.5 rounded-lg bg-canvas px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                  Câu hỏi
-                </span>
-                <StandardMarkdownRenderer
-                  content={currentCard?.question || ""}
-                  className="text-center font-display text-xl leading-relaxed tracking-tight text-ink sm:text-2xl"
-                />
-                <div className="mt-auto pt-8 flex items-center gap-1.5 text-[11px] text-muted-soft">
-                  <ArrowCounterClockwiseIcon className="h-3 w-3" />
-                  Nhấp hoặc Space để lật
-                </div>
-              </div>
-
-              {/* Back — warm soft surface with coral accent */}
-              <div
-                className="absolute inset-0 flex min-h-[320px] flex-col items-center justify-center rounded-lg border border-coral/20 bg-surface-soft p-6 sm:min-h-[380px] sm:p-8"
-                style={{
-                  backfaceVisibility: "hidden",
-                  transform: "rotateY(180deg)",
-                }}
-              >
-                <span className="mb-6 inline-flex items-center gap-1.5 rounded-lg bg-coral/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-brand-strong">
-                  Câu trả lời
-                </span>
-                <StandardMarkdownRenderer
-                  content={currentCard?.answer || ""}
-                  className="text-center text-lg leading-relaxed text-ink sm:text-xl"
-                />
-                <div className="mt-auto pt-8 flex items-center gap-1.5 text-[11px] text-muted-soft">
-                  <ArrowCounterClockwiseIcon className="h-3 w-3" />
-                  Nhấp hoặc Space để quay lại
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="mt-10">
+          <StudyActions onForgot={() => handleVerdict("forgotten")} onFlip={handleFlip} onRemembered={() => handleVerdict("remembered")} />
         </div>
       </main>
 
-      {/* Footer — navigation controls */}
-      <footer className="z-10 flex-shrink-0 border-t border-hairline-soft">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrevious}
-            disabled={currentCardIndex === 0}
-            className="h-10 gap-1.5 rounded-lg border-hairline px-4"
-          >
-            <CaretCircleLeftIcon className="h-4 w-4" />
-            <span className="hidden sm:inline">Trước</span>
-          </Button>
-
-          {/* Card dots — minimal indicator */}
-          <div className="flex items-center gap-1">
-            {totalCards <= 20 ? (
-              flashcards.map((card, index) => {
-                const isStudied = studiedCards.has(card.id);
-                const isCurrent = index === currentCardIndex;
-                return (
-                  <button
-                    key={card.id}
-                    onClick={() => {
-                      setCurrentCardIndex(index);
-                      setIsFlipped(false);
-                    }}
-                    className={cn(
-                      "h-2 w-2 rounded-full transition-all duration-200",
-                      isCurrent && "h-2.5 w-2.5 bg-coral",
-                      isStudied && !isCurrent && "bg-coral/40",
-                      !isStudied && !isCurrent && "bg-hairline hover:bg-muted-soft",
-                    )}
-                    aria-label={`Thẻ ${index + 1}`}
-                  />
-                );
-              })
-            ) : (
-              <span className="text-sm text-muted-foreground">
-                <span className="font-medium text-ink">{currentCardIndex + 1}</span>
-                {" / "}
-                {totalCards}
-              </span>
-            )}
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNext}
-            disabled={currentCardIndex === totalCards - 1}
-            className="h-10 gap-1.5 rounded-lg border-hairline px-4"
-          >
-            <span className="hidden sm:inline">Sau</span>
-            <CaretCircleRightIcon className="h-4 w-4" />
-          </Button>
-        </div>
-      </footer>
+      <StudyNav index={currentCardIndex} total={totalCards} onPrev={handlePrevious} onNext={handleNext} />
     </div>
   );
 }

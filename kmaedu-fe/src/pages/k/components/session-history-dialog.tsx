@@ -5,15 +5,7 @@ import { getMyAttemptsBySessionApi, type MyAttemptItem } from "@/apis/examAttemp
 import { Button } from "@/components/antd/button"
 import { Skeleton } from "@/components/antd/skeleton"
 import type { SessionSummary } from "../my-exams-types"
-
-function formatDuration(seconds: number | null): string {
-  if (seconds === null || seconds === undefined || Number.isNaN(seconds)) return "-"
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = seconds % 60
-  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`
-  return `${m}:${s.toString().padStart(2, "0")}`
-}
+import { attemptSpentSeconds, formatSpent } from "@/lib/exam-session/attempt-time"
 
 function AttemptStatusBadge({ status }: { status: number }) {
   if (status === 0) {
@@ -134,7 +126,7 @@ export function SessionHistoryDialog({ session }: { session: SessionSummary | nu
                 <span>{attempt.correctAnswers}/{attempt.totalQuestions} đúng</span>
                 <span className="flex items-center gap-1">
                   <ClockIcon className="h-3 w-3" />
-                  {formatDuration(attempt.timeSpentSeconds)}
+                  {formatSpent(attemptSpentSeconds(attempt.startedAt, attempt.finishedAt)) ?? "-"}
                 </span>
               </div>
             </div>

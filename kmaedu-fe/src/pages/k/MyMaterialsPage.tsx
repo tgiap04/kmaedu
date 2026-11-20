@@ -5,9 +5,11 @@ import { MyDocumentsSection } from "./components/my-materials/my-documents-secti
 import { MyFlashcardsSection } from "./components/my-materials/my-flashcards-section";
 import { SharedQuizSection } from "./components/quiz-practice/SharedQuizSection";
 
-/** /k/my-materials: the learner's documents (when they can use the AI tool), shared quiz sets and flashcards. */
+/** /k/my-materials: the learner's documents (when they can use the AI tool), practice quiz sets and flashcards. */
 export default function MyMaterialsPage() {
   const canUseAiTool = useCan("ai:generate");
+  // The practice list is the learner's: its API needs quiz:practice.
+  const canPractice = useCan("quiz:practice");
 
   return (
     <div className="relative text-foreground">
@@ -15,7 +17,7 @@ export default function MyMaterialsPage() {
 
       <div className="space-y-5">
         {canUseAiTool && <MyDocumentsSection />}
-        <SharedQuizSection />
+        {canPractice && <SharedQuizSection />}
         <MyFlashcardsSection />
       </div>
     </div>

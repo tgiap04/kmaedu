@@ -739,13 +739,21 @@ interface RecentUploadsState {
     forceRefresh?: boolean,
     includeHistory?: boolean,
   ) => Promise<void>;
+  /** One page of uploads (newest first) and whether another page follows; cached per page. */
+  fetchUploadsPage: (page: number, size: number) => Promise<UploadsPage>;
   selectUpload: (upload: RecentUpload | null) => void;
   deleteUpload: (uploadId: string) => Promise<void>;
   loadFromUpload: (upload: RecentUpload) => void;
   clearSelection: () => void;
 }
 
+export interface UploadsPage {
+  uploads: RecentUpload[];
+  hasNext: boolean;
+}
+
 const CACHE_KEY = "recent-uploads";
+const PAGE_CACHE_PREFIX = "recent-uploads-page:";
 
 export const useRecentUploadsStore = create<RecentUploadsState>((set, get) => ({
   recentUploads: [],
@@ -764,6 +772,7 @@ export const useRecentUploadsStore = create<RecentUploadsState>((set, get) => ({
       }
     }
 
+    storeCache.invalidate(PAGE_CACHE_PREFIX);
     set({ isLoading: true });
     try {
       const uploads = await aiApi.getRecentUploads(10);
@@ -773,6 +782,29 @@ export const useRecentUploadsStore = create<RecentUploadsState>((set, get) => ({
       set({ isLoading: false });
       console.error("Error fetching recent uploads:", error);
     }
+  },
+
+  fetchUploadsPage: async (page, size) => {
+    const key = `${PAGE_CACHE_PREFIX}${page}-${size}`;
+    const cached = storeCache.get<UploadsPage>(key);
+    if (cached) return cached;
+    const uploads = await aiApi.getUploadsPage(page, size);
+    // The API returns no total: only a full page can have a next one, and a one-item page right after it
+    // tells. A failed lookahead only hides "Sau"; the rows already loaded still show.
+    let lookaheadFailed = false;
+    const hasNext =
+      uploads.length === size &&
+      (await aiApi.getUploadsPage(page * size + 1, 1).then(
+        (next) => next.length > 0,
+        () => {
+          lookaheadFailed = true;
+          return false;
+        },
+      ));
+    const result = { uploads, hasNext };
+    // A guess made after a failed lookahead is not cached: the next visit asks again.
+    if (!lookaheadFailed) storeCache.set(key, result);
+    return result;
   },
 
   selectUpload: (upload) => {
@@ -823,6 +855,7 @@ export const useRecentUploadsStore = create<RecentUploadsState>((set, get) => ({
 
       // Invalidate cache
       storeCache.invalidate(CACHE_KEY);
+      storeCache.invalidate(PAGE_CACHE_PREFIX);
       storeCache.invalidate(`upload-history-${uploadId}`);
 
       toast.success("Đã xóa file", {

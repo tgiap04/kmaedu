@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { CopyIcon, EyeIcon, LinkSimpleIcon, PushPinIcon, PushPinSlashIcon, PlayIcon } from "@phosphor-icons/react";
 import { togglePinFlashcardApi, type RecentFlashcardSet } from "@/apis/studentMaterialsApi";
@@ -6,12 +6,11 @@ import { useToast } from "@/components/antd/toast";
 import { formatCompactCount, formatTimeAgo } from "@/lib/history/history-format";
 import { useStudentMaterialsStore } from "@/stores/useStudentMaterialsStore";
 import { ItemRow } from "@/components/k-page/item-row";
-import { SectionMessage, RowsSkeleton, SectionCard, SectionPager, ViewAllButton } from "@/components/k-page/section-card";
+import { SectionMessage, RowsSkeleton, SectionCard, SectionPager } from "@/components/k-page/section-card";
 import { usePagedList } from "./use-paged-list";
 import { apiErrorMessage } from "@/lib/api-error-message";
 
-const PAGE_SIZE = 12;
-const PREVIEW = 2;
+const PAGE_SIZE = 5;
 
 const pinnedFirst = (items: RecentFlashcardSet[]) => [...items.filter((m) => m.isPinned), ...items.filter((m) => !m.isPinned)];
 
@@ -22,7 +21,6 @@ export function MyFlashcardsSection() {
   const { fetchFlashcards, updateFlashcardPin } = useStudentMaterialsStore();
   const fetchPage = useCallback((page: number) => fetchFlashcards(page, PAGE_SIZE), [fetchFlashcards]);
   const { page, setPage, data, setData, failed, reload } = usePagedList(fetchPage);
-  const [expanded, setExpanded] = useState(false);
 
   const setPinned = (id: string, pinned: boolean) => {
     setData((prev) => prev && { ...prev, flashcardSets: prev.flashcardSets.map((m) => (m.id === id ? { ...m, isPinned: pinned } : m)) });
@@ -50,23 +48,20 @@ export function MyFlashcardsSection() {
     }
   };
 
-  const all = data ? pinnedFirst(data.flashcardSets) : [];
-  const sets = expanded ? all : all.slice(0, PREVIEW);
-  const canExpand = !!data && data.total > PREVIEW;
+  const sets = data ? pinnedFirst(data.flashcardSets) : [];
 
   return (
     <SectionCard
       icon={<CopyIcon />}
       title="Flashcard của tôi"
       countLabel={data ? `${data.total} bộ thẻ` : undefined}
-      action={canExpand ? <ViewAllButton expanded={expanded} onToggle={() => { setExpanded(!expanded); setPage(1); }} /> : undefined}
       illustration="/illustrations/materials-flashcards.svg"
     >
       {failed ? (
         <SectionMessage title="Không thể tải flashcard" onRetry={reload} />
       ) : data === null ? (
         <RowsSkeleton />
-      ) : all.length === 0 ? (
+      ) : sets.length === 0 ? (
         <SectionMessage title="Chưa có bộ flashcard nào" hint="Bắt đầu khám phá và học các bộ flashcard" />
       ) : (
         <>
@@ -91,7 +86,7 @@ export function MyFlashcardsSection() {
               ]}
             />
           ))}
-          {expanded && <SectionPager page={page} totalPages={data.totalPages} onChange={setPage} />}
+          <SectionPager page={page} totalPages={data.totalPages} onChange={setPage} />
         </>
       )}
     </SectionCard>

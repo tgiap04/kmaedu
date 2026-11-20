@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import HomePage from "@/pages/landing/HomePage";
 import AboutPage from "@/pages/landing/AboutPage";
 import ContactPage from "@/pages/landing/ContactPage";
@@ -16,7 +16,6 @@ import VerifyPage from "@/pages/k/VerifyPage";
 import MyMaterialsPage from "@/pages/k/MyMaterialsPage";
 import FlashcardsPage from "@/pages/k/FlashcardsPage";
 import HistoryPage from "@/pages/k/HistoryPage";
-import ExamHistoryPage from "@/pages/k/ExamHistoryPage";
 import PDFHistoryPage from "@/pages/k/PDFHistoryPage";
 import FlashcardStudyPage from "@/pages/study-flashcard/FlashcardStudyPage";
 import ExamSessionPage from "@/pages/exam-session/ExamSessionPage";
@@ -134,9 +133,10 @@ export const router = createBrowserRouter([
   { path: "/k/my-materials", element: guarded(<MyMaterialsPage />, { permission: "flashcard:study", pageKey: "my-materials" }) },
   { path: "/k/flash-card", element: guarded(<FlashcardsPage />, { permission: "flashcardset:manage", pageKey: "flash-card" }) },
   { path: "/k/flash-card/create", element: guarded(<CreateFlashcardPage />, { permission: "flashcardset:manage", pageKey: "flash-card" }) },
-  { path: "/k/history", element: guarded(<HistoryPage />, { anyOf: ["ai:generate", "exam:take"], pageKey: "history" }) },
-  { path: "/k/history/exam", element: guarded(<ExamHistoryPage />, { permission: "exam:take", pageKey: "history" }) },
+  { path: "/k/history", element: guarded(<HistoryPage />, { permission: "ai:generate", pageKey: "history" }) },
   { path: "/k/history/pdf", element: guarded(<PDFHistoryPage />, { permission: "ai:generate", pageKey: "history" }) },
+  // The old exam-history page is gone: keep bookmarks and old links working (/k/my-exams has its own guard).
+  { path: "/k/history/exam", element: <Navigate to="/k/my-exams" replace /> },
   {
     path: "/study-flashcard/:id",
     element: guarded(<FlashcardStudyPage />, { anyOf: ["flashcard:study", "flashcardset:manage"], layout: false }),

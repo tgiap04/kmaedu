@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/antd/card";
 import { Button } from "@/components/antd/button";
 import { MonitorIcon, DeviceMobileIcon, DeviceTabletIcon, CircleNotchIcon, SignOutIcon, MapPinIcon, ClockIcon, CheckCircleIcon, WarningIcon } from "@phosphor-icons/react";
@@ -26,19 +26,24 @@ export function DeviceList() {
   const [isLogoutingAll, setIsLogoutingAll] = useState(false);
   const { toast } = useToast();
 
-  const fetchDevices = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const result = await getDevicesApi();
-      setDevices(result.devices);
-    } catch (error) {
-      toast.error(apiErrorMessage(error, "Không thể tải danh sách thiết bị"));
-    } finally {
-      setIsLoading(false);
-    }
+  useEffect(() => {
+    // Set by the cleanup: a replaced load (StrictMode remount) must not apply or toast.
+    let cancelled = false;
+    (async () => {
+      try {
+        setIsLoading(true);
+        const result = await getDevicesApi();
+        if (!cancelled) setDevices(result.devices);
+      } catch (error) {
+        if (!cancelled) toast.error(apiErrorMessage(error, "Không thể tải danh sách thiết bị"));
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [toast]);
-
-  useEffect(() => { fetchDevices(); }, [fetchDevices]);
 
   const handleLogoutDevice = async (sessionId: string) => {
     try {

@@ -239,6 +239,14 @@ export interface ExamSessionStats {
     marked: number;
     total: number;
   };
+  // Waiting-page details (absent from servers older than these fields).
+  examRoomId?: string;
+  quizSetTitle?: string;
+  host?: { id: string; username: string; name: string | null } | null;
+  /** Minutes one attempt may last; null: until the session ends. `durationMinutes` is the session window. */
+  attemptDurationMinutes?: number | null;
+  antiCheatEnabled?: boolean;
+  allowLeaveMidway?: boolean;
 }
 
 export async function getExamSessionStatsApi(

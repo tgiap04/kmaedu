@@ -7,7 +7,7 @@ import { useCan } from "@/hooks/useCan";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Dropdown } from "antd";
-import { Facehash } from "facehash";
+import { UserAvatar } from "@/components/atoms/UserAvatar";
 
 interface Profile {
   name: string;
@@ -35,6 +35,7 @@ export default function ProfileDropdown({
   const [open, setOpen] = React.useState(false);
   const { logout, roles } = useAuthStore();
   const canAdmin = useCan("admin:access");
+  const canHistory = useCan("ai:generate");
   const compact = variant === "header";
   const roleBadges = [
     roles.includes("TEACHER") ? "Giáo viên" : roles.includes("STUDENT") ? "Học sinh" : null,
@@ -42,7 +43,7 @@ export default function ProfileDropdown({
   ].filter((label): label is string => Boolean(label));
   const menuLinks = [
     { to: "/k/profile", icon: PersonIcon, label: "Hồ sơ cá nhân", hint: "Ảnh, tên và thông tin tài khoản" },
-    { to: "/k/history", icon: ClockIcon, label: "Lịch sử học tập", hint: "Bài đã làm và hoạt động gần đây" },
+    ...(canHistory ? [{ to: "/k/history", icon: ClockIcon, label: "Lịch sử học tập", hint: "Bài đã làm và hoạt động gần đây" }] : []),
     ...(canAdmin ? [{ to: "/admin", icon: ShieldIcon, label: "Trang quản trị", hint: "Người dùng, phân quyền, nhật ký" }] : []),
   ];
 
@@ -69,7 +70,7 @@ export default function ProfileDropdown({
                 <span aria-hidden className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-brand-soft-hover/80 blur-2xl" />
                 <div className="relative flex items-center gap-3">
                   <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-soft ring-2 ring-canvas shadow-[0_2px_8px_rgba(217,45,41,0.15)]">
-                    <Facehash name={data.name} size={48} className="text-coral" />
+                    <UserAvatar name={data.name} size={48} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] font-semibold text-ink">{data.name}</p>
@@ -133,7 +134,7 @@ export default function ProfileDropdown({
             )}
           >
             <div className={cn("grid shrink-0 place-items-center overflow-hidden rounded-full bg-brand-soft", compact ? "h-11 w-11 ring-2 ring-brand-border shadow-[0_2px_8px_rgba(217,45,41,0.15)]" : "h-11 w-11 ring-2 ring-canvas shadow-[0_2px_8px_rgba(217,45,41,0.15)]")}>
-              <Facehash name={data.name} size={44} className="text-coral" />
+              <UserAvatar name={data.name} size={44} />
             </div>
             {!compact && (
               <span className="flex min-w-0 flex-1 items-center gap-1.5 pl-1">

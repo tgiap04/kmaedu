@@ -35,6 +35,8 @@ export default function ExamRoomSessionAnalyticsPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
+    // Set by the cleanup: a replaced load (StrictMode remount, another session) must not apply or toast.
+    let cancelled = false;
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -43,6 +45,7 @@ export default function ExamRoomSessionAnalyticsPage() {
           getExamAttemptsBySessionApi(sessionId, 1, 100, true),
           getSessionCheatingStatsApi(sessionId),
         ]);
+        if (cancelled) return;
 
         setSessionInfo({
           title: sessionData.examRoom?.title || "Phiên thi",
@@ -53,16 +56,20 @@ export default function ExamRoomSessionAnalyticsPage() {
         setAttempts(attemptsData.attempts);
         setCheatingStats(statsData);
       } catch (error: any) {
+        if (cancelled) return;
         console.error("Failed to load session data:", error);
         toast.error(error?.response?.data?.message || "Không thể tải dữ liệu");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     if (sessionId) {
       fetchData();
     }
+    return () => {
+      cancelled = true;
+    };
   }, [sessionId]);
 
   const { show: showAttempt, sheet: attemptSheet } = useAttemptDetail();

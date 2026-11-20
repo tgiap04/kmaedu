@@ -50,19 +50,6 @@ export function unansweredCount(questions: QuestionLike[], answers: Record<strin
   return questions.length - answeredCount(questions, answers);
 }
 
-export type NavigatorState = "current" | "marked" | "answered" | "empty";
-
-export function navigatorState(
-  question: QuestionLike,
-  index: number,
-  currentIndex: number,
-  progress: Pick<PracticeProgress, "answers" | "markedQuestions">,
-): NavigatorState {
-  if (index === currentIndex) return "current";
-  if (progress.markedQuestions.includes(question.id)) return "marked";
-  return (progress.answers[question.id] ?? "") !== "" ? "answered" : "empty";
-}
-
 export function formatDuration(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
   const mm = String(Math.floor(s / 60)).padStart(2, "0");

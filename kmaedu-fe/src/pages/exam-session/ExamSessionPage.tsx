@@ -7,8 +7,7 @@ import {
   type ExamSessionStats,
 } from "@/apis/examSessionApi";
 import { getMyAttemptsBySessionApi, type MyAttemptItem } from "@/apis/examAttemptApi";
-import { EXAM_SESSION_STATUS, type AccessCheckResult } from "@/types/examSession";
-import { ExamRoomDetailTemplate } from "@/templates/ExamRoomDetailTemplate";
+import type { AccessCheckResult } from "@/types/examSession";
 import { Skeleton } from "@/components/antd/skeleton";
 import { Button } from "@/components/antd/button";
 import { Card, CardContent } from "@/components/antd/card";
@@ -35,6 +34,12 @@ import { SessionUnavailable } from "@/components/organisms/SessionUnavailable";
 import { canLoadExamStats } from "@/lib/rbac/exam-stats-gate";
 import { useTranslation } from "react-i18next";
 import { useStudentMaterialsStore } from "@/stores/useStudentMaterialsStore";
+import { footerNote, fromStudentStats } from "@/lib/exam-session/waiting-room-view";
+import { useHostWaitingRoom } from "./use-host-waiting-room";
+import { HostWaitingRoom } from "./components/host-waiting-room";
+import { WaitingRoomLayout } from "./components/waiting-room-layout";
+import { WaitingRoomAttemptsCard } from "./components/waiting-room-attempts-card";
+import { WaitingRoomFooter } from "./components/waiting-room-footer";
 
 export default function ExamSessionPage() {
   const { id = "" } = useParams();
@@ -42,6 +47,9 @@ export default function ExamSessionPage() {
   const location = useLocation();
   const { isAuthenticated, initializing, sessionUnavailable } = useAuthStore();
   const canTakeExam = useCan("exam:take");
+  const canManageSessions = useCan("exam_session:manage");
+  const host = useHostWaitingRoom(id, isAuthenticated && canManageSessions);
+  const [agreed, setAgreed] = useState(false);
   const { t } = useTranslation("common");
   const { invalidateExams } = useStudentMaterialsStore();
 
@@ -58,6 +66,8 @@ export default function ExamSessionPage() {
   const [myAttemptsLoading, setMyAttemptsLoading] = useState(false);
 
   useEffect(() => {
+    // StrictMode mounts twice and a new location.key restarts the load: only the latest run writes or toasts.
+    let cancelled = false;
     const loadData = async () => {
       if (initializing) {
         return;
@@ -79,28 +89,32 @@ export default function ExamSessionPage() {
       setLoadError(null);
       try {
         const access = await checkExamSessionAccessApi(id);
+        if (cancelled) return;
         setAccessInfo(access);
 
         if (canLoadExamStats(access.hasAccess, canTakeExam)) {
           const sessionStats = await getExamSessionStatsApi(id);
+          if (cancelled) return;
           setStats(sessionStats);
 
           // Load user's attempt history for this session
           setMyAttemptsLoading(true);
           try {
             const attemptRes = await getMyAttemptsBySessionApi(id, 1, 10);
-            setMyAttempts(attemptRes.examAttempts);
+            if (!cancelled) setMyAttempts(attemptRes.examAttempts);
           } catch {
             // silently ignore
           } finally {
+            // Always clear the flag: the run that replaces this one may not load attempts at all.
             setMyAttemptsLoading(false);
           }
         } else if (access.accessType === "code_required") {
           setShowCodeDialog(true);
         }
       } catch (error: any) {
+        if (cancelled) return;
         console.error("Error loading exam session:", error);
-        if (error?.response?.status === 404) {
+        if ((error?.status ?? error?.response?.status) === 404) {
           setSessionNotFound(true);
         } else {
           const message =
@@ -111,13 +125,16 @@ export default function ExamSessionPage() {
           toast.error(message);
         }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     if (id) {
       loadData();
     }
+    return () => {
+      cancelled = true;
+    };
   }, [id, initializing, isAuthenticated, canTakeExam, sessionUnavailable, location.key, navigate]);
 
   const handleVerifyCode = async () => {
@@ -156,7 +173,34 @@ export default function ExamSessionPage() {
     return <SessionUnavailable />;
   }
 
-  if (loading) {
+  if (host.state === "host" && host.session) {
+    return (
+      <HostWaitingRoom
+        session={host.session}
+        candidates={host.candidates}
+        candidatesLoading={host.candidatesLoading}
+        onEnded={host.reload}
+      />
+    );
+  }
+
+  if (host.state === "error") {
+    return (
+      <div className="flex flex-1 items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardContent className="flex flex-col items-center py-8 text-center">
+            <XCircleIcon className="h-12 w-12 text-red-500 mb-4" />
+            <p className="text-muted-foreground mb-4">{host.error}</p>
+            <Button variant="outline" onClick={host.reload}>
+              Thử lại
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (loading || host.state === "loading") {
     return (
       <div className="bg-background">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -317,79 +361,7 @@ export default function ExamSessionPage() {
     );
   }
 
-  const formatAttempts = (): string => {
-    if (stats.maxAttempts === null) {
-      return stats.currentAttempt === 0 ? "Lần đầu" : `Lần ${stats.currentAttempt}`;
-    }
-
-    const nextAttempt = stats.currentAttempt + 1;
-    return `${nextAttempt}/${stats.maxAttempts}`;
-  };
-
-  const formatDuration = (): number | string => {
-    if (stats.durationMinutes === null) {
-      return "Không giới hạn";
-    }
-    return stats.durationMinutes;
-  };
-
-  const formatPassingScore = (): number | string => {
-    if (stats.passingScore === 0) {
-      return "Không có";
-    }
-    return stats.passingScore;
-  };
-
-  const examInfo = {
-    title: stats.title,
-    subtitle: stats.description || "Thi trực tuyến",
-    duration: typeof formatDuration() === "number" ? (formatDuration() as number) : 0,
-    totalQuestions: stats.totalQuestions,
-    passingScore: typeof formatPassingScore() === "number" ? (formatPassingScore() as number) : 0,
-    attempts: formatAttempts(),
-  };
-
-  const calculateTimeRemaining = () => {
-    if (!stats.endTime) {
-      return null;
-    }
-
-    if (stats.status === EXAM_SESSION_STATUS.UPCOMING) {
-      const startTime = new Date(stats.startTime);
-      const now = new Date();
-      const diff = startTime.getTime() - now.getTime();
-
-      if (diff > 0) {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        return { hours, minutes, seconds };
-      }
-    }
-
-    if (stats.status === EXAM_SESSION_STATUS.ONGOING && stats.endTime) {
-      const endTime = new Date(stats.endTime);
-      const now = new Date();
-      const diff = endTime.getTime() - now.getTime();
-
-      if (diff > 0) {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        return { hours, minutes, seconds };
-      }
-    }
-
-    return null;
-  };
-
-  const examStartTime = new Date(stats.startTime).toLocaleDateString("vi-VN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const view = fromStudentStats(stats);
 
   const handleStartExam = () => {
     if (!canTakeExam) {
@@ -419,26 +391,34 @@ export default function ExamSessionPage() {
   };
 
   return (
-    <>
-      {!canTakeExam && (
-        <div
-          role="status"
-          className="mx-auto mt-4 max-w-4xl rounded-lg border border-hairline bg-surface-soft px-4 py-3 text-sm text-ink"
-        >
-          {t("rbac.teacherCannotTakeExam")}
-        </div>
-      )}
-      <ExamRoomDetailTemplate
-        examInfo={examInfo}
-        progress={stats.progress}
-        timeRemaining={calculateTimeRemaining()}
-        examStartTime={examStartTime}
-        onStartExam={handleStartExam}
-        myAttempts={myAttempts}
-        myAttemptsLoading={myAttemptsLoading}
-        onContinueAttempt={handleContinueAttempt}
-        onViewAttempt={handleViewAttempt}
-      />
-    </>
+    <WaitingRoomLayout
+      view={view}
+      crumb={{ label: "Bài thi của tôi", to: "/k/my-exams" }}
+      notice={
+        !canTakeExam && (
+          <div role="status" className="rounded-lg border border-hairline bg-surface-soft px-4 py-3 text-sm text-ink">
+            {t("rbac.teacherCannotTakeExam")}
+          </div>
+        )
+      }
+      aside={
+        <WaitingRoomAttemptsCard
+          attempts={myAttempts}
+          loading={myAttemptsLoading}
+          passingScore={view.passingScore}
+          onContinue={handleContinueAttempt}
+          onView={handleViewAttempt}
+        />
+      }
+      footer={
+        <WaitingRoomFooter
+          note={footerNote(view)}
+          pledge={{ checked: agreed, onChange: setAgreed }}
+          canStart={agreed && canTakeExam}
+          disabledReason={canTakeExam ? "Hãy xác nhận cam kết trước khi làm bài" : t("rbac.teacherCannotTakeExam")}
+          onStart={handleStartExam}
+        />
+      }
+    />
   );
 }

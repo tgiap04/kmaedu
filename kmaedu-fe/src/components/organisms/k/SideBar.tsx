@@ -7,6 +7,7 @@ import ProfileDropdown from "@/components/atoms/ProfileDropdown";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { usePageConfigStore } from "@/stores/usePageConfigStore";
 import { useCanFn } from "@/hooks/useCan";
+import { isNavActive } from "@/lib/rbac/nav-active";
 import { filterNav } from "@/lib/rbac/nav-items";
 import { useEffect } from "react";
 import { useIsDesktop } from "@/hooks/useMediaQuery";
@@ -53,28 +54,6 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   admin: <ShieldStarIcon className={ICON_CLASS} weight="duotone" />,
 };
 
-// Which routes light up an item (an item owns its detail pages too).
-function isActive(id: string, path: string): boolean {
-  switch (id) {
-    case "word-family":
-      return path.startsWith("/k/word-family");
-    case "manage-exam":
-      return path === "/k/manage-exam" || path.startsWith("/k/manage-quiz-set") || path.startsWith("/k/practice-quiz");
-    case "flash-card":
-      return path === "/k/flash-card" || path.startsWith("/k/manage-flashcard-set");
-    case "manage-exam-room":
-      return path.startsWith("/k/manage-exam-room");
-    case "study-room":
-      return path.startsWith("/k/study-room");
-    case "history":
-      return path === "/k/history" || path.startsWith("/k/history/");
-    case "admin":
-      return path === "/admin";
-    default:
-      return path === `/k/${id}`;
-  }
-}
-
 interface SidebarKitProps {
   collapsed?: boolean;
 }
@@ -115,10 +94,12 @@ export function SidebarKit({ collapsed = false }: SidebarKitProps) {
 
   const can = useCanFn();
   // Permission AND page flag (config + filter in lib/rbac/nav-items.ts).
-  const filteredSidebarItems: SidebarItem[] = filterNav(can, pageMap).map((item) => ({
+  const visibleNav = filterNav(can, pageMap);
+  const visibleIds = visibleNav.map((item) => item.id);
+  const filteredSidebarItems: SidebarItem[] = visibleNav.map((item) => ({
     ...item,
     icon: NAV_ICONS[item.id],
-    active: isActive(item.id, currentPath),
+    active: isNavActive(item.id, currentPath, visibleIds),
   }));
 
   const handleLogout = async () => {

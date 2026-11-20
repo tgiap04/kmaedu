@@ -1,19 +1,20 @@
 import type { PropsWithChildren } from "react";
 import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowCircleLeftIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon } from "@phosphor-icons/react";
 import Logo from "@/components/atoms/Logo";
 import ProfileDropdown from "@/components/atoms/ProfileDropdown";
+import { HeaderWaves, NotificationBell, dashboardHeaderClass } from "@/components/organisms/nav/header-parts";
+import { HeaderSearch } from "@/components/organisms/nav/header-search";
+import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 /**
- * Layout for exam session pages — minimal chrome:
- * - Header: logo + back-to-workspace + theme toggle + profile dropdown
- * - Footer: copyright
- * - No sidebar, no marketing nav
+ * Layout for exam session pages: the /k dashboard header (logo, back, workspace search, notifications,
+ * profile) without the sidebar, and the copyright footer.
  */
 export function ExamSessionLayout({ children }: PropsWithChildren) {
-  const { pathname, hash } = useLocation();
+  const { pathname, hash, key } = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
@@ -23,30 +24,36 @@ export function ExamSessionLayout({ children }: PropsWithChildren) {
     }
   }, [pathname, hash]);
 
+  // Back to the previous in-app page. The first entry the router saw (opened from a link, a new tab or
+  // another site) has key "default": going back from it would leave the app, so go to the exam list.
+  const goBack = () => (key !== "default" ? navigate(-1) : navigate("/k/my-exams"));
+
   const profile = {
     name: user?.name || user?.username || "Người dùng",
     email: user?.email || "",
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-ink">
-      <header className="sticky top-0 z-40 border-b border-hairline bg-canvas/95 backdrop-blur-md">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => navigate("/k/my-exams")}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-hairline bg-surface-soft text-muted-foreground transition-colors hover:bg-surface-card hover:text-ink"
-              aria-label="Về trang quản lý kỳ thi"
-            >
-              <ArrowCircleLeftIcon className="h-4 w-4" />
-            </button>
-            <Link to="/k/my-exams" className="flex items-center">
-              <Logo sizeLogo={36} sizeText={18} />
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2">
+    <div className="flex min-h-screen flex-col bg-page text-ink">
+      <header className={cn("sticky top-0 z-40", dashboardHeaderClass)}>
+        <HeaderWaves />
+        <div className="relative flex h-[76px] w-full items-center gap-4 px-4 xl:px-6 2xl:px-8">
+          <Link to="/k" className="flex shrink-0 items-center" aria-label="Về trang chủ">
+            <Logo sizeLogo={40} sizeText={18} />
+          </Link>
+          <span aria-hidden className="hidden h-8 w-px bg-hairline sm:block" />
+          <button
+            type="button"
+            onClick={goBack}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-hairline bg-canvas text-body shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-colors hover:border-brand-border hover:text-brand-strong"
+            aria-label="Quay lại"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </button>
+          <HeaderSearch />
+          <div className="ml-auto flex items-center gap-3">
+            <NotificationBell />
+            <span aria-hidden className="h-8 w-px bg-hairline" />
             <ProfileDropdown data={profile} variant="header" />
           </div>
         </div>

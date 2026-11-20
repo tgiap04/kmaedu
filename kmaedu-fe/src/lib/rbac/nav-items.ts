@@ -5,8 +5,6 @@ import { makeCanAny, type CanFn } from "./can";
 export interface NavConfigItem {
   id: string;
   href: string;
-  /** Used instead of `href` when the caller lacks `altHref.unless`. */
-  altHref?: { unless: Permission; href: string };
   label: string;
   shortLabel: string;
   /** Visible when ANY of these is held. */
@@ -30,15 +28,8 @@ export const NAV_ITEMS: readonly NavConfigItem[] = [
   { id: "flash-card", href: "/k/flash-card", label: "Quản lý Flashcard", shortLabel: "Flashcard", anyOf: ["flashcardset:manage"], pageKey: "flash-card" },
   { id: "manage-exam-room", href: "/k/manage-exam-room", label: "Quản lý Phòng thi", shortLabel: "Phòng thi", anyOf: ["exam_room:manage"], pageKey: "manage-exam-room" },
   { id: "study-room", href: "/k/study-room", label: "Phòng học chung", shortLabel: "Học chung", anyOf: ["study_room:join"], pageKey: "study-room" },
-  {
-    id: "history",
-    href: "/k/history",
-    altHref: { unless: "ai:generate", href: "/k/history/exam" },
-    label: "Lịch sử",
-    shortLabel: "Lịch sử",
-    anyOf: ["ai:generate", "exam:take"],
-    pageKey: "history",
-  },
+  // Students have no history page: their attempts live under "Bài thi của tôi".
+  { id: "history", href: "/k/history", label: "Lịch sử", shortLabel: "Lịch sử", anyOf: ["ai:generate"], pageKey: "history" },
   { id: "admin", href: "/admin", label: "Trang quản trị", shortLabel: "Admin", anyOf: ["admin:access"] },
 ];
 
@@ -48,7 +39,7 @@ export function filterNav(can: CanFn, pageMap: Partial<Record<PageKey, boolean>>
   return NAV_ITEMS.filter((item) => canAny(item.anyOf) && !(item.pageKey && pageMap[item.pageKey] === false)).map(
     (item) => ({
       id: item.id,
-      href: item.altHref && !can(item.altHref.unless) ? item.altHref.href : item.href,
+      href: item.href,
       label: item.label,
       shortLabel: item.shortLabel,
     }),

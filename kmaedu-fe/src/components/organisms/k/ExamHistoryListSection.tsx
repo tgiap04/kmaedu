@@ -23,7 +23,7 @@ const ExamHistoryListSectionComponent = ({
       <HistoryListCardHeader
         title="Lịch sử làm bài"
         subtitle="Kết quả các bài thi đã làm"
-        viewAllTo="/k/history/exam"
+        viewAllTo="/k/my-exams"
       />
 
       <div className="divide-y divide-hairline-soft">

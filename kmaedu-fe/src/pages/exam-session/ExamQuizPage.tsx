@@ -1,23 +1,24 @@
  
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/antd/button";
-import { Card, CardContent } from "@/components/antd/card";
-import { Progress } from "@/components/antd/progress";
-import { WarningIcon, ChartBarIcon, CheckCircleIcon, CaretCircleLeftIcon, CaretCircleRightIcon, ClockIcon, FlagIcon, CircleNotchIcon, XCircleIcon } from "@phosphor-icons/react";
-import { cn } from "@/lib/utils";
 import { setRedirectBackTarget } from "@/lib/authRedirect";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { resolveAnswerIndex } from "@/lib/quizAnswerUtils";
 import { ConfirmDialog } from "@/components/organisms/ConfirmDialog";
 import { toast } from "@/components/antd/toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCheatingDetection } from "@/hooks/useCheatingDetection";
 import { CheatingWarningModal } from "@/components/molecules/CheatingWarningModal";
-import { StandardMarkdownRenderer } from "@/components/molecules/StandardMarkdownRenderer";
 import { startExamAttemptApi, updateExamAttemptProgressApi, getExamAttemptDetailApi, submitExamAttemptApi, type Question } from "@/apis/examAttemptApi";
 import { useLeaveHandIn } from "./use-leave-hand-in";
-import { QuizOptionRow } from "@/components/molecules/QuizOptionRow";
+import { quizKeyAction } from "@/lib/exam-session/quiz-keys";
+import { QuizHeader } from "@/components/organisms/quiz/quiz-header";
+import { QuizProgressSegments } from "@/components/organisms/quiz/quiz-progress-segments";
+import { QuizQuestionCard } from "@/components/organisms/quiz/quiz-question-card";
+import { QuizNavigatorCard } from "@/components/organisms/quiz/quiz-navigator-card";
+import { QuizFooter } from "@/components/organisms/quiz/quiz-footer";
+import { QuizResultCard } from "@/components/organisms/quiz/quiz-result-card";
+import { QuizReviewView } from "@/components/organisms/quiz/quiz-review-view";
+import { QuizStatusScreen } from "@/components/organisms/quiz/quiz-status-screen";
 import { env } from "@/lib/env";
 import {
   fetchAndDecryptSecureQuiz,
@@ -180,6 +181,9 @@ export default function ExamQuizPage() {
 
   useEffect(() => {
     if (!examSessionId || initializing || !isAuthenticated) return;
+    // Set by the cleanup: this load was replaced (StrictMode remount, new location) and must not
+    // touch state or toast once its requests come back.
+    let cancelled = false;
 
     const initExam = async () => {
       // Reset all quiz state before (re-)initializing
@@ -207,6 +211,7 @@ export default function ExamQuizPage() {
           setIsViewOnly(true);
 
           const detail = await getExamAttemptDetailApi(urlAttemptId);
+          if (cancelled) return;
 
           // Backend now returns userAnswer per question directly.
           const resultQuestions: Question[] = (detail.questions || []).map((q) => ({
@@ -216,26 +221,22 @@ export default function ExamQuizPage() {
             answer: q.answer,
             userAnswer: q.userAnswer ?? null,
           }));
-          const correctCount = resultQuestions.filter(
-            (q) => q.answer !== undefined && q.userAnswer === q.answer,
-          ).length;
-          const percentage =
-            resultQuestions.length > 0
-              ? Math.round((correctCount / resultQuestions.length) * 100)
-              : 0;
+          // The server graded the attempt; its key is only sent when the session shows answers after hand-in.
+          const score = detail.score ?? detail.examAttempt.score ?? 0;
+          const passingScore = detail.passingScore || 0;
 
           setQuestions([]);
           setAnswers(detail.examAttempt.answers || {});
           setCurrentQuestionIndex(0);
 
           setResultData({
-            score: detail.examAttempt.score || 0,
-            totalQuestions: resultQuestions.length,
-            correctAnswers: correctCount,
-            percentage,
-            showAnswers: true,
-            passed: percentage >= (detail.passingScore || 0),
-            passingScore: detail.passingScore || 0,
+            score,
+            totalQuestions: detail.totalQuestions || resultQuestions.length,
+            correctAnswers: detail.correctAnswers ?? 0,
+            percentage: Math.round(score * 10) / 10,
+            showAnswers: resultQuestions.some((q) => q.answer !== undefined && q.answer !== null),
+            passed: score >= passingScore,
+            passingScore,
             violationCount: detail.violationCount || 0,
             questions: resultQuestions,
           });
@@ -258,9 +259,11 @@ export default function ExamQuizPage() {
           examSessionId,
           storedAccessCode,
         );
+        if (cancelled) return;
         setAttemptId(startResult.examAttempt.id);
 
         const secureQuizData = await fetchAndDecryptSecureQuiz(startResult.examAttempt.id);
+        if (cancelled) return;
 
         setQuestions(secureQuizData.questions);
         setTokenMap(secureQuizData.tokenMap);
@@ -307,11 +310,12 @@ export default function ExamQuizPage() {
           });
         }
       } catch (err: any) {
+        if (cancelled) return;
         const message = err?.response?.data?.message || err?.message || "Không thể bắt đầu bài thi";
         // Access denied (e.g. code-gated session opened without a verified
         // code) — send the user to the session page to enter the access code
         // instead of dead-ending here.
-        if (err?.response?.status === 403) {
+        if ((err?.status ?? err?.response?.status) === 403) {
           toast.error(message);
           navigate(`/exam-session/${examSessionId}`, { replace: true });
           return;
@@ -319,11 +323,14 @@ export default function ExamQuizPage() {
         setError(message);
         toast.error(message);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     initExam();
+    return () => {
+      cancelled = true;
+    };
   }, [examSessionId, initializing, isAuthenticated, location.key]);
 
   useEffect(() => {
@@ -388,18 +395,8 @@ export default function ExamQuizPage() {
   const totalQuestions = isViewOnly
     ? (resultData?.questions?.length ?? 0)
     : questions.length;
-  const answeredCount = Object.keys(answers).length;
-  const progressPercentage = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
-
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    if (h > 0) {
-      return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-    }
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
+  // A taken-back answer stays in the map as "": count only real picks.
+  const answeredCount = Object.values(answers).filter(Boolean).length;
 
   const formatTimeLabel = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
@@ -437,8 +434,13 @@ export default function ExamQuizPage() {
     });
   };
 
+  // One hand-in at a time: a double click or a key press while it is sent must not send it again.
+  const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const doSubmit = async () => {
-    if (!attemptId || tokenMap.size === 0) return;
+    if (!attemptId || tokenMap.size === 0 || submittingRef.current) return;
+    submittingRef.current = true;
+    setSubmitting(true);
 
     try {
       await saveProgress(answers);
@@ -460,6 +462,9 @@ export default function ExamQuizPage() {
     } catch (err: any) {
       const message = err?.response?.data?.message || err?.message || "Nộp bài thất bại";
       toast.error(message);
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   };
 
@@ -467,52 +472,45 @@ export default function ExamQuizPage() {
     navigate(`/exam-session/${examSessionId}`);
   };
 
+  const goPrev = () => setCurrentQuestionIndex((i) => Math.max(0, i - 1));
+  const goNext = () => setCurrentQuestionIndex((i) => Math.min(questions.length - 1, i + 1));
+
+  // A, B, C… pick an option, ← / → move between questions; off while a dialog is open.
+  const keysActive = !loading && !isSubmitted && !submitting && questions.length > 0 && !showSubmitConfirm && !leave.blocked && !cheatingDetection.isWarningVisible;
+  const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  keyHandlerRef.current = (e) => {
+    const action = quizKeyAction(e, currentQuestion?.options.length ?? 0);
+    if (!action) return;
+    e.preventDefault();
+    if (action.type === "prev") goPrev();
+    else if (action.type === "next") goNext();
+    // The same letter again takes the answer back, as a second click on the option does.
+    else handleAnswerSelect(currentQuestion && answers[currentQuestion.id] === action.letter ? "" : action.letter);
+  };
+  useEffect(() => {
+    if (!keysActive) return;
+    const onKey = (e: KeyboardEvent) => keyHandlerRef.current(e);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [keysActive]);
+
+  const backToRoom = { label: "Về phòng thi", onClick: handleExit };
+  const toMyExams = { label: "Bài thi của tôi", onClick: () => navigate("/k/my-exams") };
+
   if (initializing || !isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <CircleNotchIcon className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Đang kiểm tra đăng nhập...</p>
-        </div>
-      </div>
-    );
+    return <QuizStatusScreen tone="loading" title="Đang kiểm tra đăng nhập" message="Chờ một chút, chúng tôi đang xác nhận tài khoản của bạn." />;
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <CircleNotchIcon className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Đang tải bài thi...</p>
-        </div>
-      </div>
-    );
+    return <QuizStatusScreen tone="loading" title="Đang tải bài thi" message="Đề thi và câu trả lời đã lưu đang được tải về." />;
   }
 
   if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <XCircleIcon className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Không thể tải bài thi</h1>
-          <p className="text-muted-foreground mb-4">{error}</p>
-          <Button onClick={() => navigate(`/exam-session/${examSessionId}`)}>Quay lại</Button>
-        </div>
-      </div>
-    );
+    return <QuizStatusScreen tone="error" title="Không thể vào bài thi" message={error} primary={backToRoom} secondary={toMyExams} />;
   }
 
   if (totalQuestions === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <XCircleIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Không có câu hỏi</h1>
-          <p className="text-muted-foreground mb-4">Bài thi này chưa có câu hỏi nào</p>
-          <Button onClick={handleExit}>Quay lại</Button>
-        </div>
-      </div>
-    );
+    return <QuizStatusScreen tone="empty" title="Không có câu hỏi" message="Bài thi này chưa có câu hỏi nào. Hãy liên hệ người tạo phòng thi." primary={backToRoom} secondary={toMyExams} />;
   }
 
   if (isSubmitted && resultData) {
@@ -521,225 +519,28 @@ export default function ExamQuizPage() {
     const passed = resultData.passed;
 
     if (showDetailedResults && resultData.showAnswers && resultData.questions) {
-      const reviewQuestion = resultData.questions[reviewQuestionIndex];
-      const userAnswer = reviewQuestion.userAnswer;
-      const correctIdx = resolveAnswerIndex(reviewQuestion.answer || "A", reviewQuestion.options);
-      const correctLetter = String.fromCharCode(65 + correctIdx);
-      const isCorrect = userAnswer === correctLetter;
-
       return (
-        <div className="flex flex-col min-h-screen">
-          {/* Header — same structure as quiz mode header */}
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
-            <div className="container max-w-7xl mx-auto px-4 py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="sm" onClick={() => setShowDetailedResults(false)} className="!p-2">
-                    <CaretCircleLeftIcon className="h-4 w-4" />
-                  </Button>
-                  <div>
-                    <h1 className="text-base font-semibold">Xem lại kết quả</h1>
-                    <p className="text-xs text-muted-foreground">Câu {reviewQuestionIndex + 1} / {totalQuestions}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  {/* Score count — mirrors answered-count pill from quiz mode */}
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="w-4 h-4 rounded-lg bg-success" />
-                    <span className="text-muted-foreground">{correctAnswersCount}/{totalQuestions}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 container max-w-7xl mx-auto px-4 py-6">
-            {/* Progress bar — mirrors quiz mode, shows % correct */}
-            <div className="mb-4">
-              <Progress value={percentage} />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 space-y-4">
-                <Card className={cn("border-2", isCorrect ? "border-success" : "border-destructive")}>
-                  <CardContent>
-                    <div className="mb-4 flex justify-between items-start">
-                      <h2 className="text-lg font-semibold">
-                        Câu {reviewQuestionIndex + 1}/{totalQuestions}
-                      </h2>
-                    </div>
-
-                    <StandardMarkdownRenderer content={reviewQuestion.question} className="mb-6" fontSize={16} />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {reviewQuestion.options.map((option, index) => {
-                        const optionLetter = String.fromCharCode(65 + index);
-                        const isUserAnswer = userAnswer === optionLetter;
-                        const isCorrectAnswer = correctLetter === optionLetter;
-
-                        const state: "correct" | "wrong" | "skipped" = isCorrectAnswer ? "correct" : isUserAnswer ? "wrong" : "skipped";
-
-                        return (
-                          <QuizOptionRow
-                            key={index}
-                            optionLetter={optionLetter}
-                            state={state}
-                            content={<StandardMarkdownRenderer content={option} fontSize={13} />}
-                          />
-                        );
-                      })}
-                    </div>
-
-                    {!userAnswer && (
-                      <div className="mt-4 p-3 bg-warning/10 border border-warning/30 rounded-lg">
-                        <p className="text-warning text-sm">Bạn không trả lời câu hỏi này</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="lg:col-span-1">
-                <Card className="sticky !p-0">
-                  <CardContent className="p-4 flex flex-col" style={{ maxHeight: "calc(100vh - 24rem)" }}>
-                    <h3 className="font-semibold mb-4 flex items-center">
-                      <ChartBarIcon className="h-4 w-4 mr-2" />
-                      Danh sách câu hỏi
-                    </h3>
-
-                    <div className="grid grid-cols-5 gap-2 overflow-y-auto flex-1 min-h-0 p-1">
-                      {resultData.questions.map((q, index) => {
-                        const qUserAnswer = q.userAnswer;
-                        const qIsCorrect = qUserAnswer === q.answer;
-                        const isCurrent = index === reviewQuestionIndex;
-
-                        return (
-                          <button
-                            key={q.id}
-                            onClick={() => setReviewQuestionIndex(index)}
-                            className={cn(
-                              "aspect-square rounded-lg text-sm font-medium transition-colors",
-                              isCurrent && "ring-2 ring-primary ring-offset-2",
-                              qIsCorrect && "bg-success text-white",
-                              !qIsCorrect && qUserAnswer && "bg-destructive text-white",
-                              !qUserAnswer && "bg-muted text-muted-foreground",
-                            )}
-                          >
-                            {index + 1}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <div className="pt-4 mt-2 border-t space-y-2 text-sm shrink-0 bg-background !p-3 !rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-success rounded-lg" />
-                        <span className="text-muted-foreground">Đúng</span>
-                        <span className="ml-auto font-semibold">{correctAnswersCount}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-destructive rounded-lg" />
-                        <span className="text-muted-foreground">Sai</span>
-                        <span className="ml-auto font-semibold">{resultData.questions.filter((q) => q.userAnswer && q.userAnswer !== q.answer).length}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-muted rounded-lg border" />
-                        <span className="text-muted-foreground">Chưa trả lời</span>
-                        <span className="ml-auto font-semibold">{resultData.questions.filter((q) => !q.userAnswer).length}</span>
-                      </div>
-                    </div>
-
-                    <Button className="w-full !mt-3 !py-2" onClick={() => setShowDetailedResults(false)} variant="outline">
-                      Xem tổng quan
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="sticky bottom-0 z-10 bg-background/95 backdrop-blur border-t border-border">
-            <div className="container max-w-7xl mx-auto px-4 py-3">
-              <div className="flex items-center justify-between">
-                <Button variant="outline" onClick={() => setReviewQuestionIndex((prev) => prev - 1)} disabled={reviewQuestionIndex === 0}>
-                  <CaretCircleLeftIcon className="h-4 w-4 mr-2" />
-                  Câu trước
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={() => setReviewQuestionIndex((prev) => prev + 1)}
-                  disabled={reviewQuestionIndex === totalQuestions - 1}
-                >
-                  Câu sau
-                  <CaretCircleRightIcon className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <QuizReviewView
+          questions={resultData.questions}
+          index={reviewQuestionIndex}
+          onIndexChange={setReviewQuestionIndex}
+          onOverview={() => { setShowDetailedResults(false); window.scrollTo(0, 0); }}
+        />
       );
     }
 
     return (
-      <div className="container max-w-4xl mx-auto py-8 px-4">
-        <Card>
-          <CardContent>
-            <div className="text-center space-y-4">
-              <div className="flex justify-center">
-                {passed ? <CheckCircleIcon className="h-14 w-14 text-success" /> : <XCircleIcon className="h-14 w-14 text-destructive" />}
-              </div>
-
-              <div>
-                <h1 className="text-2xl font-bold mb-2">{passed ? "Chúc mừng!" : "Chưa đạt"}</h1>
-                <p className="text-muted-foreground">{passed ? "Bạn đã hoàn thành bài thi" : "Hãy cố gắng hơn lần sau"}</p>
-              </div>
-
-              <div className="grid grid-cols-5 gap-4 max-w-2xl mx-auto">
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-xl font-bold text-success">{correctAnswersCount}</div>
-                  <div className="text-sm text-muted-foreground">Đúng</div>
-                </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-xl font-bold text-destructive">{totalQuestions - correctAnswersCount}</div>
-                  <div className="text-sm text-muted-foreground">Sai</div>
-                </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-xl font-bold">{percentage.toFixed(0)}%</div>
-                  <div className="text-sm text-muted-foreground">Điểm</div>
-                </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-xl font-bold">{formatTimeLabel(timeSpentSeconds)}</div>
-                  <div className="text-sm text-muted-foreground">Thời gian</div>
-                </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className={`text-xl font-bold ${(resultData.violationCount ?? 0) > 0 ? "text-warning" : "text-success"}`}>
-                    {resultData.violationCount ?? 0}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Vi phạm</div>
-                </div>
-              </div>
-
-              <div className="flex gap-4 justify-center flex-wrap">
-                {resultData.showAnswers && resultData.questions && (
-                  <Button onClick={() => { setShowDetailedResults(true); setReviewQuestionIndex(0); }} variant="default">
-                    <ChartBarIcon className="h-4 w-4 mr-2" />
-                    Xem chi tiết
-                  </Button>
-                )}
-                <Button onClick={() => navigate(`/exam-session/${examSessionId}/quiz`)} variant="outline">
-                  Làm lại
-                </Button>
-                <Button onClick={handleExit} variant="outline">
-                  Thoát
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <QuizResultCard
+        passed={passed}
+        correct={correctAnswersCount}
+        total={totalQuestions}
+        percentage={percentage}
+        timeLabel={formatTimeLabel(timeSpentSeconds)}
+        violations={resultData.violationCount ?? 0}
+        onDetail={resultData.showAnswers && resultData.questions ? () => { setShowDetailedResults(true); setReviewQuestionIndex(0); window.scrollTo(0, 0); } : undefined}
+        onRetake={() => navigate(`/exam-session/${examSessionId}/quiz`)}
+        onExit={handleExit}
+      />
     );
   }
 
@@ -777,187 +578,54 @@ export default function ExamQuizPage() {
         totalViolations={cheatingDetection.totalViolations}
       />
 
-      <div className="flex flex-col min-h-screen">
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
-          <div className="container max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" onClick={handleExit} className="!p-2">
-                  <CaretCircleLeftIcon className="h-4 w-4" />
-                </Button>
-                <div>
-                  <h1 className="text-base font-semibold">Bài thi</h1>
-                  <p className="text-xs text-muted-foreground">Câu {currentQuestionIndex + 1} / {totalQuestions}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-4 h-4 rounded-lg bg-primary" />
-                  <span className="text-muted-foreground">{answeredCount}/{totalQuestions}</span>
-                </div>
-                <div
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-sm",
-                    remainingTime !== null && remainingTime <= 60 ? "bg-destructive/10 text-destructive animate-pulse" : "bg-muted",
-                  )}
-                >
-                  <ClockIcon className="h-4 w-4" />
-                  {remainingTime !== null ? (
-                    <span>
-                      {formatTimeLabel(remainingTime)}
-                      <span className="text-xs text-muted-foreground ml-1">còn lại</span>
-                    </span>
-                  ) : (
-                    <span>{formatTimeLabel(timeSpentSeconds)}</span>
-                  )}
-                </div>
-              </div>
+      <div className="flex min-h-[100dvh] flex-col bg-page bg-[radial-gradient(60rem_40rem_at_-10%_10%,color-mix(in_oklab,var(--brand-soft)_70%,transparent),transparent_60%)]">
+        <QuizHeader
+          title="Bài thi"
+          current={currentQuestionIndex + 1}
+          total={totalQuestions}
+          answered={answeredCount}
+          remaining={remainingTime}
+          elapsed={timeSpentSeconds}
+          onExit={handleExit}
+        />
+
+        <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 xl:px-6">
+          <QuizProgressSegments answered={questions.map((q) => !!answers[q.id])} current={currentQuestionIndex} onJump={setCurrentQuestionIndex} />
+
+          <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_420px]">
+            {currentQuestion && (
+              <QuizQuestionCard
+                index={currentQuestionIndex}
+                total={totalQuestions}
+                question={currentQuestion.question}
+                options={currentQuestion.options}
+                selected={answers[currentQuestion.id]}
+                marked={markedForReview.has(currentQuestion.id)}
+                onSelect={handleAnswerSelect}
+                onToggleMark={handleMarkForReview}
+              />
+            )}
+            <div>
+              <QuizNavigatorCard
+                ids={questions.map((q) => q.id)}
+                answered={new Set(Object.keys(answers).filter((qid) => answers[qid]))}
+                marked={markedForReview}
+                current={currentQuestionIndex}
+                onJump={setCurrentQuestionIndex}
+                onSubmit={() => setShowSubmitConfirm(true)}
+                warning={remainingTime !== null && remainingTime <= 300 && remainingTime > 0 ? `Còn ${Math.ceil(remainingTime / 60)} phút, bài sẽ tự nộp khi hết giờ` : null}
+              />
             </div>
           </div>
-        </div>
+        </main>
 
-        {/* Main Content */}
-        <div className="flex-1 container max-w-7xl mx-auto px-4 py-6">
-          <div className="mb-4">
-            <Progress value={progressPercentage} />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 space-y-4">
-              {currentQuestion && (
-                <Card>
-                  <CardContent>
-                    <div className="mb-4 flex justify-between items-start">
-                      <h2 className="text-lg font-semibold">
-                        Câu {currentQuestionIndex + 1}/{totalQuestions}
-                      </h2>
-                      <Button
-                        variant={markedForReview.has(currentQuestion.id) ? "default" : "outline"}
-                        size="sm"
-                        className="!p-4"
-                        onClick={handleMarkForReview}
-                      >
-                        <FlagIcon className="h-4 w-4 mr-2" />
-                        {markedForReview.has(currentQuestion.id) ? "Đã đánh dấu" : "Đánh dấu"}
-                      </Button>
-                    </div>
-
-                    <StandardMarkdownRenderer content={currentQuestion.question} className="mb-6" fontSize={16} />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {currentQuestion.options.map((option, index) => {
-                        const optionLetter = String.fromCharCode(65 + index);
-                        const isSelected = answers[currentQuestion.id] === optionLetter;
-
-                        return (
-                          <QuizOptionRow
-                            key={index}
-                            optionLetter={optionLetter}
-                            state={isSelected ? "selected" : "default"}
-                            onClick={() => handleAnswerSelect(isSelected ? "" : optionLetter)}
-                            content={<StandardMarkdownRenderer content={option} fontSize={13} />}
-                          />
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            <div className="lg:col-span-1">
-              <Card className="sticky !p-0">
-                <CardContent className="p-4 flex flex-col" style={{ maxHeight: "calc(100vh - 24rem)" }}>
-                  <h3 className="font-semibold mb-4 flex items-center">
-                    <ChartBarIcon className="h-4 w-4 mr-2" />
-                    Danh sách câu hỏi
-                  </h3>
-
-                  <div className="grid grid-cols-5 gap-2 overflow-y-auto flex-1 min-h-0 p-1">
-                    {questions.map((q, index) => {
-                      const isAnswered = !!answers[q.id];
-                      const isMarked = markedForReview.has(q.id);
-                      const isCurrent = index === currentQuestionIndex;
-
-                      return (
-                        <button
-                          key={q.id}
-                          onClick={() => setCurrentQuestionIndex(index)}
-                          className={cn(
-                            "aspect-square rounded-lg text-sm font-medium transition-colors relative",
-                            isCurrent && "ring-2 ring-primary ring-offset-2",
-                            isAnswered && !isCurrent && "bg-primary text-primary-foreground",
-                            !isAnswered && !isCurrent && "bg-muted hover:bg-muted/80",
-                          )}
-                        >
-                          {index + 1}
-                          {isMarked && <FlagIcon className="h-3 w-3 absolute top-1 right-1 size-8" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="pt-4 mt-2 border-t space-y-2 text-sm shrink-0 bg-background !p-2 !rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-primary rounded-lg" />
-                      <span className="text-muted-foreground">Đã trả lời</span>
-                      <span className="ml-auto font-semibold">{answeredCount}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-muted rounded-lg" />
-                      <span className="text-muted-foreground">Chưa trả lời</span>
-                      <span className="ml-auto font-semibold">{totalQuestions - answeredCount}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FlagIcon className="h-4 w-4 text-warning" />
-                      <span className="text-muted-foreground">Đánh dấu</span>
-                      <span className="ml-auto font-semibold">{markedForReview.size}</span>
-                    </div>
-                  </div>
-
-                  {remainingTime !== null && remainingTime <= 300 && remainingTime > 0 && (
-                    <div className="mt-3 p-3 bg-warning/10 border border-warning/30 rounded-lg shrink-0">
-                      <div className="flex items-center gap-2 text-warning text-sm">
-                        <WarningIcon className="h-4 w-4" />
-                        <span>Còn {Math.ceil(remainingTime / 60)} phút</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <Button className="w-full !mt-3" onClick={() => setShowSubmitConfirm(true)} variant="default">
-                    Nộp bài
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="sticky bottom-0 z-10 bg-background/95 backdrop-blur border-t border-border">
-          <div className="container max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <Button variant="outline" onClick={() => setCurrentQuestionIndex((prev) => prev - 1)} disabled={currentQuestionIndex === 0}>
-                <CaretCircleLeftIcon className="h-4 w-4 mr-2" />
-                Câu trước
-              </Button>
-
-              <div className="flex items-center gap-2">
-                {currentQuestionIndex === totalQuestions - 1 ? (
-                  <Button onClick={() => (answeredCount < totalQuestions ? setShowSubmitConfirm(true) : doSubmit())}>
-                    Nộp bài
-                  </Button>
-                ) : (
-                  <Button onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}>
-                    Câu sau
-                    <CaretCircleRightIcon className="h-4 w-4 ml-2" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <QuizFooter
+          current={currentQuestionIndex}
+          total={totalQuestions}
+          onPrev={goPrev}
+          onNext={goNext}
+          last={{ label: "Nộp bài", onClick: () => (answeredCount < totalQuestions ? setShowSubmitConfirm(true) : doSubmit()) }}
+        />
       </div>
     </>
   );

@@ -1,18 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { CaretCircleLeftIcon, CaretCircleRightIcon, BarbellIcon, PlayIcon } from "@phosphor-icons/react";
-import { Button } from "@/components/antd/button";
+import { CaretRightIcon, BarbellIcon } from "@phosphor-icons/react";
 import { PageHeader } from "@/components/k-page/page-header";
-import { pillClass, RowsSkeleton, SectionCard, SectionMessage } from "@/components/k-page/section-card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/antd/tabs";
+import { RowsSkeleton, SectionCard, SectionMessage } from "@/components/k-page/section-card";
 import { ConfirmDialog } from "@/components/organisms/ConfirmDialog";
 import { listAttemptsApi, type AttemptHistoryItem } from "@/apis/quizPracticeApi";
 import { unansweredCount } from "@/lib/quiz-practice/progress";
 import { AccessCodeForm } from "./components/quiz-practice/AccessCodeForm";
+import { PracticeIntroCard } from "./components/quiz-practice/practice-intro-card";
+import { PracticeQuizView } from "./components/quiz-practice/practice-quiz-view";
 import { PracticeHistory } from "./components/quiz-practice/PracticeHistory";
-import { PracticeResult } from "./components/quiz-practice/PracticeResult";
-import { QuestionNavigator } from "./components/quiz-practice/QuestionNavigator";
-import { QuestionPanel } from "./components/quiz-practice/QuestionPanel";
+import { PracticeResultView } from "./components/quiz-practice/practice-result-view";
 import { usePracticeSession } from "./components/quiz-practice/usePracticeSession";
 
 export default function QuizPracticePage() {
@@ -34,7 +32,6 @@ export default function QuizPracticePage() {
   }, [s.phase, loadHistory]);
 
   const title = s.access?.title ?? "Luyện tập";
-  const current = s.questions[s.progress.currentIndex];
 
   return (
     <div className="space-y-4">
@@ -42,10 +39,12 @@ export default function QuizPracticePage() {
         icon={<BarbellIcon />}
         title={title}
         subtitle="Luyện tập trắc nghiệm, đáp án hiện sau khi bạn nộp bài"
-        actions={
-          <Link to="/k/my-materials" className={pillClass}>
-            Tài liệu của tôi
-          </Link>
+        eyebrow={
+          <nav aria-label="Đường dẫn" className="flex items-center gap-1.5 text-sm">
+            <Link to="/k/my-materials" className="font-medium text-body transition-colors hover:text-brand-strong">Tài liệu của tôi</Link>
+            <CaretRightIcon weight="bold" className="size-3 text-muted-foreground" aria-hidden />
+            <span aria-current="page" className="max-w-[60vw] truncate font-semibold text-ink">{title}</span>
+          </nav>
         }
       />
 
@@ -66,72 +65,34 @@ export default function QuizPracticePage() {
       )}
 
       {s.phase === "intro" && (
-        <SectionCard icon={<BarbellIcon />} title="Luyện tập" countLabel={`${s.access?.questionCount ?? 0} câu hỏi`} plain>
-        <Tabs defaultValue="practice" className="px-4 pb-4 md:px-5">
-          <TabsList>
-            <TabsTrigger value="practice">Luyện tập</TabsTrigger>
-            <TabsTrigger value="history">Lịch sử</TabsTrigger>
-          </TabsList>
-          <TabsContent value="practice">
-            <div className="space-y-3 py-4">
-              <p className="text-muted-foreground">{s.access?.questionCount ?? 0} câu hỏi. Đáp án chỉ hiện sau khi bạn nộp bài.</p>
-              <p className="text-sm text-muted-foreground">Nếu bạn đang làm dở, bài sẽ được tiếp tục từ chỗ dừng.</p>
-              {s.problem && <p className="text-sm text-destructive">{s.problem}</p>}
-              <Button onClick={s.start} disabled={s.busy}>
-                <PlayIcon className="mr-1.5 h-4 w-4" />
-                {s.busy ? "Đang tải..." : "Bắt đầu / Tiếp tục"}
-              </Button>
-            </div>
-          </TabsContent>
-          <TabsContent value="history">
-            <PracticeHistory attempts={history} error={historyError} onOpen={s.openAttempt} onRetry={loadHistory} />
-          </TabsContent>
-        </Tabs>
-        </SectionCard>
+        <PracticeIntroCard
+          questionCount={s.access?.questionCount ?? 0}
+          busy={s.busy}
+          problem={s.problem}
+          onStart={s.start}
+          history={<PracticeHistory attempts={history} error={historyError} onOpen={s.openAttempt} onRetry={loadHistory} />}
+        />
       )}
 
-      {s.phase === "practice" && current && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="space-y-4 lg:col-span-2">
-            <QuestionPanel
-              question={current}
-              index={s.progress.currentIndex}
-              total={s.questions.length}
-              selected={s.progress.answers[current.id] ?? ""}
-              marked={s.progress.markedQuestions.includes(current.id)}
-              onSelect={(letter) => s.select(current.id, letter)}
-              onToggleMark={() => s.mark(current.id)}
-            />
-            <div className="flex items-center justify-between">
-              <Button variant="outline" onClick={() => s.go(s.progress.currentIndex - 1)} disabled={s.progress.currentIndex === 0}>
-                <CaretCircleLeftIcon className="mr-1 h-4 w-4" />
-                Câu trước
-              </Button>
-              {s.progress.currentIndex < s.questions.length - 1 ? (
-                <Button onClick={() => s.go(s.progress.currentIndex + 1)}>
-                  Câu sau
-                  <CaretCircleRightIcon className="ml-1 h-4 w-4" />
-                </Button>
-              ) : (
-                <Button onClick={() => setConfirmSubmit(true)} disabled={s.busy}>
-                  Nộp bài
-                </Button>
-              )}
-            </div>
-            {s.problem && <p className="text-sm text-destructive">{s.problem}</p>}
-          </div>
-          <div className="space-y-3">
-            <QuestionNavigator questions={s.questions} currentIndex={s.progress.currentIndex} progress={s.progress} onGo={s.go} />
-            <Button className="w-full" variant="outline" onClick={() => setConfirmSubmit(true)} disabled={s.busy}>
-              Nộp bài
-            </Button>
-          </div>
-        </div>
+      {s.phase === "practice" && (
+        <PracticeQuizView
+          questions={s.questions}
+          currentIndex={s.progress.currentIndex}
+          answers={s.progress.answers}
+          marked={s.progress.markedQuestions}
+          busy={s.busy}
+          problem={s.problem}
+          keysEnabled={!confirmSubmit}
+          onGo={s.go}
+          onSelect={s.select}
+          onToggleMark={s.mark}
+          onSubmit={() => setConfirmSubmit(true)}
+        />
       )}
 
       {s.phase === "result" && s.result && (
         <div className="space-y-4">
-          <PracticeResult result={s.result} onPracticeAgain={s.backToIntro} />
+          <PracticeResultView key={s.result.attempt.id} result={s.result} onPracticeAgain={s.backToIntro} />
           <PracticeHistory attempts={history} error={historyError} onOpen={s.openAttempt} onRetry={loadHistory} />
         </div>
       )}

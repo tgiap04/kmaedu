@@ -47,6 +47,8 @@ export interface ExamSession {
     allowLeaveMidway?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    /** Host view only: questions one attempt gets. */
+    totalQuestions?: number | null;
     // Snapshot drift (host view only)
     snapshotOutdated?: boolean | null;
     canRefreshSnapshot?: boolean;

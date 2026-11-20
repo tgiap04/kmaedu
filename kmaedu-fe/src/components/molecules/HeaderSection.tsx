@@ -17,7 +17,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { cn } from "@/lib/utils";
 import Logo from "../atoms/Logo";
 import LanguageSwitcher from "./language-switcher";
-import { Facehash } from "facehash";
+import { UserAvatar } from "@/components/atoms/UserAvatar";
 
 const menuItems = [
   { name: "nav.features", href: "/#features" },
@@ -114,7 +114,13 @@ export default function HeaderSection() {
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Facehash name={user?.name || "User"} size={40} className="text-coral" />
+                  <button
+                    type="button"
+                    aria-label={t("nav.account")}
+                    className="rounded-full transition-shadow hover:shadow-[0_0_0_4px_rgba(217,45,41,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                  >
+                    <UserAvatar name={user?.name || "User"} size={40} className="ring-2 ring-brand-border" />
+                  </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-[180px]">
                   <DropdownMenuLabel className="font-semibold">

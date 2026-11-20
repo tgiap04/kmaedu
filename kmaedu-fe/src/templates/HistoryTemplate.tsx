@@ -58,7 +58,7 @@ export function HistoryTemplate({
 
       <RecentActivitySection
         activities={activities}
-        viewAllTo={showExamHistory ? "/k/history/exam" : showPdfHistory ? "/k/history/pdf" : undefined}
+        viewAllTo={showExamHistory ? "/k/my-exams" : showPdfHistory ? "/k/history/pdf" : undefined}
       />
 
       <div className={`grid gap-4 ${twoColumns ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>

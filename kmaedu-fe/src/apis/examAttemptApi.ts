@@ -254,7 +254,6 @@ export interface MyAttemptItem {
   startedAt: string;
   finishedAt: string | null;
   violationCount: number;
-  timeSpentSeconds: number | null;
 }
 
 export interface MyAttemptsResponse {

@@ -1,5 +1,4 @@
-import { EyeIcon, FileTextIcon, DotsThreeCircleVerticalIcon, PencilSimpleIcon, TrashIcon } from "@phosphor-icons/react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/antd/dropdown-menu";
+import { EyeIcon, FileTextIcon, PencilSimpleIcon, TrashIcon } from "@phosphor-icons/react";
 import type { ExamStatus } from "@/components/atoms/k/ExamStatusBadge";
 import { cn } from "@/lib/utils";
 
@@ -47,42 +46,30 @@ export function examSubtitle(exam: ExamTableData) {
   return "Chưa có mô tả";
 }
 
-const outlineBtn =
-  "inline-flex h-9 items-center gap-1.5 rounded-lg border border-hairline bg-canvas px-3 text-[14px] font-medium text-ink transition-colors hover:border-brand-border hover:bg-brand-soft hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40";
+const iconBtn =
+  "grid size-9 place-items-center rounded-lg border border-hairline bg-canvas text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 [&_svg]:size-4";
 
-/** Xem / Sửa outline buttons plus the ⋮ menu (Sửa, Xóa), as in the mock. */
+/** View, edit and delete as icon-only buttons: the tooltip says the action, the accessible name the action and the set. */
 export function ExamRowActions({ exam, handlers }: { exam: ExamTableData; handlers: ExamRowHandlers }) {
+  const actions = [
+    { label: "Xem", icon: <EyeIcon aria-hidden />, onClick: handlers.onView, tone: "hover:border-brand-border hover:bg-brand-soft hover:text-brand" },
+    { label: "Sửa", icon: <PencilSimpleIcon aria-hidden />, onClick: handlers.onEdit, tone: "hover:border-brand-border hover:bg-brand-soft hover:text-brand" },
+    { label: "Xóa", icon: <TrashIcon aria-hidden />, onClick: handlers.onDelete, tone: "hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive" },
+  ];
   return (
     <div className="flex items-center justify-end gap-1.5">
-      <button type="button" onClick={() => handlers.onView(exam.id)} className={outlineBtn}>
-        <EyeIcon className="size-4" aria-hidden />
-        Xem
-      </button>
-      <button type="button" onClick={() => handlers.onEdit(exam.id)} className={outlineBtn}>
-        <PencilSimpleIcon className="size-4" aria-hidden />
-        Sửa
-      </button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label={`Tùy chọn cho ${exam.name}`}
-            className="ml-1 grid size-9 place-items-center rounded-lg text-body transition-colors hover:bg-surface-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-          >
-            <DotsThreeCircleVerticalIcon className="size-4" aria-hidden />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => handlers.onEdit(exam.id)} className="cursor-pointer">
-            <PencilSimpleIcon className="mr-2 size-4" aria-hidden />
-            Chỉnh sửa
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handlers.onDelete(exam.id)} className="cursor-pointer text-destructive focus:text-destructive">
-            <TrashIcon className="mr-2 size-4" aria-hidden />
-            Xóa
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {actions.map(({ label, icon, onClick, tone }) => (
+        <button
+          key={label}
+          type="button"
+          onClick={() => onClick(exam.id)}
+          aria-label={`${label} ${exam.name}`}
+          title={label}
+          className={cn(iconBtn, tone)}
+        >
+          {icon}
+        </button>
+      ))}
     </div>
   );
 }

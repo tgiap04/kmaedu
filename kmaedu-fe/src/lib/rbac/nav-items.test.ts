@@ -13,7 +13,6 @@ describe("filterNav", () => {
       "Tài liệu của tôi",
       "Bài thi của tôi",
       "Phòng học chung",
-      "Lịch sử",
     ]);
   });
 
@@ -39,11 +38,13 @@ describe("filterNav", () => {
     expect(labels(permissionsForRoles(["TEACHER"]), { "ai-tool": false })).not.toContain("Công cụ AI");
   });
 
-  it("points History at the exam tab for a STUDENT and at the hub for a TEACHER", () => {
-    const hrefOf = (roles: Parameters<typeof permissionsForRoles>[0]) =>
-      filterNav(makeCan(permissionsForRoles(roles)), {}).find((i) => i.id === "history")?.href;
-    expect(hrefOf(["STUDENT"])).toBe("/k/history/exam");
-    expect(hrefOf(["TEACHER"])).toBe("/k/history");
+  it("shows History only with ai:generate, always at the hub", () => {
+    const historyOf = (roles: Parameters<typeof permissionsForRoles>[0]) =>
+      filterNav(makeCan(permissionsForRoles(roles)), {}).find((i) => i.id === "history");
+    expect(historyOf(["STUDENT"])).toBeUndefined();
+    expect(historyOf(["TEACHER"])?.href).toBe("/k/history");
+    expect(filterNav(makeCan(["exam:take"]), {}).find((i) => i.id === "history")).toBeUndefined();
+    expect(filterNav(makeCan(["ai:generate"]), {}).find((i) => i.id === "history")?.href).toBe("/k/history");
   });
 });
 

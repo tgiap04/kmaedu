@@ -28,18 +28,25 @@ export default function ProfilePage() {
 
   // Fetch profile on mount
   useEffect(() => {
+    // Set by the cleanup: a replaced load (StrictMode remount) must not apply or toast.
+    let cancelled = false;
     const fetchProfile = async () => {
       try {
         const data = await getProfileApi();
+        if (cancelled) return;
         setProfile(data);
       } catch (error) {
+        if (cancelled) return;
         console.error("Không thể tải hồ sơ:", error);
         toast.error(apiErrorMessage(error, "Không thể tải hồ sơ."));
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
     fetchProfile();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
