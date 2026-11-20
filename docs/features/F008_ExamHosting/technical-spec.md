@@ -82,16 +82,24 @@ None.
 #### DEC-008_01 — Start vs. Resume Button
 **subtype:** render
 **Triggers in:** SCR031 (ExamSessionPage) on mount
-**Involved entities:** `ExamAttempt.status`, `ExamSession.status`
-**user_visible_outcome:** Shows "Start Exam" if no in-progress attempt exists; shows "Resume Exam" if one does
-**Source:** `kmaedu-fe/src/pages/k/ExamSessionPage.tsx` (inferred)
+**Involved entities:** `ExamAttempt.status`, `ExamSession.startTime`, `ExamSession.endTime`
+**user_visible_outcome:** A candidate sees one "Bắt đầu làm bài" button in the footer, plus a "Lịch sử làm bài" card: an in-progress attempt (status 0) gets "Tiếp tục làm bài", any other attempt gets "Xem chi tiết". A host who may manage sessions sees the host waiting room instead
+**Source:** `kmaedu-fe/src/pages/exam-session/ExamSessionPage.tsx:176`, `kmaedu-fe/src/pages/exam-session/ExamSessionPage.tsx:384`, `kmaedu-fe/src/pages/exam-session/components/waiting-room-attempts-card.tsx:71`, `kmaedu-fe/src/pages/exam-session/use-host-waiting-room.ts:31`
 
 ```pseudo
-attempts = fetchAttempts(sessionId)
-inProgress = attempts.find(a => a.status === 0)
-if inProgress exists → render "Resume Exam" button
-else if session.status === 1 (ONGOING) → render "Start Exam" button
-else → render "Session not active" disabled state
+host = useHostWaitingRoom(sessionId, authenticated && can("exam_session:manage"))   // GET examsessions/get-by-id; 404 → not-host
+if host.state === "host" → render HostWaitingRoom (no start, no attempt list)
+
+attempts = getMyAttemptsBySessionApi(sessionId, 1, 10)      // only when the stats gate passes
+for each attempt:
+  if attempt.status === 0 → badge "Đang thi" + button "Tiếp tục làm bài" → quiz?attemptId=…
+  else                    → button "Xem chi tiết" → quiz?attemptId=…&view=result
+
+footer button "Bắt đầu làm bài" is always rendered; enabled only if pledge ticked and user can take exams
+on click:
+  if startTime > now → toast "not started yet", stay
+  else if endTime < now → toast "session ended", stay
+  else → navigate to quiz
 ```
 
 #### DEC-008_02 — Session Entry Access Gate
@@ -553,12 +561,12 @@ None.
 | ExamAttemptService | `kmaedu-be/apps/assessment-service/src/modules/examattempt/examattempt.service.ts` | Attempt creation, submission, grading |
 | useCheatingDetection | `kmaedu-fe/src/hooks/useCheatingDetection.ts` | Browser event listeners for integrity violations (BL013) |
 | ExamQuizPage | `kmaedu-fe/src/pages/exam-session/ExamQuizPage.tsx` | Active exam UI with auto-save polling (BL016) |
-| ExamRoomDetailTemplate | `kmaedu-fe/src/pages/k/ExamSessionPage.tsx` | Session entry page with access check |
-| ExamRoomModal | `kmaedu-fe/src/components/k/examroom/ExamRoomModal.tsx` | Create/edit exam room dialog |
-| SessionTable | `kmaedu-fe/src/components/k/examroom/SessionTable.tsx` | Paginated session list on room detail page |
-| ShareDialog | `kmaedu-fe/src/components/k/examroom/ShareDialog.tsx` | Access code and sharing configuration |
-| AttemptTable | `kmaedu-fe/src/components/k/analytics/AttemptTable.tsx` | Leaderboard table on analytics page |
-| ScoreBarChart | `kmaedu-fe/src/components/k/analytics/ScoreBarChart.tsx` | Score distribution chart |
+| ExamSessionPage | `kmaedu-fe/src/pages/exam-session/ExamSessionPage.tsx` | Waiting page: access check, candidate view, host view (`use-host-waiting-room.ts`) |
+| ExamRoomModal | `kmaedu-fe/src/components/organisms/ExamRoomModal.tsx` | Create/edit exam room dialog |
+| RoomSessionsTab | `kmaedu-fe/src/pages/k/components/exam-room-detail/room-sessions-tab.tsx` | Session list on the room detail page |
+| ExamSessionFormModal | `kmaedu-fe/src/components/organisms/ExamSessionFormModal.tsx` | Session settings, including access type and access code |
+| RankingCard | `kmaedu-fe/src/pages/k/components/session-analytics-sections.tsx` | Leaderboard table on analytics page |
+| ScoreDistributionCard | `kmaedu-fe/src/pages/k/components/session-analytics-sections.tsx` | Score distribution chart (and ViolationsCard: violations by type) |
 
 ## Unresolved Questions
 

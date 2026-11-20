@@ -7,7 +7,7 @@
 | MyMaterialsPage / ExamRoomGrid (SCR016/REG003) | Grid of user's exam rooms with title, session count, and status | Create new exam room (opens modal), edit room (navigates to detail), delete room (confirmation dialog) |
 | HistoryPage / ExamHistoryList (SCR018/REG002) | Center panel listing past exam attempts with scores and timestamps | Click to navigate to ExamHistoryPage for detail |
 | HistoryPage / StatsCards (SCR018/REG003) | Right panel showing aggregated study statistics | Refresh stats via button |
-| ExamHistoryPage (SCR019) | Paginated list of past exam attempts with scores and timestamps | View attempt details, navigate pages |
+| ExamHistoryPage (SCR019, removed 2026-11-20) | Retired: students see their attempts on MyExamsPage (SCR029) | — |
 | ManageExamPage (SCR021) | List of teacher's exam rooms and quiz sets | Create exam room via modal (secondary path) |
 | ManageExamRoomPage (SCR026) | Stat tiles (rooms, running, ended, participants), search / status / created-at filters, table or grid of rooms with quiz set, time span, participants and status | Create a room, open one ("Vào phòng" / "Xem kết quả"), edit or delete from the row menu, tick rooms and delete them together |
 | ManageExamRoomDetailPage / Header (SCR027/REG001) | Room name, quiz set, status pill; stat tiles (sessions, running, ended, participants) | Copy the running (else next) session's link, open the results tab, end the room (closes every running session after a confirmation) |

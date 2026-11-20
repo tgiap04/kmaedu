@@ -29,7 +29,7 @@
 | SCR016 | MyMaterialsPage | composite | 5 | QuizSet, FlashCardSet, ExamRoom |
 | SCR017 | FlashcardsPage | atomic | ~3 | FlashCardSet, FlashcardGenerator |
 | SCR018 | HistoryPage | composite | 4 | PDF history, Exam history, Stats |
-| SCR019 | ExamHistoryPage | atomic | ~2 | Exam attempts |
+| SCR019 | ExamHistoryPage (REMOVED 2026-11-20) | atomic | ~2 | Removed: students use SCR029 (`/k/my-exams`) |
 | SCR020 | PDFHistoryPage | atomic | ~2 | PDF upload history |
 | SCR021 | ManageExamPage | atomic | ~3 | ExamRoom, QuizSet CRUD |
 | SCR022 | ManageQuizSetDetailPage | atomic | ~4 | QuizSet, Label, Question |
@@ -538,7 +538,7 @@ User history hub with three independent data regions: PDF upload history, exam a
 
 ### Related Screens
 
-- SCR019: ExamHistoryPage (exam history drill-down)
+- SCR019: ExamHistoryPage (removed 2026-11-20; exam rows open SCR029)
 - SCR020: PDFHistoryPage (PDF history drill-down)
 
 ### Regions
@@ -551,7 +551,9 @@ User history hub with three independent data regions: PDF upload history, exam a
 
 ---
 
-## SCR019: ExamHistoryPage
+## SCR019: ExamHistoryPage (REMOVED 2026-11-20)
+
+> **REMOVED 2026-11-20.** Students no longer have a history page; their attempts are listed on SCR029 (MyExamsPage, `/k/my-exams`). The `/k/history/exam` route and `ExamHistoryPage` were deleted, and the History area (`/k/history`, `/k/history/pdf`) now needs `ai:generate`. Retired code: SCR019. The text below is historical.
 
 **Type**: atomic
 
@@ -1340,8 +1342,8 @@ Route `/admin/roles`, sidebar item "Phân quyền" (`nav.roles`, `AdminLayout`).
 
 ## Summary
 
-- **Total Screens**: 41 active + 3 removed (SCR015, SCR025, SCR036)
-- **Atomic**: 37 (SCR001–SCR012, SCR014, SCR017, SCR019–SCR024, SCR026, SCR028–SCR035, SCR037–SCR044)
+- **Total Screens**: 40 active + 4 removed (SCR015, SCR019, SCR025, SCR036)
+- **Atomic**: 36 active (SCR001–SCR012, SCR014, SCR017, SCR020–SCR024, SCR026, SCR028–SCR035, SCR037–SCR044) + 1 removed (SCR019)
 - **Composite**: 4 active (SCR013, SCR016, SCR018, SCR027) + 1 removed (SCR025)
 - **Total Regions**: 15 across composite screens
 
@@ -1349,7 +1351,7 @@ Route `/admin/roles`, sidebar item "Phân quyền" (`nav.roles`, `AdminLayout`).
 
 ## Cross-Reference Validation
 
-- [x] All SCR### codes are unique (SCR001–SCR044; SCR015, SCR025 and SCR036 are retired, not reused)
+- [x] All SCR### codes are unique (SCR001–SCR044; SCR015, SCR019, SCR025 and SCR036 are retired, not reused)
 - [x] All SCR### codes are referenced in ScreenFlow.md
 - [x] All route URLs are properly formatted
 - [x] All SCR### codes are referenced in FeatureList.md

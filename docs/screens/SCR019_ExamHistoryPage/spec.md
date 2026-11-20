@@ -1,5 +1,7 @@
 # SCR019: ExamHistoryPage — Screen Spec
 
+> **REMOVED 2026-11-20.** Students no longer have a history page; their attempts are listed on SCR029 (MyExamsPage, `/k/my-exams`). The `/k/history/exam` route and `ExamHistoryPage` were deleted, and the History area (`/k/history`, `/k/history/pdf`) now needs `ai:generate`. Retired code: SCR019. The text below is historical.
+
 **Screen**: SCR019: ExamHistoryPage
 **Type**: atomic
 **Route**: `/k/history/exam`

@@ -34,7 +34,6 @@ graph TD
     KROOT --> VERIFY[SCR014_VerifyPage<br/>/k/verify]
     KROOT --> FLASHCARDS[SCR017_FlashcardsPage<br/>/k/flash-card]
     KROOT --> HISTORY[SCR018_HistoryPage<br/>/k/history]
-    HISTORY --> EXAMHIST[SCR019_ExamHistoryPage<br/>/k/history/exam]
     HISTORY --> PDFHIST[SCR020_PDFHistoryPage<br/>/k/history/pdf]
     KROOT --> MANAGE_EXAM[SCR021_ManageExamPage<br/>/k/manage-exam]
     KROOT --> MANAGE_QS[SCR022_ManageQuizSetDetailPage<br/>/k/manage-quiz-set/:id]
@@ -91,7 +90,7 @@ graph TD
 | SCR016 | SCR023 | Click flashcard set card | None | |
 | SCR016 | SCR027 | Click exam room card | None | |
 | SCR016 | SCR027 | Click exam room in list | None | |
-| SCR018 | SCR019 | Click exam history item | None | |
+| SCR018 | SCR029 | Click exam history item | Holds `exam:take` | |
 | SCR018 | SCR020 | Click PDF history item | None | |
 | SCR021 | SCR026 | Click "Quản lý phòng thi" | None | |
 | SCR021 | SCR022 | Click quiz set row | None | |
@@ -268,13 +267,15 @@ graph TD
 - From SCR016 nav
 
 **Exit Points**:
-- To SCR019: Click exam history tab/row
+- To SCR029: Click exam history row (only with `exam:take`)
 - To SCR020: Click PDF history tab/row
 - To SCR016: Back navigation
 
 ---
 
-### SCR019 (ExamHistoryPage)
+### SCR019 (ExamHistoryPage) — REMOVED 2026-11-20
+
+> **REMOVED 2026-11-20.** Students no longer have a history page; their attempts are listed on SCR029 (MyExamsPage, `/k/my-exams`). The `/k/history/exam` route and `ExamHistoryPage` were deleted, and the History area (`/k/history`, `/k/history/pdf`) now needs `ai:generate`. Retired code: SCR019. The text below is historical.
 
 **Entry Points**:
 - Direct URL access `/k/history/exam`
@@ -515,7 +516,7 @@ graph TD
 | SCR016/REG002 (FlashCardSetGrid) | SCR023 (ManageFlashcardSetDetailPage) | Click flashcard set card | No (URL changes) |
 | SCR016/REG003 (ExamRoomGrid) | SCR027 (ManageExamRoomDetailPage) | Click exam room card | No (URL changes) |
 | SCR018/REG001 (PDFHistoryList) | SCR020 (PDFHistoryPage) | Click PDF history item | No (URL changes) |
-| SCR018/REG002 (ExamHistoryList) | SCR019 (ExamHistoryPage) | Click exam history item | No (URL changes) |
+| SCR018/REG002 (ExamHistoryList) | SCR029 (MyExamsPage) | Click exam history item | No (URL changes) |
 | SCR025/REG001 (FolderPanel) | SCR025/REG002 (FilePanel) | (removed 2026-06-14) | n/a |
 | SCR027/REG003 (SessionTable) | SCR028 (ExamRoomSessionAnalyticsPage) | Click "Xem thống kê" | No (URL changes) |
 | SCR029/REG001 (SessionCard) | SCR029/REG002 (SessionHistoryDialog) | Click "Lịch sử" on card | Yes (dialog) |

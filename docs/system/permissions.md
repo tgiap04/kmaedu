@@ -263,8 +263,8 @@ UX gating only; the backend decisions above are authoritative. Source: `kmaedu-f
 | `/k`, `/k/profile`, `/k/verify` | login only | - |
 | `/k/my-materials` | `flashcard:study` | `my-materials` |
 | `/k/flash-card`, `/k/manage-flashcard-set/:id` | `flashcardset:manage` | `flash-card` |
-| `/k/history` | `ai:generate` or `exam:take` | `history` |
-| `/k/history/exam` | `exam:take` | `history` |
+| `/k/history` | `ai:generate` | `history` |
+| `/k/history/exam` | none: redirects to `/k/my-exams` (old links) | - |
 | `/k/history/pdf` | `ai:generate` | `history` |
 | `/study-flashcard/:id` | `flashcard:study` or `flashcardset:manage` (now requires login; was open) | - |
 | `/exam-session/:id` | none in the router (the page handles its own access) | - |
@@ -290,7 +290,7 @@ UX gating only; the backend decisions above are authoritative. Source: `kmaedu-f
 | `/admin/word-family` | `word_family:admin` |
 | `/admin/page-config` | `page_config:manage` |
 
-**Sidebar** (`NAV_ITEMS`): an item shows when the caller holds any of its `anyOf` permissions and its page flag is not `false`: AI tool `ai:generate`; word family `word_family:read`; my materials `flashcard:study`; my exams `exam:take`; manage exam `quizset:manage`; flashcard `flashcardset:manage`; exam rooms `exam_room:manage`; study room `study_room:join`; history `ai:generate` or `exam:take` (links to `/k/history/exam` when the caller lacks `ai:generate`); admin `admin:access`.
+**Sidebar** (`NAV_ITEMS`): an item shows when the caller holds any of its `anyOf` permissions and its page flag is not `false`: AI tool `ai:generate`; word family `word_family:read`; my materials `flashcard:study`; my exams `exam:take`; manage exam `quizset:manage`; flashcard `flashcardset:manage`; exam rooms `exam_room:manage`; study room `study_room:join`; history `ai:generate` (students have none: their attempts are under my exams); admin `admin:access`.
 
 **Role landing** (`/k`, `resolveLandingPath`): a safe same-origin `from` wins; else TEACHER `/k/ai-tool`, STUDENT who is also SYSTEM_ADMIN `/admin`, other STUDENT `/k/my-materials`; if that target is not visible, the first visible nav item, else `/k/profile`.
 

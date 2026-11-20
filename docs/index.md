@@ -76,7 +76,7 @@ See `screens/SCR###_Name/spec.md`. Each screen has Purpose, Layout, User Flow, D
 | SCR016 | MyMaterialsPage | `/k/my-materials` |
 | SCR017 | FlashcardsPage | `/k/flash-card` |
 | SCR018 | HistoryPage | `/k/history` |
-| SCR019 | ExamHistoryPage | `/k/history/exam` |
+| SCR019 | ExamHistoryPage (removed 2026-11-20) | — |
 | SCR020 | PDFHistoryPage | `/k/history/pdf` |
 | SCR021 | ManageExamPage | `/k/manage-exam` |
 | SCR022 | ManageQuizSetDetailPage | `/k/manage-quiz-set/:id` |

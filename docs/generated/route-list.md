@@ -593,8 +593,7 @@ Updated 2026-10-22 (phase 09): every non-public route is wrapped by `guarded()` 
 | /k/verify | VerifyPage | KLayout | login only |
 | /k/my-materials | MyMaterialsPage | KLayout | `flashcard:study` |
 | /k/flash-card | FlashcardsPage | KLayout | `flashcardset:manage` |
-| /k/history | HistoryPage | KLayout | `ai:generate` or `exam:take` |
-| /k/history/exam | ExamHistoryPage | KLayout | `exam:take` |
+| /k/history | HistoryPage | KLayout | `ai:generate` |
 | /k/history/pdf | PDFHistoryPage | KLayout | `ai:generate` |
 | /k/manage-exam | ManageExamPage | KLayout | `quizset:manage` |
 | /k/manage-exam/create | CreateExamPage | KLayout | `quizset:manage` |

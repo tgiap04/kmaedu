@@ -394,7 +394,7 @@
 - SCR016/REG003: MyMaterialsPage / ExamRoomGrid
 - SCR018/REG002: HistoryPage / ExamHistoryList
 - SCR018/REG003: HistoryPage / StatsCards
-- SCR019: ExamHistoryPage
+- SCR019: ExamHistoryPage (removed 2026-11-20)
 - SCR021: ManageExamPage
 - SCR026: ManageExamRoomPage
 - SCR027/REG001: ManageExamRoomDetailPage / StatsGrid
