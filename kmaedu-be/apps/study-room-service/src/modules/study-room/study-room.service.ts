@@ -172,7 +172,10 @@ export class StudyRoomService {
                 'Host không thể rời phòng. Hãy xoá phòng hoặc đóng phòng.'
             );
         }
-        await this.repo.removeMember(id, user.id);
+        // Bị ban thì giữ nguyên dòng member: xoá đi là mất lệnh ban, vào lại được.
+        if (!member.isBanned) {
+            await this.repo.removeMember(id, user.id);
+        }
         return { success: true };
     }
 

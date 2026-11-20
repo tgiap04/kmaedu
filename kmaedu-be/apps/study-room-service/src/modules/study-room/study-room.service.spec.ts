@@ -5,7 +5,7 @@ import {
     BadRequestException,
 } from '@nestjs/common';
 import { StudyRoomService } from './study-room.service';
-import { StudyRoomRole } from './study-room.constants';
+import { AccessType, StudyRoomRole } from './study-room.constants';
 
 const user = { id: 'u1' } as any;
 
@@ -140,6 +140,38 @@ describe('StudyRoomService', () => {
             repo.findMember.mockResolvedValue({ role: StudyRoomRole.MEMBER });
             await service.leaveRoom('r1', user);
             expect(repo.removeMember).toHaveBeenCalledWith('r1', 'u1');
+        });
+        it('member bị ban rời phòng: giữ dòng member để lệnh ban không mất', async () => {
+            const { service, repo } = make();
+            repo.findMember.mockResolvedValue({
+                role: StudyRoomRole.MEMBER,
+                isBanned: true,
+            });
+            await expect(service.leaveRoom('r1', user)).resolves.toEqual({
+                success: true,
+            });
+            expect(repo.removeMember).not.toHaveBeenCalled();
+        });
+        it('rời phòng khi bị ban rồi vào lại vẫn bị chặn', async () => {
+            const { service, repo } = make();
+            const banned = { role: StudyRoomRole.MEMBER, isBanned: true };
+            repo.findMember.mockResolvedValue(banned);
+            // Repo giả: removeMember xoá dòng thật, nên lần join sau thấy null.
+            repo.removeMember.mockImplementation(async () =>
+                repo.findMember.mockResolvedValue(null)
+            );
+            await service.leaveRoom('r1', user);
+            repo.findRoom.mockResolvedValue({
+                id: 'r1',
+                accessType: AccessType.PUBLIC,
+                isActive: true,
+                maxParticipants: 20,
+            });
+            repo.countMembers.mockResolvedValue(1);
+            await expect(service.joinById(user, 'r1')).rejects.toBeInstanceOf(
+                ForbiddenException
+            );
+            expect(repo.addMember).not.toHaveBeenCalled();
         });
     });
 
