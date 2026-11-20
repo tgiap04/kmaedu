@@ -1136,91 +1136,22 @@ export class ExamAttemptService {
 
     // ==================== EXISTING METHODS ====================
 
+    /**
+     * Legacy `POST /examattempts`: same rules as `/start` (access, time window, retake limit, row lock and a
+     * drawn question list), only the response keeps its old shape. Creating the row here directly skipped the
+     * draw, so `secure-quiz` served the whole pool to such an attempt.
+     */
     async createExamAttempt(user: AuthUser, dto: CreateExamAttemptDto) {
-        // Verify exam session exists
-        const examSession = await this.examSessionRepository.findOne({
-            where: { id: dto.examSessionId },
-            include: {
-                examRoom: true,
-            },
-            cache: true,
+        const { examAttempt, isResume } = await this.startExamAttempt(user, dto);
+        const withRelations = await this.examAttemptRepository.findOne({
+            where: { id: examAttempt.id },
+            include: { examSession: { include: { examRoom: true } } },
+            cache: false,
         });
-
-        if (!examSession) {
-            throw new NotFoundException('Phiên thi không tồn tại');
-        }
-
-        // Access control: block non-participants from private / whitelisted /
-        // code-gated sessions before any attempt row is created.
-        await this.assertSessionAccess(examSession, user, dto.accessCode);
-
-        // Check if exam has started
-        if ((examSession as any).status === EXAM_SESSION_STATUS.UPCOMING) {
-            throw new BadRequestException('Phiên thi chưa bắt đầu');
-        }
-
-        if ((examSession as any).status === EXAM_SESSION_STATUS.ENDED) {
-            throw new BadRequestException('Phiên thi đã kết thúc');
-        }
-
-        // Check if user has reached max attempts - use a COUNT query instead
-        // of loading every prior attempt row just to read its length.
-        const attemptCount = await this.examAttemptRepository.countUserAttempts(
-            user.id,
-            dto.examSessionId
-        );
-
-        // Use ExamSession settings for retry check
-        if (!(examSession as any).allowRetake && attemptCount > 0) {
-            throw new BadRequestException('Bạn đã hết lượt thi');
-        }
-
-        if (attemptCount >= (examSession as any).maxAttempts) {
-            throw new BadRequestException(
-                `Bạn đã đạt số lần thi tối đa (${(examSession as any).maxAttempts})`
-            );
-        }
-
-        try {
-            // Same row lock as `startExamAttempt`: an attempt never appears next to a refreshed snapshot.
-            const newExamAttempt = await this.prisma.$transaction(async (tx) => {
-                await lockSessionRow(tx, dto.examSessionId);
-                return tx.examAttempt.create({
-                    data: {
-                        id: this.generateIdService.generateId(),
-                        examSessionId: dto.examSessionId,
-                        userId: user.id,
-                        score: 0,
-                        violationCount: 0,
-                        startedAt: new Date(),
-                        status: EXAM_ATTEMPT_STATUS.IN_PROGRESS,
-                    },
-                });
-            });
-            await this.examAttemptRepository.invalidateUserListCache(user.id);
-            await this.examAttemptRepository.invalidateItemCache(user.id, newExamAttempt.id);
-
-            // Load relations for response
-            const examAttemptWithRelations =
-                await this.examAttemptRepository.findOne({
-                    where: { id: newExamAttempt.id },
-                    include: { examSession: { include: { examRoom: true } } },
-                    cache: false,
-                });
-
-            return {
-                message: 'Bắt đầu làm bài thành công',
-                examAttempt: toAttemptView(
-                    (await this.users.withUser(
-                        examAttemptWithRelations as any
-                    )) as any,
-                    'examinee'
-                ),
-            };
-        } catch (error) {
-            rethrowKnown(error);
-            throw new InternalServerErrorException('Bắt đầu làm bài thất bại');
-        }
+        return {
+            message: isResume ? 'Tiếp tục làm bài' : 'Bắt đầu làm bài thành công',
+            examAttempt: toAttemptView((await this.users.withUser(withRelations as any)) as any, 'examinee'),
+        };
     }
 
     async getExamAttemptById(id: string, user: AuthUser) {
@@ -1643,23 +1574,22 @@ export class ExamAttemptService {
                 }
 
                 // Check question exists in this exam
-                const question = questionMap.get(decoded.qid);
-                if (!question) {
+                if (!questionMap.has(decoded.qid)) {
                     invalidTokenCount++;
                     continue;
                 }
 
-                // Store verified answer
+                // One answer per question: a later entry for the same token replaces an earlier one.
                 verifiedAnswers[decoded.qid] = ans.chosen_option;
-
-                // Check if correct
-                if (question.answer === ans.chosen_option) {
-                    correctCount++;
-                }
             } catch (error) {
                 // Token verification failed
                 invalidTokenCount++;
             }
+        }
+
+        // Grade after de-duplicating: counting per entry let one token sent with every option score its question.
+        for (const [qid, chosen] of Object.entries(verifiedAnswers)) {
+            if (questionMap.get(qid)?.answer === chosen) correctCount++;
         }
 
         // Log violations if invalid tokens found

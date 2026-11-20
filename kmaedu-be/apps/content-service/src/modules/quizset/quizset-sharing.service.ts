@@ -10,6 +10,8 @@ import {
 } from '../common/sharing-view.util';
 import { QuizSetRepository } from './quizset.repository';
 import { UserEnricher } from '../user-profile/user-enricher.service';
+import { RedisService } from '@kmaedu/redis';
+import { clearResourceCodeFailures } from '../common/access-code-guard';
 
 const NOT_FOUND = 'Bộ câu hỏi không tồn tại';
 
@@ -19,7 +21,8 @@ export class QuizsetSharingService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly quizSetRepository: QuizSetRepository,
-        private readonly users: UserEnricher
+        private readonly users: UserEnricher,
+        private readonly redis: RedisService
     ) {}
 
     async getSharing(id: string, user: AuthUser): Promise<SharingView> {
@@ -65,6 +68,7 @@ export class QuizsetSharingService {
         });
         if (count === 0) throw new NotFoundException(NOT_FOUND);
         await this.quizSetRepository.invalidateItemCache(user.id, id);
+        await clearResourceCodeFailures(this.redis.getClient(), id);
         return { accessCode };
     }
 }

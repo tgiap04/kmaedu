@@ -34,6 +34,7 @@ import {
 import { FlashCardSetRepository } from './flashcardset.repository';
 import type { AuthUser } from '@kmaedu/auth-jwt';
 import {
+    clearResourceCodeFailures,
     generateAccessCode,
     verifyAccessCodeOrThrow,
 } from '../common/access-code-guard';
@@ -1244,6 +1245,7 @@ export class FlashcardsetService {
             throw new NotFoundException('Bộ thẻ ghi nhớ không tồn tại');
         }
         await this.flashcardSetRepository.invalidateItemCache(user.id, id);
+        await clearResourceCodeFailures(this.redis.getClient(), id);
         return { accessCode };
     }
 

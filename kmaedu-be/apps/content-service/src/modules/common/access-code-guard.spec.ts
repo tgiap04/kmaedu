@@ -3,7 +3,10 @@ import { HttpException } from '@nestjs/common';
 import {
     CODE_FAIL_LIMIT,
     CODE_FAIL_WINDOW_SECONDS,
+    CODE_RESOURCE_FAIL_LIMIT,
     codeFailKey,
+    clearResourceCodeFailures,
+    codeResourceFailKey,
     generateAccessCode,
     verifyAccessCodeOrThrow,
 } from './access-code-guard';
@@ -37,6 +40,11 @@ class FakeRedis {
         return e.expiresAt === undefined
             ? -1
             : Math.ceil((e.expiresAt - this.now) / 1000);
+    }
+    async decr(key: string) {
+        this.guard();
+        const e = this.live(key);
+        if (e) e.value -= 1;
     }
     async del(key: string) {
         this.guard();
@@ -247,6 +255,119 @@ describe('verifyAccessCodeOrThrow', () => {
         ]);
         // only the first 5 attempts (by arrival) may be evaluated; the right code at position 9 is refused
         expect(results[8]).toBe('429 CODE_LOCKED');
+    });
+});
+
+describe('verifyAccessCodeOrThrow per-resource limit', () => {
+    let redis: FakeRedis;
+    const attempt = async (userId: string, given: string) => {
+        try {
+            await verifyAccessCodeOrThrow(redis as unknown as Redis, {
+                resourceId: 'set-1',
+                userId,
+                stored: '123456',
+                given,
+            });
+            return 'ok';
+        } catch (e) {
+            const x = e as HttpException;
+            return `${x.getStatus()} ${(x.getResponse() as { code: string }).code}`;
+        }
+    };
+    /** `users` accounts each burn 5 wrong guesses (their own per-user limit). */
+    const burn = async (users: number) => {
+        for (let u = 0; u < users; u++)
+            for (let i = 0; i < 5; i++) await attempt(`farm${u}`, `00000${i}`);
+    };
+
+    beforeEach(() => {
+        redis = new FakeRedis();
+    });
+
+    it('uses the documented resource limit and key shape', () => {
+        // A whole class mistyping once must not lock an exam: only a guessing campaign does.
+        expect(CODE_RESOURCE_FAIL_LIMIT).toBe(500);
+        expect(codeResourceFailKey('r')).toBe('content:codefail-res:r');
+    });
+
+    it('locks the resource for every user once many accounts together guess wrong, even with the right code', async () => {
+        await burn(CODE_RESOURCE_FAIL_LIMIT / CODE_FAIL_LIMIT);
+        expect(await attempt('legit', '123456')).toBe('429 CODE_LOCKED');
+        expect(await attempt('legit', '000000')).toBe('429 CODE_LOCKED');
+    });
+
+    it('reports a retry window on the resource lock', async () => {
+        await burn(CODE_RESOURCE_FAIL_LIMIT / CODE_FAIL_LIMIT);
+        try {
+            await verifyAccessCodeOrThrow(redis as unknown as Redis, {
+                resourceId: 'set-1',
+                userId: 'legit',
+                stored: '123456',
+                given: '123456',
+            });
+            throw new Error('expected a lock');
+        } catch (e) {
+            const body = (e as HttpException).getResponse() as {
+                code: string;
+                retryAfterSeconds: number;
+            };
+            expect(body.code).toBe('CODE_LOCKED');
+            expect(body.retryAfterSeconds).toBeGreaterThan(0);
+            expect(body.retryAfterSeconds).toBeLessThanOrEqual(900);
+        }
+    });
+
+    it('does not lock a different resource', async () => {
+        await burn(CODE_RESOURCE_FAIL_LIMIT / CODE_FAIL_LIMIT);
+        await expect(
+            verifyAccessCodeOrThrow(redis as unknown as Redis, {
+                resourceId: 'set-2',
+                userId: 'legit',
+                stored: '123456',
+                given: '123456',
+            })
+        ).resolves.toBeUndefined();
+    });
+
+    it('a code rotation clears the shared budget, so the host can unlock at once', async () => {
+        await burn(CODE_RESOURCE_FAIL_LIMIT / CODE_FAIL_LIMIT);
+        await clearResourceCodeFailures(redis as unknown as Redis, 'set-1');
+        expect(await attempt('legit', '123456')).toBe('ok');
+    });
+
+    it('lets users in again after the window expires', async () => {
+        await burn(CODE_RESOURCE_FAIL_LIMIT / CODE_FAIL_LIMIT);
+        redis.now += 901_000;
+        expect(await attempt('legit', '123456')).toBe('ok');
+    });
+
+    it('stays open just below the limit', async () => {
+        await burn(CODE_RESOURCE_FAIL_LIMIT / CODE_FAIL_LIMIT - 1);
+        expect(await attempt('legit', '123456')).toBe('ok');
+    });
+
+    it('does not let an already user-locked account burn the shared budget', async () => {
+        for (let i = 0; i < 200; i++)
+            await attempt('spammer', `${i}`.padStart(6, '0'));
+        expect(await attempt('legit', '123456')).toBe('ok');
+    });
+
+    it('does not spend the shared budget on correct codes', async () => {
+        for (let u = 0; u < 80; u++) {
+            expect(await attempt(`student${u}`, '123456')).toBe('ok');
+        }
+    });
+
+    it('caps parallel guesses across accounts at the resource limit', async () => {
+        const crypto = await import('crypto');
+        const spy = jest.spyOn(crypto, 'timingSafeEqual');
+        await Promise.all(
+            Array.from({ length: CODE_RESOURCE_FAIL_LIMIT + 70 }, (_, i) =>
+                attempt(`p${i}`, `${i}`.padStart(6, '0'))
+            )
+        );
+        expect(spy.mock.calls.length).toBeLessThanOrEqual(CODE_RESOURCE_FAIL_LIMIT);
+        spy.mockRestore();
     });
 });
 

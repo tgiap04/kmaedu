@@ -13,6 +13,10 @@ const user = { id: HOST } as never;
 
 /** In-memory stand-in for RedisService (same get/set/del/delPattern contract). */
 class FakeRedis {
+    /** Raw ioredis client: only the code guard's shared-budget reset uses it here. */
+    getClient() {
+        return { del: async () => 1 };
+    }
     store = new Map<string, string>();
     async get(k: string) {
         const v = this.store.get(k);

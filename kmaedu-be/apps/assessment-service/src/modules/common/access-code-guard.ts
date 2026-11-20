@@ -4,6 +4,10 @@ import type Redis from 'ioredis';
 
 export const CODE_FAIL_LIMIT = 5;
 export const CODE_FAIL_WINDOW_SECONDS = 900;
+/** Wrong or in-flight guesses ALL users together may spend on one resource per window. */
+// Sized for a guessing campaign, not for a class mistyping once (a few hundred students must not lock an exam):
+// ~500 shared misses per window keeps a 6-digit code at well under a 0.1 % chance per window.
+export const CODE_RESOURCE_FAIL_LIMIT = 500;
 const ACCESS_CODE_PATTERN = /^\d{6}$/;
 
 const logger = new Logger('AccessCodeGuard');
@@ -16,6 +20,13 @@ export const generateAccessCode = (): string =>
 export const codeFailKey = (resourceId: string, userId: string): string =>
     `assessment:codefail:${resourceId}:${userId}`;
 
+/**
+ * Shared budget for one resource across every user, so an account farm cannot
+ * multiply the per-user limit (5 guesses x N accounts).
+ */
+export const codeResourceFailKey = (resourceId: string): string =>
+    `assessment:codefail-res:${resourceId}`;
+
 export interface VerifyAccessCodeInput {
     resourceId: string;
     userId: string;
@@ -25,7 +36,7 @@ export interface VerifyAccessCodeInput {
     given: unknown;
 }
 
-type CodeRedis = Pick<Redis, 'del' | 'multi'>;
+type CodeRedis = Pick<Redis, 'decr' | 'del' | 'multi'>;
 
 const sha256 = (value: string): Buffer =>
     createHash('sha256').update(value, 'utf8').digest();
@@ -58,6 +69,23 @@ const unavailable = (cause: unknown): HttpException => {
     );
 };
 
+/** Atomic INCR (EXPIRE on the first) -> [count, ttl]; any Redis problem is a 503. */
+async function bump(redis: CodeRedis, key: string): Promise<[number, number]> {
+    try {
+        const results = await redis
+            .multi()
+            .incr(key)
+            .expire(key, CODE_FAIL_WINDOW_SECONDS, 'NX')
+            .ttl(key)
+            .exec();
+        if (!results || results.some(([e]) => e))
+            throw new Error('INCR transaction failed');
+        return [Number(results[0][1]), Number(results[2][1])];
+    } catch (err) {
+        throw unavailable(err);
+    }
+}
+
 /**
  * The single place an access code is compared (flashcard sets, exam sessions,
  * exam attempts, and the quiz `unlock` later). Fail-closed and race-free:
@@ -68,7 +96,15 @@ const unavailable = (cause: unknown): HttpException => {
  *    caps the guesses that are ever evaluated at the limit per window;
  * 3. the comparison is `timingSafeEqual` over sha256 digests (fixed length);
  * 4. success clears the counter; a wrong code at the limit answers 429, below it
- *    400; any Redis error is a 503.
+ *    400; any Redis error is a 503;
+ * 5. a second counter per resource, shared by all users, takes one slot per
+ *    evaluated attempt and gives it back on success. Above
+ *    `CODE_RESOURCE_FAIL_LIMIT` every attempt on that resource is 429 for the
+ *    rest of the window, a CORRECT code included: otherwise the lock would
+ *    not stop a farm of accounts, which only needs to be right once. The cost
+ *    is that a crowd of wrong guesses can briefly keep honest users out. A
+ *    user already locked by (2) is refused before this counter is touched, so
+ *    one account cannot burn the shared budget alone.
  */
 export async function verifyAccessCodeOrThrow(
     redis: CodeRedis,
@@ -83,29 +119,20 @@ export async function verifyAccessCodeOrThrow(
     }
 
     const key = codeFailKey(resourceId, userId);
-    let count: number;
-    let ttl: number;
-    try {
-        const results = await redis
-            .multi()
-            .incr(key)
-            .expire(key, CODE_FAIL_WINDOW_SECONDS, 'NX')
-            .ttl(key)
-            .exec();
-        if (!results || results.some(([e]) => e))
-            throw new Error('INCR transaction failed');
-        count = Number(results[0][1]);
-        ttl = Number(results[2][1]);
-    } catch (err) {
-        throw unavailable(err);
-    }
+    const [count, ttl] = await bump(redis, key);
     if (count > CODE_FAIL_LIMIT) throw locked(ttl);
+
+    const resourceKey = codeResourceFailKey(resourceId);
+    const [resourceCount, resourceTtl] = await bump(redis, resourceKey);
+    if (resourceCount > CODE_RESOURCE_FAIL_LIMIT) throw locked(resourceTtl);
 
     if (stored && timingSafeEqual(sha256(stored), sha256(given))) {
         try {
             await redis.del(key);
+            // A right code is not a guess: give the shared slot back.
+            await redis.decr(resourceKey);
         } catch (err) {
-            // The code was right; a stale counter only expires on its own.
+            // The code was right; stale counters only expire on their own.
             logger.warn(
                 `Could not clear ${key}: ${err instanceof Error ? err.message : String(err)}`
             );
@@ -113,6 +140,19 @@ export async function verifyAccessCodeOrThrow(
         return;
     }
 
-    if (count >= CODE_FAIL_LIMIT) throw locked(ttl);
+    if (count >= CODE_FAIL_LIMIT || resourceCount >= CODE_RESOURCE_FAIL_LIMIT)
+        throw locked(count >= CODE_FAIL_LIMIT ? ttl : resourceTtl);
     throw error(400, 'INVALID_CODE', 'Access code is incorrect');
+}
+
+/**
+ * Drop a resource's shared failure budget. Called when the owner rotates the code: the guesses were against
+ * the old code, and rotating is how a host unlocks a resource that a guessing campaign locked. Best effort.
+ */
+export async function clearResourceCodeFailures(redis: Pick<Redis, 'del'>, resourceId: string): Promise<void> {
+    try {
+        await redis.del(codeResourceFailKey(resourceId));
+    } catch (cause) {
+        logger.warn(`Could not clear the code budget of ${resourceId}: ${cause instanceof Error ? cause.message : String(cause)}`);
+    }
 }

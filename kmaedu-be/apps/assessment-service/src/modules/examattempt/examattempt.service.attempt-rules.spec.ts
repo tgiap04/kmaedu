@@ -185,6 +185,27 @@ describe('ExamAttemptService attempt rules', () => {
     });
 
     describe('submitSecureExamAttempt', () => {
+        it('grades one answer per question: sending every option for a token does not score it', async () => {
+            now(0);
+            const { service, prisma } = build(attemptRow());
+            // q1's key is A: the token sent once per option must not count A as a hit.
+            const every = ['A', 'B', 'C', 'D'].map((chosen_option) => ({ token: 'tok', chosen_option }));
+            const result = await service.submitSecureExamAttempt(ATTEMPT, owner, every);
+            expect(result).toMatchObject({ score: 0, correctAnswers: 0, totalQuestions: 2 });
+            expect(prisma.examAttempt.update.mock.calls[0][0].data.answers).toEqual({ q1: 'D' });
+        });
+
+        it('keeps the last answer sent for a question, and counts it once', async () => {
+            now(0);
+            const { service } = build(attemptRow());
+            const result = await service.submitSecureExamAttempt(ATTEMPT, owner, [
+                { token: 'tok', chosen_option: 'D' },
+                { token: 'tok', chosen_option: 'A' },
+                { token: 'tok', chosen_option: 'A' },
+            ]);
+            expect(result).toMatchObject({ score: 50, correctAnswers: 1, totalQuestions: 2 });
+        });
+
         it('after deadline + grace ignores the answers sent and grades only what was saved in time', async () => {
             now(10 * MIN + 31_000);
             const { service, prisma, crypto } = build(

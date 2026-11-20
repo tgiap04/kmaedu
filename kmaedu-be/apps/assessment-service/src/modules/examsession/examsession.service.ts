@@ -28,6 +28,7 @@ import { ExamRoomRepository } from '../examroom/examroom.repository';
 import { ExamAttemptRepository } from '../examattempt/examattempt.repository';
 import type { AuthUser } from '@kmaedu/auth-jwt';
 import {
+    clearResourceCodeFailures,
     generateAccessCode,
     verifyAccessCodeOrThrow,
 } from '../common/access-code-guard';
@@ -740,11 +741,8 @@ export class ExamSessionService {
             throw new NotFoundException('Phiên thi không tồn tại');
         }
 
-        // The questions come from the session's snapshot; the mapper strips the answer key.
-        const snapshot = await this.snapshots.load(id, examSession.quizSnapshotHash);
         return toExamSessionStudyView(
             await this.users.withRoomHost(this.withRoomQuizSet(examSession)),
-            snapshot.questions,
             examSession.examRoom.hostId === userId
         );
     }
@@ -887,6 +885,7 @@ export class ExamSessionService {
         await this.examSessionRepository.invalidateItemCache(user.id, id);
         await this.examSessionRepository.invalidateUserListCache(user.id);
         await this.invalidateRoomCache(user.id, examSession.examRoomId);
+        await clearResourceCodeFailures(this.redis.getClient(), id);
 
         return { accessCode };
     }

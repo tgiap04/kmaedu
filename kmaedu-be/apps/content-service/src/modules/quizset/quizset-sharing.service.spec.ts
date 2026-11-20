@@ -27,8 +27,9 @@ function build(set: Record<string, unknown> | null = null) {
         ),
     };
     const repo = { invalidateItemCache: jest.fn().mockResolvedValue(undefined) };
-    const service = new QuizsetSharingService(prisma as never, repo as never, users as never);
-    return { service, prisma, repo, users };
+    const redis = { del: jest.fn().mockResolvedValue(1) };
+    const service = new QuizsetSharingService(prisma as never, repo as never, users as never, { getClient: () => redis } as never);
+    return { service, prisma, repo, users, redis };
 }
 
 const set = {
@@ -106,6 +107,12 @@ describe('QuizsetSharingService', () => {
         expect(call.where).toEqual({ id: 's', userId: 'owner' });
         expect(call.data).toEqual({ accessCode, codeGrantedIds: [] });
         expect(call.data).not.toHaveProperty('whitelist');
+    });
+
+    it('generate-code: clears the shared wrong-code budget of the set, so a locked set unlocks at once', async () => {
+        const { service, redis } = build(set);
+        await service.generateCode('s', user);
+        expect(redis.del).toHaveBeenCalledWith('content:codefail-res:s');
     });
 
     it('generate-code: non-owner is a 404', async () => {

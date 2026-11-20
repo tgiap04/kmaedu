@@ -39,12 +39,6 @@ interface SessionRow {
     updatedAt: Instant;
 }
 
-interface QuestionRow {
-    id: string;
-    question: string;
-    options: string[];
-}
-
 /** A host auth could not resolve (unknown id, auth down) stays `null`. */
 const pickUser = (u: UserBrief | null): UserBrief | null =>
     u && {
@@ -96,23 +90,15 @@ const pickRoom = (r: RoomRow) => ({
     host: pickUser(r.host),
 });
 
-/** Question stem and options only: the answer key never leaves the server. */
-export const pickQuestion = (q: QuestionRow) => ({
-    id: q.id,
-    question: q.question,
-    options: q.options,
-});
-
-/** `GET study/:id`, `POST study/:id/with-code`. */
-export function toExamSessionStudyView(
-    session: SessionRow & { examRoom: RoomRow },
-    questions: QuestionRow[],
-    isOwner: boolean
-) {
+/**
+ * `GET study/:id`, `POST study/:id/with-code`: the session and its room, never its questions. Exam content
+ * only comes with an attempt (secure-quiz, the attempt's own draw), so a participant cannot read the pool
+ * before the start or beyond the questions they will get.
+ */
+export function toExamSessionStudyView(session: SessionRow & { examRoom: RoomRow }, isOwner: boolean) {
     return {
         ...pickSession(session),
         examRoom: pickRoom(session.examRoom),
-        questions: questions.map(pickQuestion),
         creator: pickUser(session.examRoom.host),
         isOwner,
     };

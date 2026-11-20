@@ -50,21 +50,10 @@ const room = {
     },
     host,
 };
-const question = {
-    id: 'qq',
-    question: 'Q?',
-    options: ['A', 'B'],
-    answer: 'A',
-    isCorrect: true,
-};
 
 describe('exam session mappers', () => {
     it('study view picks fields by name: no answer, isCorrect, accessCode, whitelist, email, password at any depth', () => {
-        const view = toExamSessionStudyView(
-            { ...base, examRoom: room } as never,
-            [question],
-            false
-        );
+        const view = toExamSessionStudyView({ ...base, examRoom: room } as never, false);
         const keys = keysOf(view);
         for (const banned of [
             'answer',
@@ -79,9 +68,10 @@ describe('exam session mappers', () => {
         ]) {
             expect(keys).not.toContain(banned);
         }
-        expect(view.questions).toEqual([
-            { id: 'qq', question: 'Q?', options: ['A', 'B'] },
-        ]);
+        // The exam content never leaves through the study view: questions only come with an attempt
+        // (secure-quiz), so a participant cannot read the pool before the start or beyond their draw.
+        expect(keys).not.toContain('questions');
+        expect(keys).not.toContain('options');
         expect(view.creator).toEqual({
             id: 'h',
             username: 'host',
