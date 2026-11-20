@@ -7,6 +7,7 @@ import {
     RequirePermissionsOrService,
     principalOfMetadata,
 } from '@kmaedu/auth-jwt';
+import type { UserStorage } from '../../prisma';
 import { DEFAULT_LIST_SIZE, MAX_LIST_SIZE, MAX_UPLOAD_BYTES } from '../../config/document.constants';
 import { DocumentDeleteService } from './document-delete.service';
 import { DocumentErrorCode, documentError, toRpcException } from './document-errors';
@@ -14,6 +15,7 @@ import { toDocumentInfo } from './document-mapper';
 import { DocumentProcessingService } from './document-processing.service';
 import { DocumentQueryService } from './document-query.service';
 import { DocumentUploadService } from './document-upload.service';
+import { DocumentUrlService } from './document-url.service';
 
 /** The acting user of an RPC: the `sub` of the forwarded user token. Service tokens never act here. */
 function actorOf(metadata: Metadata): string {
@@ -44,8 +46,14 @@ export class DocumentGrpcController implements documentV1.DocumentServiceControl
         private readonly uploads: DocumentUploadService,
         private readonly queries: DocumentQueryService,
         private readonly processing: DocumentProcessingService,
-        private readonly deletes: DocumentDeleteService
+        private readonly deletes: DocumentDeleteService,
+        private readonly urls: DocumentUrlService
     ) {}
+
+    /** Wire form of rows whose `url` is a presigned GET (the stored column is never returned). */
+    private async infos(rows: UserStorage[]): Promise<documentV1.DocumentInfo[]> {
+        return (await this.urls.withUrls(rows)).map(toDocumentInfo);
+    }
 
     @RequirePermissions('document:upload')
     async createUpload(request: documentV1.CreateUploadRequest, metadata: Metadata): Promise<documentV1.CreateUploadResponse> {
@@ -62,7 +70,7 @@ export class DocumentGrpcController implements documentV1.DocumentServiceControl
                 { filename: request.filename, mimetype: request.mimetype, data: Buffer.from(request.data) },
                 { reuseDuplicate: request.reuseDuplicate }
             );
-            return { document: toDocumentInfo(outcome.document), reused: outcome.reused };
+            return { document: (await this.infos([outcome.document]))[0], reused: outcome.reused };
         });
     }
 
@@ -73,7 +81,7 @@ export class DocumentGrpcController implements documentV1.DocumentServiceControl
     ): Promise<documentV1.GetDocumentsByIdsResponse> {
         const userId = actorOf(metadata);
         return withRpcErrors(async () => ({
-            documents: (await this.queries.getByIds(userId, request.ids)).map(toDocumentInfo),
+            documents: await this.infos(await this.queries.getByIds(userId, request.ids)),
         }));
     }
 
@@ -104,7 +112,7 @@ export class DocumentGrpcController implements documentV1.DocumentServiceControl
     ): Promise<documentV1.EnsureProcessedResponse> {
         const userId = actorOf(metadata);
         return withRpcErrors(async () => ({
-            document: toDocumentInfo(await this.processing.ensureProcessed(userId, request.id)),
+            document: (await this.infos([await this.processing.ensureProcessed(userId, request.id)]))[0],
         }));
     }
 
@@ -135,7 +143,7 @@ export class DocumentGrpcController implements documentV1.DocumentServiceControl
                 throw documentError(400, DocumentErrorCode.VALIDATION_FAILED, `size must be at most ${MAX_LIST_SIZE}`);
             }
             const rows = await this.queries.listRecent(userId, request.page || 1, request.size || DEFAULT_LIST_SIZE);
-            return { documents: rows.map(toDocumentInfo) };
+            return { documents: await this.infos(rows) };
         });
     }
 

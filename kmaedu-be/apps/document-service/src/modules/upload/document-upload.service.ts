@@ -1,5 +1,6 @@
+import { randomUUID } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
-import { GenerateIdService, ownedR2Key, ownerKeyFolder, sanitizeFilename } from '@kmaedu/common';
+import { GenerateIdService, ownedR2Key, ownerKeyFolder } from '@kmaedu/common';
 import { R2DeleteTaskWriter } from '@kmaedu/messaging';
 import { PrismaService, UserStorage } from '../../prisma';
 import { R2Client } from '../../clients/r2.client';
@@ -7,6 +8,7 @@ import { AI_UPLOAD_AREAS, DocumentStatus, MAX_UPLOAD_BYTES } from '../../config/
 import { DocumentErrorCode, documentError } from './document-errors';
 import { DocumentQueueService } from './document-queue.service';
 import { DocumentRepository } from './document.repository';
+import { DetectedType, detectDocumentType } from './file-signature';
 import { UploadStagingRepository } from './upload-staging.repository';
 
 export interface UploadBytes {
@@ -31,14 +33,24 @@ const STAGING_TX_TIMEOUT_MS = 30_000;
 const storageUnavailable = () =>
     documentError(500, DocumentErrorCode.STORAGE_UNAVAILABLE, 'Không thể tải file lên lưu trữ, vui lòng thử lại.');
 
-function assertUploadSize(file: UploadBytes): void {
+/** Size and type gate: the type comes from the bytes (magic numbers), never from the client's mimetype. */
+function inspectUpload(file: UploadBytes): DetectedType {
     if (file.data.length === 0 || file.data.length > MAX_UPLOAD_BYTES) {
         throw documentError(400, DocumentErrorCode.VALIDATION_FAILED, 'File rỗng hoặc vượt quá 50MB');
     }
+    const detected = detectDocumentType(file.data);
+    if (!detected) {
+        throw documentError(400, DocumentErrorCode.VALIDATION_FAILED, 'Chỉ hỗ trợ file PDF, DOCX hoặc văn bản thuần (TXT)');
+    }
+    return detected;
 }
 
-/** The last key segment r2 stores the file under (already free of anything r2's own sanitiser would change). */
-const storageName = (file: UploadBytes): string => `${Date.now()}-${sanitizeFilename(file.filename)}`;
+/**
+ * The last key segment: a random id plus the extension of the detected type. The key is the only
+ * thing protecting a private object's URL and must not be guessable (no timestamp, no file name), and
+ * two uploads can never collide.
+ */
+const storageName = (detected: DetectedType): string => `${randomUUID()}.${detected.ext}`;
 
 /**
  * Accepting files. quick-upload: the R2 object, then a PENDING row that is not queued for OCR.
@@ -59,15 +71,15 @@ export class DocumentUploadService {
     ) {}
 
     /** `POST /ai/quick-upload`: no OCR until the first chat message. */
-    async quick(userId: string, file: UploadBytes) {
-        const stored = await this.store('ai-teacher', userId, file);
-        const doc = await this.discardOnFailure(userId, stored.keyR2, () =>
+    async quick(userId: string, file: UploadBytes): Promise<UserStorage> {
+        const detected = inspectUpload(file);
+        const keyR2 = await this.store('ai-teacher', userId, file, detected);
+        return this.discardOnFailure(userId, keyR2, () =>
             this.repo.insert(this.prisma, {
-                ...this.newRow(userId, file, stored),
+                ...this.newRow(userId, file, detected, keyR2),
                 processingStatus: DocumentStatus.PENDING,
             })
         );
-        return { success: true, userStorageId: doc.id, filename: doc.filename, url: doc.url };
     }
 
     /**
@@ -76,13 +88,13 @@ export class DocumentUploadService {
      * already fixed, and the staged bytes; the worker role stores them and then queues OCR.
      */
     async createFromBytes(userId: string, file: UploadBytes, options: UploadBytesOptions): Promise<UploadOutcome> {
-        assertUploadSize(file);
+        const detected = inspectUpload(file);
         if (options.reuseDuplicate) {
             const dup = await this.repo.findDuplicate(userId, file.filename, file.data.length);
             if (dup) return { document: dup, reused: true };
         }
-        const keyR2 = `${ownerKeyFolder('ai-uploads', userId)}/${storageName(file)}`;
-        const base = this.newRow(userId, file, { keyR2, url: this.r2.getPublicUrl(keyR2) });
+        const keyR2 = `${ownerKeyFolder('ai-uploads', userId)}/${storageName(detected)}`;
+        const base = this.newRow(userId, file, detected, keyR2);
         const doc = await this.prisma.$transaction(async (tx) => {
             const row = await this.repo.insert(tx, { ...base, processingStatus: DocumentStatus.UPLOADING });
             await this.staging.insert(tx, row.id, file.data);
@@ -91,24 +103,27 @@ export class DocumentUploadService {
         return { document: doc, reused: false };
     }
 
-    private newRow(userId: string, file: UploadBytes, stored: { keyR2: string; url: string }) {
+    /** `url` stays empty: a private object is only ever served through a short-lived presigned URL. */
+    private newRow(userId: string, file: UploadBytes, detected: DetectedType, keyR2: string) {
         return {
             id: this.ids.generateId(),
             userId,
             filename: file.filename,
-            url: stored.url,
-            mimetype: file.mimetype,
+            url: '',
+            mimetype: detected.mime,
             size: file.data.length,
-            keyR2: stored.keyR2,
+            keyR2,
         };
     }
 
-    private async store(area: (typeof AI_UPLOAD_AREAS)[number], userId: string, file: UploadBytes) {
-        assertUploadSize(file);
-        const name = storageName(file);
+    private async store(
+        area: (typeof AI_UPLOAD_AREAS)[number],
+        userId: string,
+        file: UploadBytes,
+        detected: DetectedType
+    ): Promise<string> {
         try {
-            const keyR2 = await this.r2.uploadFile(name, file.data, file.mimetype, ownerKeyFolder(area, userId));
-            return { keyR2, url: this.r2.getPublicUrl(keyR2) };
+            return await this.r2.uploadFile(storageName(detected), file.data, detected.mime, ownerKeyFolder(area, userId));
         } catch (error) {
             this.logger.error(`R2 upload failed: ${(error as Error).message}`);
             throw storageUnavailable();

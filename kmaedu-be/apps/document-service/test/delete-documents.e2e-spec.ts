@@ -1,7 +1,7 @@
 import { lastValueFrom } from 'rxjs';
 import { OutboxService } from '@kmaedu/messaging';
 import { bootDocumentApp, rid, type DocumentTestApp, type TestUser } from './support/document-test-app';
-import { call, outbox, queuedKeys } from './support/helpers';
+import { call, outbox, pdf, queuedKeys } from './support/helpers';
 
 /**
  * One delete path for `DELETE /ai/upload/:id` and `DeleteDocuments`: rows gone, R2 keys queued in
@@ -18,7 +18,7 @@ describe('DeleteDocuments (e2e)', () => {
     async function upload(user: TestUser) {
         const res = await call(t.server, 'post', '/ai/quick-upload', await t.tokenFor(user)).attach(
             'file',
-            Buffer.alloc(512, 3),
+            pdf(512, 3),
             { filename: `f-${rid()}.pdf`, contentType: 'application/pdf' }
         );
         expect(res.status).toBe(201);

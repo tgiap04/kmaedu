@@ -7,7 +7,7 @@ import { DocumentUploadWorker } from '../src/modules/upload/document-upload.work
 import { UploadStagingRepository } from '../src/modules/upload/upload-staging.repository';
 import { UPLOAD_MAX_ATTEMPTS } from '../src/config/document.constants';
 import { bootDocumentApp, rid, type DocumentTestApp, type TestUser } from './support/document-test-app';
-import { outboxFor, queuedKeys } from './support/helpers';
+import { outboxFor, pdf, queuedKeys } from './support/helpers';
 
 /**
  * CreateUpload stages the bytes; the worker role's DocumentUploadWorker stores them in R2 (a real gRPC fake)
@@ -36,7 +36,7 @@ describe('document upload worker (e2e)', () => {
     afterAll(() => t.close());
 
     /** Creates a staged upload and parks every other staged row, so the worker can only pick this one. */
-    const create = async (user: TestUser, data = Buffer.alloc(4096, 5)) => {
+    const create = async (user: TestUser, data = pdf(4096, 5)) => {
         const res = await lastValueFrom(
             t.grpc.createUpload(
                 { filename: `w-${rid()}.pdf`, mimetype: 'application/pdf', data, reuseDuplicate: false },
@@ -61,11 +61,11 @@ describe('document upload worker (e2e)', () => {
 
     it('stores the bytes under the precomputed key, then PENDING + queuedAt, staging gone, one document.uploaded with the presigned url', async () => {
         const user = t.teacher();
-        const doc = await create(user, Buffer.alloc(5000, 3));
+        const doc = await create(user, pdf(5000, 3));
 
         await drain();
 
-        expect(t.r2.uploaded.get(doc.keyR2)).toEqual(Buffer.alloc(5000, 3));
+        expect(t.r2.uploaded.get(doc.keyR2)).toEqual(pdf(5000, 3));
         expect(await rowOf(doc.id)).toMatchObject({ processingStatus: 'PENDING', queuedAt: expect.any(Date) });
         expect(await stagingOf(doc.id)).toBeNull();
         const events = await outboxFor(t.prisma, 'document.uploaded', doc.id);
@@ -126,7 +126,7 @@ describe('document upload worker (e2e)', () => {
         await lastValueFrom(t.grpc.ensureProcessed({ id: doc.id }, await t.md(user)));
         expect(await outboxFor(t.prisma, 'document.uploaded', doc.id)).toHaveLength(0);
         const again = await lastValueFrom(
-            t.grpc.createUpload({ filename: doc.filename, mimetype: 'application/pdf', data: Buffer.alloc(4096, 5), reuseDuplicate: true }, await t.md(user))
+            t.grpc.createUpload({ filename: doc.filename, mimetype: 'application/pdf', data: pdf(4096, 5), reuseDuplicate: true }, await t.md(user))
         );
         expect(again.reused).toBe(false);
         expect(again.document!.id).not.toBe(doc.id);

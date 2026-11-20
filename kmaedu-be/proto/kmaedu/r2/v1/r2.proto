@@ -14,6 +14,9 @@ service R2Service {
   // Presigned GET URL for a key, valid for expires_in_seconds (service callers;
   // used by document-service to hand ai-service a download URL).
   rpc CreatePresignedDownload(CreatePresignedDownloadRequest) returns (CreatePresignedDownloadResponse);
+  // Size and leading bytes of a stored object (document-service checks what a client claims to have
+  // uploaded; it has no route to the bucket itself). Only document.
+  rpc InspectObject(InspectObjectRequest) returns (InspectObjectResponse);
 }
 
 message UploadFileRequest {
@@ -95,4 +98,19 @@ message CreatePresignedDownloadResponse {
   string url = 1;
   // Unix epoch milliseconds when the URL stops working.
   int64 expires_at = 2;
+}
+
+message InspectObjectRequest {
+  string key = 1;
+  // Leading bytes wanted; the server clamps it to 64 KiB.
+  int32 max_bytes = 2;
+}
+
+message InspectObjectResponse {
+  // False when no object is stored under the key.
+  bool found = 1;
+  // Real size of the stored object in bytes.
+  int64 size = 2;
+  // Up to max_bytes leading bytes.
+  bytes head = 3;
 }

@@ -4,7 +4,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { ServiceTokenClient } from '@kmaedu/auth-jwt';
 import { EVENTS_EXCHANGE, createEnvelope, declareTopology, type Envelope } from '@kmaedu/messaging';
 import { bootDocumentApp, rid, type DocumentTestApp, type TestUser } from './support/document-test-app';
-import { call, outboxFor, queuedKeys, registerBody } from './support/helpers';
+import { call, outboxFor, pdf, queuedKeys, stubStoredObjects, storedRegisterBody } from './support/helpers';
 
 /**
  * The real WorkerModule (outbox relay, document.events consumer, r2_delete_tasks worker) against a
@@ -64,13 +64,16 @@ describeWorker('document worker pipeline (e2e)', () => {
     };
     const rowOf = (id: string) => t.prisma.userStorage.findUniqueOrThrow({ where: { id } });
     const registeredDoc = async (user: TestUser) => {
-        const res = await call(t.server, 'post', '/ai/upload', await t.tokenFor(user), registerBody(user));
+        const res = await call(t.server, 'post', '/ai/upload', await t.tokenFor(user), storedRegisterBody(t.r2, user));
         expect(res.status).toBe(201);
         return res.body.id as string;
     };
 
+    let fetchStub: jest.SpyInstance;
+
     beforeAll(async () => {
         t = await bootDocumentApp();
+        fetchStub = stubStoredObjects(t.r2);
         process.env.R2_DELETE_POLL_MS = '50';
         // ai-service's side of the broker: its own topology, bound to what it consumes.
         aiConnection = await amqp.connect(process.env.RABBITMQ_AI_URL as string);
@@ -95,6 +98,7 @@ describeWorker('document worker pipeline (e2e)', () => {
     }, 60_000);
 
     afterAll(async () => {
+        fetchStub.mockRestore();
         await worker?.close();
         await aiConnection?.close().catch(() => undefined);
         await documentConnection?.close().catch(() => undefined);
@@ -126,7 +130,7 @@ describeWorker('document worker pipeline (e2e)', () => {
 
     it('the r2 delete worker removes the queued key through r2 DeleteObjects as svc:document', async () => {
         const user = t.teacher();
-        const res = await call(t.server, 'post', '/ai/quick-upload', await t.tokenFor(user)).attach('file', Buffer.alloc(64), {
+        const res = await call(t.server, 'post', '/ai/quick-upload', await t.tokenFor(user)).attach('file', pdf(64), {
             filename: `w-${rid()}.pdf`,
             contentType: 'application/pdf',
         });
@@ -181,7 +185,7 @@ describeWorker('document worker pipeline (e2e)', () => {
 
     it('ai.document.failed for a quick-upload row makes it FAILED', async () => {
         const user = t.teacher();
-        const res = await call(t.server, 'post', '/ai/quick-upload', await t.tokenFor(user)).attach('file', Buffer.alloc(64), {
+        const res = await call(t.server, 'post', '/ai/quick-upload', await t.tokenFor(user)).attach('file', pdf(64), {
             filename: `u-${rid()}.pdf`,
             contentType: 'application/pdf',
         });

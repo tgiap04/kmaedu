@@ -1,6 +1,7 @@
 import { DocumentRegisterService } from './document-register.service';
 
 const dto = { filename: 'a.pdf', url: 'https://r2/ai-uploads/u1/a.pdf', mimetype: 'application/pdf', size: 3 * 1024 * 1024, keyR2: 'ai-uploads/u1/a.pdf' };
+const PDF_OBJECT = { size: 3 * 1024 * 1024, head: Buffer.from('%PDF-1.7\n....') };
 
 const row = (over: Record<string, unknown> = {}) => ({
     id: 'd1',
@@ -28,8 +29,9 @@ function build() {
     };
     const processing = { ensureProcessed: jest.fn(async () => row({ processingStatus: 'PENDING' })) };
     const ids = { generateId: () => 'd1' };
-    const service = new DocumentRegisterService(prisma as never, repo as never, queue as never, processing as never, ids as never);
-    return { service, tx, prisma, repo, queue, processing };
+    const objects = { inspect: jest.fn().mockResolvedValue(PDF_OBJECT) };
+    const service = new DocumentRegisterService(prisma as never, repo as never, queue as never, processing as never, ids as never, objects as never);
+    return { service, tx, prisma, repo, queue, processing, objects };
 }
 
 describe('DocumentRegisterService.register (POST /ai/upload)', () => {
@@ -45,6 +47,42 @@ describe('DocumentRegisterService.register (POST /ai/upload)', () => {
             expect.objectContaining({ id: 'd1', userId: 'u1', keyR2: dto.keyR2, processingStatus: 'PENDING', queuedAt: expect.any(Date) })
         );
         expect(h.queue.recordUploaded).toHaveBeenCalledWith(h.tx, expect.objectContaining({ id: 'd1' }), 'https://r2.test/signed');
+    });
+
+    it('size, mimetype and url are NOT taken from the client: they come from the stored object (size, detected type) and the key (no public url)', async () => {
+        const h = build();
+        h.objects.inspect.mockResolvedValue({ size: 1234, head: Buffer.from('%PDF-1.4\n') });
+
+        await h.service.register('u1', { ...dto, url: 'javascript:alert(1)', mimetype: 'text/html', size: 1 } as never);
+
+        expect(h.objects.inspect).toHaveBeenCalledWith(dto.keyR2);
+        expect(h.repo.insert).toHaveBeenCalledWith(h.tx, expect.objectContaining({ size: 1234, mimetype: 'application/pdf', url: '' }));
+    });
+
+    it('an object that does not exist is 400 and nothing is inserted or queued', async () => {
+        const h = build();
+        h.objects.inspect.mockResolvedValue(null);
+        await expect(h.service.register('u1', dto as never)).rejects.toMatchObject({ status: 400 });
+        expect(h.repo.insert).not.toHaveBeenCalled();
+        expect(h.queue.recordUploaded).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['an SVG', { size: 80, head: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>1</script></svg>') }],
+        ['an empty object', { size: 0, head: Buffer.alloc(0) }],
+        ['an object over 50 MB', { size: 50 * 1024 * 1024 + 1, head: Buffer.from('%PDF-1.7') }],
+    ])('%s is 400 and nothing is inserted', async (_name, object) => {
+        const h = build();
+        h.objects.inspect.mockResolvedValue(object);
+        await expect(h.service.register('u1', dto as never)).rejects.toMatchObject({ status: 400 });
+        expect(h.repo.insert).not.toHaveBeenCalled();
+    });
+
+    it('an r2 failure while checking the object is 503, not a registered row', async () => {
+        const h = build();
+        h.objects.inspect.mockRejectedValue(new Error('r2 down'));
+        await expect(h.service.register('u1', dto as never)).rejects.toMatchObject({ status: 503 });
+        expect(h.repo.insert).not.toHaveBeenCalled();
     });
 
     it('a storage outage answers 503 before any row exists', async () => {

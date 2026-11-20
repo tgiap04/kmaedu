@@ -14,8 +14,17 @@ export type DocumentStatusValue = (typeof DocumentStatus)[keyof typeof DocumentS
 export const AI_UPLOAD_AREAS = ['ai-uploads', 'ai-teacher'] as const;
 
 export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+/** gRPC server message cap: the largest `CreateUpload` (the file bytes) plus framing. */
+export const GRPC_MAX_MESSAGE_BYTES = MAX_UPLOAD_BYTES + 2 * 1024 * 1024;
 export const MAX_QUICK_UPLOAD_BYTES = 5 * 1024 * 1024;
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+
+/**
+ * multer `limits.fileSize` that admits a file of exactly `maxBytes` and cuts the stream (413) as soon as it
+ * goes over, instead of buffering a larger file first. multer >= 2.5 treats the limit as inclusive (a file of
+ * exactly the limit passes; older versions truncated at it, which needed one byte more).
+ */
+export const multerFileLimit = (maxBytes: number): number => maxBytes;
 
 /** Validity of the `downloadUrl` handed to ai-service. */
 export const DOWNLOAD_URL_TTL_SECONDS = 3600;

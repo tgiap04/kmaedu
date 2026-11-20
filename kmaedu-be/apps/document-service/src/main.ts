@@ -8,8 +8,9 @@ import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions } from '@nestjs/microservices';
 import { HEALTH_ROUTES_EXCLUDED_FROM_PREFIX, Logger } from '@kmaedu/observability';
 import { PROTO_FILES } from '@kmaedu/contracts';
-import { LARGE_MESSAGE_BYTES, grpcServerOptions } from '@kmaedu/grpc';
+import { grpcServerOptions } from '@kmaedu/grpc';
 import { parseRoles } from '@kmaedu/messaging';
+import { GRPC_MAX_MESSAGE_BYTES } from './config/document.constants';
 import { DocumentServiceModule } from './document-service.module';
 import { WorkerModule } from './worker.module';
 
@@ -39,9 +40,9 @@ async function startApi() {
     });
 
     // gRPC server: DocumentService (callers forward the user token). CreateUpload carries the file
-    // bytes (up to 50 MB), so the message limit is raised like the r2 client's.
+    // bytes (up to 50 MB), so the message limit is that plus framing, not the 500 MB of the shared client.
     app.connectMicroservice<MicroserviceOptions>(
-        grpcServerOptions([PROTO_FILES.document], LARGE_MESSAGE_BYTES),
+        grpcServerOptions([PROTO_FILES.document], GRPC_MAX_MESSAGE_BYTES),
         { inheritAppConfig: true }
     );
     await app.startAllMicroservices();

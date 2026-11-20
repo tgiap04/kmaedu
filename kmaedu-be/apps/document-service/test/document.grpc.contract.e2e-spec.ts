@@ -2,7 +2,7 @@ import { Metadata } from '@grpc/grpc-js';
 import { lastValueFrom } from 'rxjs';
 import { documentV1 } from '@kmaedu/contracts';
 import { bootDocumentApp, rid, type DocumentTestApp, type TestUser } from './support/document-test-app';
-import { call, outbox, outboxFor } from './support/helpers';
+import { call, outbox, outboxFor, pdf } from './support/helpers';
 
 const Status = documentV1.DocumentProcessingStatus;
 
@@ -24,7 +24,7 @@ describe('DocumentService gRPC contract (e2e)', () => {
                 {
                     filename: `grpc-${rid()}.pdf`,
                     mimetype: 'application/pdf',
-                    data: Buffer.alloc(1024, 9),
+                    data: pdf(1024, 9),
                     reuseDuplicate: false,
                     ...over,
                 },
@@ -32,7 +32,7 @@ describe('DocumentService gRPC contract (e2e)', () => {
             )
         );
     async function quickRow(user: TestUser) {
-        const res = await call(t.server, 'post', '/ai/quick-upload', await t.tokenFor(user)).attach('file', Buffer.alloc(64, 1), {
+        const res = await call(t.server, 'post', '/ai/quick-upload', await t.tokenFor(user)).attach('file', pdf(64, 1), {
             filename: `q-${rid()}.pdf`,
             contentType: 'application/pdf',
         });
@@ -59,7 +59,7 @@ describe('DocumentService gRPC contract (e2e)', () => {
             const user = t.teacher();
             const other = t.teacher();
             const first = await create(user, { filename: 'm.pdf' });
-            const otherSize = await create(user, { filename: 'm.pdf', reuseDuplicate: true, data: Buffer.alloc(2048) });
+            const otherSize = await create(user, { filename: 'm.pdf', reuseDuplicate: true, data: pdf(2048) });
             const otherUser = await create(other, { filename: 'm.pdf', reuseDuplicate: true });
             expect([otherSize.reused, otherUser.reused]).toEqual([false, false]);
             expect(new Set([first.document?.id, otherSize.document?.id, otherUser.document?.id]).size).toBe(3);
@@ -78,7 +78,7 @@ describe('DocumentService gRPC contract (e2e)', () => {
                 mimetype: 'application/pdf',
                 size: '1024',
                 keyR2: expect.stringMatching(new RegExp(`^ai-uploads/${user.id}/`)),
-                url: expect.any(String),
+                url: expect.stringContaining('https://r2.test/signed/ai-uploads/'), // presigned, never the public url
                 processingStatus: Status.DOCUMENT_PROCESSING_STATUS_UPLOADING,
                 pageCount: 0,
                 createdAt: expect.any(String),
@@ -101,6 +101,8 @@ describe('DocumentService gRPC contract (e2e)', () => {
             const user = t.teacher();
             await expect(create(user, { filename: ' ' })).rejects.toMatchObject({ code: 3 });
             await expect(create(user, { data: Buffer.alloc(0) })).rejects.toMatchObject({ code: 3 });
+            // the type comes from the bytes: an SVG labelled application/pdf is INVALID_ARGUMENT
+            await expect(create(user, { data: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>1</script></svg>') })).rejects.toMatchObject({ code: 3 });
             await expect(lastValueFrom(t.grpc.createUpload({ filename: 'a', mimetype: 'b', data: Buffer.from('x'), reuseDuplicate: false }, new Metadata()))).rejects.toMatchObject({ code: 16 });
             await expect(create(t.user(['STUDENT']))).rejects.toMatchObject({ code: 7 });
             const service = await t.md(user);

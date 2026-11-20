@@ -17,16 +17,15 @@ import { ApiConsumes, ApiCookieAuth, ApiOperation, ApiParam, ApiTags } from '@ne
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@kmaedu/common';
 import { RequirePermissions } from '@kmaedu/auth-jwt';
-import { MAX_QUICK_UPLOAD_BYTES, MAX_UPLOAD_BYTES } from '../../config/document.constants';
+import { MAX_QUICK_UPLOAD_BYTES, multerFileLimit } from '../../config/document.constants';
 import { toHttpDocument } from './document-mapper';
 import { DocumentErrorCode, documentError } from './document-errors';
 import { DocumentDeleteService } from './document-delete.service';
 import { DocumentQueryService } from './document-query.service';
 import { DocumentRegisterService } from './document-register.service';
 import { DocumentUploadService } from './document-upload.service';
+import { DocumentUrlService } from './document-url.service';
 import { RegisterUploadDto, UploadImageDto } from './dto/upload.dto';
-
-const MB = 1024 * 1024;
 
 /** `/ai/*` upload routes moved verbatim from the old exam service (paths and response shapes unchanged). */
 @UsePipes(ZodValidationPipe)
@@ -39,28 +38,26 @@ export class UploadController {
         private readonly uploads: DocumentUploadService,
         private readonly registrations: DocumentRegisterService,
         private readonly queries: DocumentQueryService,
-        private readonly deletes: DocumentDeleteService
+        private readonly deletes: DocumentDeleteService,
+        private readonly urls: DocumentUrlService
     ) {}
 
     @Post('quick-upload')
     @RequirePermissions('document:upload')
-    @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_BYTES } }))
+    @UseInterceptors(FileInterceptor('file', { limits: { fileSize: multerFileLimit(MAX_QUICK_UPLOAD_BYTES) } }))
     @ApiCookieAuth('cookie-auth')
     @ApiConsumes('multipart/form-data')
-    @ApiOperation({ summary: 'Quick upload file cho AI Teacher (khong OCR ngay)' })
+    @ApiOperation({ summary: 'Quick upload file cho AI Teacher (khong OCR ngay), toi da 5MB' })
     async quickUpload(@Req() req: AuthenticatedRequest, @UploadedFile() file: Express.Multer.File) {
         if (!file || !file.buffer) throw new BadRequestException('No file uploaded');
-        if (file.size > MAX_QUICK_UPLOAD_BYTES) {
-            throw new BadRequestException(
-                `File quá lớn. Tối đa 5MB, file của bạn: ${(file.size / MB).toFixed(2)}MB`
-            );
-        }
         this.logger.log(`quick-upload user=${req.user.id} ${file.originalname} (${file.size} bytes)`);
-        return this.uploads.quick(req.user.id, {
+        const doc = await this.uploads.quick(req.user.id, {
             filename: file.originalname,
             mimetype: file.mimetype,
             data: file.buffer,
         });
+        const { url } = await this.urls.withUrl(doc);
+        return { success: true, userStorageId: doc.id, filename: doc.filename, url };
     }
 
     @Get('upload/:uploadId')
@@ -69,7 +66,7 @@ export class UploadController {
     @ApiOperation({ summary: 'Lấy chi tiết file đã upload' })
     @ApiParam({ name: 'uploadId', description: 'ID của upload' })
     async uploadDetail(@Req() req: AuthenticatedRequest, @Param('uploadId') uploadId: string) {
-        return toHttpDocument(await this.queries.getOwned(req.user.id, uploadId));
+        return toHttpDocument(await this.urls.withUrl(await this.queries.getOwned(req.user.id, uploadId)));
     }
 
     @Delete('upload/:uploadId')

@@ -9,6 +9,8 @@ import { DocumentQueryService } from './document-query.service';
 import { DocumentQueueService } from './document-queue.service';
 import { DocumentRegisterService } from './document-register.service';
 import { DocumentUploadService } from './document-upload.service';
+import { R2ObjectInspector } from './r2-object-inspector';
+import { DocumentUrlService } from './document-url.service';
 import { DocumentRepository } from './document.repository';
 import { UploadStagingRepository } from './upload-staging.repository';
 
@@ -36,6 +38,8 @@ export const DOCUMENT_MESSAGING = MessagingModule.forRoot({ service: 'document' 
         DocumentDeleteService,
         DocumentUploadService,
         DocumentRegisterService,
+        DocumentUrlService,
+        R2ObjectInspector,
     ],
     exports: [
         R2Client,
@@ -47,6 +51,7 @@ export const DOCUMENT_MESSAGING = MessagingModule.forRoot({ service: 'document' 
         DocumentDeleteService,
         DocumentUploadService,
         DocumentRegisterService,
+        DocumentUrlService,
     ],
 })
 export class DocumentDomainModule {}

@@ -1,7 +1,7 @@
 import { lastValueFrom } from 'rxjs';
 import { R2Client } from '../src/clients/r2.client';
 import { bootDocumentApp, rid, type DocumentTestApp } from './support/document-test-app';
-import { MB, call, outboxFor, registerBody } from './support/helpers';
+import { MB, call, outboxFor, pdf, png, registerBody, storedRegisterBody, stubStoredObjects } from './support/helpers';
 
 /**
  * Accepting uploads against a real Postgres, with r2 as a real gRPC fake. Nothing is charged and there
@@ -11,19 +11,25 @@ import { MB, call, outboxFor, registerBody } from './support/helpers';
 describe('document uploads (e2e)', () => {
     let t: DocumentTestApp;
 
+    let fetchStub: jest.SpyInstance;
+
     beforeAll(async () => {
         t = await bootDocumentApp();
+        fetchStub = stubStoredObjects(t.r2);
     });
-    afterAll(() => t.close());
+    afterAll(async () => {
+        fetchStub.mockRestore();
+        await t.close();
+    });
 
     type User = ReturnType<DocumentTestApp['teacher']>;
-    const register = async (user: User, body = registerBody(user)) => call(t.server, 'post', '/ai/upload', await t.tokenFor(user), body);
+    const register = async (user: User, body = storedRegisterBody(t.r2, user)) => call(t.server, 'post', '/ai/upload', await t.tokenFor(user), body);
     const rowOf = (id: string) => t.prisma.userStorage.findUniqueOrThrow({ where: { id } });
 
     describe('POST /ai/upload', () => {
         it('inserts the row PENDING and queues OCR with a presigned URL, in one transaction, with no balance in the answer', async () => {
             const user = t.teacher();
-            const body = registerBody(user, 3 * MB);
+            const body = storedRegisterBody(t.r2, user, 3 * MB);
             const res = await register(user, body);
 
             expect(res.status).toBe(201);
@@ -50,7 +56,7 @@ describe('document uploads (e2e)', () => {
 
         it('the same upload twice is one upload: same id, one event', async () => {
             const user = t.teacher();
-            const body = registerBody(user);
+            const body = storedRegisterBody(t.r2, user);
             const first = await register(user, body);
             const second = await register(user, body);
 
@@ -68,7 +74,7 @@ describe('document uploads (e2e)', () => {
 
         it('r2 unable to sign the download URL: 503, no row, no event; the same key registers fine afterwards', async () => {
             const user = t.teacher();
-            const body = registerBody(user);
+            const body = storedRegisterBody(t.r2, user);
             const r2 = t.moduleRef.get(R2Client, { strict: false });
             const presign = jest.spyOn(r2, 'createPresignedDownload').mockRejectedValueOnce(new Error('r2 down'));
 
@@ -118,7 +124,7 @@ describe('document uploads (e2e)', () => {
 
     describe('POST /ai/quick-upload', () => {
         const quick = async (user: User, name = `slides-${rid()}.pdf`, size = 10 * 1024) =>
-            call(t.server, 'post', '/ai/quick-upload', await t.tokenFor(user)).attach('file', Buffer.alloc(size, 7), { filename: name, contentType: 'application/pdf' });
+            call(t.server, 'post', '/ai/quick-upload', await t.tokenFor(user)).attach('file', pdf(size), { filename: name, contentType: 'application/pdf' });
 
         it('stores the file as svc:document and creates a PENDING row that is not queued (no event)', async () => {
             const user = t.teacher();
@@ -130,17 +136,60 @@ describe('document uploads (e2e)', () => {
             const row = await rowOf(id);
             expect(row).toMatchObject({ processingStatus: 'PENDING', userId: user.id, queuedAt: null });
             expect(row.keyR2.startsWith(`ai-teacher/${user.id}/`)).toBe(true);
-            expect(res.body.url).toBe(`https://r2.test/${row.keyR2}`);
+            expect(row.url).toBe(''); // nothing public is stored for a private document
+            expect(row.keyR2).toMatch(new RegExp(`^ai-teacher/${user.id}/[0-9a-f-]{36}\\.pdf$`));
+            expect(row.mimetype).toBe('application/pdf');
+            expect(res.body.url).toBe(`https://r2.test/signed/${row.keyR2}?ttl=3600`);
             expect(t.r2.calls.filter((c) => c.rpc === 'UploadFile' && c.keys[0] === row.keyR2)).toEqual([expect.objectContaining({ caller: 'svc:document' })]);
             expect(await outboxFor(t.prisma, 'document.uploaded', id)).toHaveLength(0);
         });
 
-        it('over 5 MB is 400 and stores nothing; many small ones in a month are all accepted', async () => {
+        it('over 5 MB is cut off while streaming (413) and stores nothing; many small ones in a month are all accepted', async () => {
             const user = t.teacher();
             const before = t.r2.calls.length;
-            expect((await quick(user, 'big.pdf', 5 * MB + 1)).status).toBe(400);
+            expect((await quick(user, 'big.pdf', 5 * MB + 1)).status).toBe(413);
             expect(t.r2.calls).toHaveLength(before);
             for (let i = 0; i < 6; i += 1) expect((await quick(user)).status).toBe(201);
+        });
+    });
+
+    describe('file type (magic bytes, not the client Content-Type)', () => {
+        it('an SVG or HTML sent as application/pdf is 400 and stores nothing', async () => {
+            const token = await t.tokenFor(t.teacher());
+            const before = t.r2.calls.length;
+            for (const body of ['<svg xmlns="http://www.w3.org/2000/svg"><script>1</script></svg>', '<!doctype html><script>1</script>']) {
+                const res = await call(t.server, 'post', '/ai/quick-upload', token).attach('file', Buffer.from(body), { filename: 'x.pdf', contentType: 'application/pdf' });
+                expect(res.status).toBe(400);
+            }
+            expect(t.r2.calls).toHaveLength(before);
+        });
+
+        it('POST /ai/upload ignores the client url, size and mimetype: they come from the stored object', async () => {
+            const user = t.teacher();
+            const body = storedRegisterBody(t.r2, user, 4096);
+            const res = await register(user, { ...body, url: 'javascript:alert(1)', mimetype: 'text/html', size: 1 });
+
+            expect(res.status).toBe(201);
+            expect(await rowOf(res.body.id)).toMatchObject({ url: '', mimetype: 'application/pdf', size: 4096 });
+        });
+
+        it('POST /ai/upload for a key with no object, or an object that is not a document, is 400', async () => {
+            const user = t.teacher();
+            expect((await register(user, registerBody(user))).status).toBe(400);
+            const body = registerBody(user);
+            t.r2.uploaded.set(body.keyR2, Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>'));
+            expect((await register(user, body)).status).toBe(400);
+            expect(await t.prisma.userStorage.count({ where: { userId: user.id } })).toBe(0);
+        });
+
+        it('GET /ai/upload/:id returns a presigned url even for a row that still stores a legacy public url', async () => {
+            const user = t.teacher();
+            const id = (await register(user)).body.id as string;
+            await t.prisma.userStorage.update({ where: { id }, data: { url: 'https://r2.test/ai-uploads/legacy.pdf' } });
+
+            const detail = await call(t.server, 'get', `/ai/upload/${id}`, await t.tokenFor(user));
+
+            expect(detail.body.url).toBe(`https://r2.test/signed/${(await rowOf(id)).keyR2}?ttl=3600`);
         });
     });
 
@@ -199,18 +248,20 @@ describe('document uploads (e2e)', () => {
     });
 
     describe('POST /r2/image and the upload-image placeholder', () => {
-        it('stores an image under images/<userId> and returns its public url; non-images and >2 MB are 400', async () => {
+        it('stores an image under images/<userId> and returns its public url; non-images and SVG are 400, >2 MB is 413', async () => {
             const user = t.teacher();
             const token = await t.tokenFor(user);
-            const ok = await call(t.server, 'post', '/r2/image', token).attach('file', Buffer.alloc(2048, 1), { filename: 'Ảnh đẹp.png', contentType: 'image/png' });
+            const ok = await call(t.server, 'post', '/r2/image', token).attach('file', png(2048), { filename: 'Ảnh đẹp.png', contentType: 'image/png' });
             expect(ok.status).toBe(201);
-            expect(ok.body.url).toMatch(new RegExp(`^https://r2\\.test/images/${user.id}/\\d+-`));
+            expect(ok.body.url).toMatch(new RegExp(`^https://r2\\.test/images/${user.id}/[0-9a-f-]{36}\\.png$`));
             expect(t.r2.calls.at(-1)).toMatchObject({ rpc: 'UploadFile', caller: 'svc:document' });
 
             const text = await call(t.server, 'post', '/r2/image', token).attach('file', Buffer.alloc(10), { filename: 'a.txt', contentType: 'text/plain' });
             expect(text.status).toBe(400);
-            const big = await call(t.server, 'post', '/r2/image', token).attach('file', Buffer.alloc(2 * MB + 1), { filename: 'b.png', contentType: 'image/png' });
-            expect(big.status).toBe(400);
+            const svg = await call(t.server, 'post', '/r2/image', token).attach('file', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>1</script></svg>'), { filename: 'c.png', contentType: 'image/png' });
+            expect(svg.status).toBe(400);
+            const big = await call(t.server, 'post', '/r2/image', token).attach('file', png(2 * MB + 1), { filename: 'b.png', contentType: 'image/png' });
+            expect(big.status).toBe(413);
 
             const placeholder = await call(t.server, 'post', '/ai/upload-image', token, { image: 'data' });
             expect(placeholder.body).toEqual({ success: true, message: 'Image upload endpoint - implementation pending' });

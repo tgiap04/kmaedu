@@ -35,7 +35,7 @@ export interface R2DeletePartial {
 }
 
 /**
- * Promise facade over r2 `UploadFile`, `CreatePresignedDownload` and `DeleteObjects`.
+ * Promise facade over r2 `UploadFile`, `CreatePresignedDownload`, `InspectObject` and `DeleteObjects`.
  * Every call runs as `svc:document` (r2 allowlists `document` in code).
  */
 @Injectable()
@@ -96,6 +96,15 @@ export class R2Client implements OnModuleInit {
         );
         if (!response.url) throw new Error('R2 returned an empty download URL');
         return response.url;
+    }
+
+    /** Size and leading bytes of the object under `key` (`null` when nothing is stored there). */
+    async inspectObject(key: string, maxBytes: number): Promise<{ size: number; head: Buffer } | null> {
+        const response = await this.call('InspectObject', buildMetadata(), (options, md) =>
+            this.r2.inspectObject({ key, maxBytes }, md, options)
+        );
+        if (!response.found) return null;
+        return { size: Number(response.size), head: Buffer.from(response.head ?? []) };
     }
 
     /** Idempotent batch delete reporting per-key failures; missing keys count as deleted. */

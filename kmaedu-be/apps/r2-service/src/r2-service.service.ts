@@ -19,6 +19,18 @@ const S3_CONNECTION_TIMEOUT_MS = 10_000;
 const S3_REQUEST_TIMEOUT_MS = 4 * 60 * 1000;
 const S3_MAX_ATTEMPTS = 2; // with the 4 min request timeout this stays near the caller's 5 min gRPC deadline
 
+/**
+ * Content types r2 will write. Whatever is stored is served from the bucket's origin with this
+ * Content-Type, so active content (SVG, HTML, XML, scripts) must never get in; callers detect the type
+ * from the bytes and pass it here, and anything else is refused.
+ */
+const INLINE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+const ATTACHMENT_TYPES = new Set([
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+]);
+
 @Injectable()
 export class R2ServiceService {
     private readonly logger = new Logger(R2ServiceService.name);
@@ -71,6 +83,11 @@ export class R2ServiceService {
         mimetype: string,
         directory?: string
     ): Promise<string> {
+        const contentType = mimetype?.split(';')[0].trim().toLowerCase() ?? '';
+        const isImage = INLINE_IMAGE_TYPES.has(contentType);
+        if (!isImage && !ATTACHMENT_TYPES.has(contentType)) {
+            throw new BadRequestException('Unsupported content type');
+        }
         const safeKey = this.sanitizePathPart(key, 'file key');
         const fullKey = directory
             ? `${this.sanitizeDirectory(directory)}/${safeKey}`
@@ -81,7 +98,9 @@ export class R2ServiceService {
                 Bucket: r2Config.bucket,
                 Key: fullKey,
                 Body: buffer,
-                ContentType: mimetype,
+                ContentType: contentType,
+                // Documents are downloaded, never rendered in the bucket's origin.
+                ...(isImage ? {} : { ContentDisposition: 'attachment' }),
             })
         );
 
@@ -154,6 +173,30 @@ export class R2ServiceService {
             })
         );
         return res.Body;
+    }
+
+    /**
+     * Size and up to `maxBytes` leading bytes of the object under `key`, with one ranged GET. `null` when
+     * the key holds nothing; an empty object (the range cannot be satisfied) has size 0. The body is read
+     * only up to `maxBytes` and then dropped, so a store that ignores Range cannot fill memory.
+     */
+    async inspectObject(key: string, maxBytes: number): Promise<{ size: number; head: Buffer } | null> {
+        let res: { Body?: unknown; ContentRange?: string; ContentLength?: number };
+        try {
+            res = await this.s3.send(
+                new GetObjectCommand({ Bucket: r2Config.bucket, Key: key, Range: `bytes=0-${maxBytes - 1}` })
+            );
+        } catch (error) {
+            const httpStatus = (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
+            const name = (error as { name?: string }).name;
+            if (name === 'NoSuchKey' || httpStatus === 404) return null;
+            if (name === 'InvalidRange' || httpStatus === 416) return { size: 0, head: Buffer.alloc(0) };
+            throw error;
+        }
+
+        const head = await readHead(res.Body, maxBytes);
+        const total = /\/(\d+)$/.exec(res.ContentRange ?? '')?.[1];
+        return { size: total ? Number(total) : (res.ContentLength ?? head.length), head };
     }
 
     /**
@@ -267,4 +310,17 @@ export class R2ServiceService {
         }
         return { deletedCount, failedKeys };
     }
+}
+
+/** At most `limit` bytes of an S3 body stream; the rest is dropped and the stream closed. */
+async function readHead(body: unknown, limit: number): Promise<Buffer> {
+    if (!body || typeof (body as AsyncIterable<unknown>)[Symbol.asyncIterator] !== 'function') return Buffer.alloc(0);
+    const chunks: Buffer[] = [];
+    let length = 0;
+    for await (const chunk of body as AsyncIterable<Uint8Array>) {
+        chunks.push(Buffer.from(chunk));
+        length += chunk.length;
+        if (length >= limit) break; // leaving the loop destroys the stream
+    }
+    return Buffer.concat(chunks).subarray(0, limit);
 }

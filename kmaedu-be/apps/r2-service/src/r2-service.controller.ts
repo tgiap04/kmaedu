@@ -8,6 +8,14 @@ import { RequirePermissionsOrService, ServiceOnly, assertSelfOrService } from '@
 const MAX_DELETE_KEYS = 10_000;
 const DEFAULT_PRESIGN_SECONDS = 3600;
 const MAX_PRESIGN_SECONDS = 24 * 3600;
+/** Leading bytes InspectObject returns at most (enough for every magic-number check). */
+const MAX_INSPECT_BYTES = 64 * 1024;
+const inspectBytes = (requested: number): number =>
+    requested > 0 ? Math.min(requested, MAX_INSPECT_BYTES) : MAX_INSPECT_BYTES;
+
+/** Default 1 h when absent or not positive, never more than 24 h. */
+const clampPresignSeconds = (requested: number): number =>
+    Math.min(requested > 0 ? requested : DEFAULT_PRESIGN_SECONDS, MAX_PRESIGN_SECONDS);
 
 @Controller()
 @r2V1.R2ServiceControllerMethods()
@@ -62,7 +70,7 @@ export class R2ServiceController implements r2V1.R2ServiceController {
     async getFileUrl(
         data: r2V1.GetFileUrlRequest
     ): Promise<r2V1.GetFileUrlResponse> {
-        const expiresIn = data.expiresInSeconds || 3600;
+        const expiresIn = clampPresignSeconds(data.expiresInSeconds);
         const url = await this.r2Service.resolveUrl(data.keyR2, expiresIn);
         return {
             url,
@@ -138,8 +146,7 @@ export class R2ServiceController implements r2V1.R2ServiceController {
                 message: 'key must be non-empty',
             });
         }
-        const requested = data.expiresInSeconds > 0 ? data.expiresInSeconds : DEFAULT_PRESIGN_SECONDS;
-        const expiresIn = Math.min(requested, MAX_PRESIGN_SECONDS);
+        const expiresIn = clampPresignSeconds(data.expiresInSeconds);
         try {
             const url = await this.r2Service.getSignedUrl(data.key, expiresIn);
             return { url, expiresAt: String(Date.now() + expiresIn * 1000) };
@@ -149,6 +156,22 @@ export class R2ServiceController implements r2V1.R2ServiceController {
                 code: status.INTERNAL,
                 message: 'CreatePresignedDownload failed',
             });
+        }
+    }
+
+    // document-service has no route to the bucket; it asks here what a client really stored under a key.
+    @ServiceOnly('document')
+    async inspectObject(data: r2V1.InspectObjectRequest): Promise<r2V1.InspectObjectResponse> {
+        if (!data.key?.trim()) {
+            throw new RpcException({ code: status.INVALID_ARGUMENT, message: 'key must be non-empty' });
+        }
+        try {
+            const object = await this.r2Service.inspectObject(data.key, inspectBytes(data.maxBytes));
+            if (!object) return { found: false, size: '0', head: Buffer.alloc(0) };
+            return { found: true, size: String(object.size), head: object.head };
+        } catch (error) {
+            this.logger.error(`InspectObject failed: ${(error as Error).message}`);
+            throw new RpcException({ code: status.INTERNAL, message: 'InspectObject failed' });
         }
     }
 }
