@@ -8,6 +8,10 @@ export const UpdateProgressSchema = z.object({
 });
 export class UpdateProgressDto extends createZodDto(UpdateProgressSchema) {}
 
+/** `POST /examattempts/:id/leave`: the `/progress` body, optional (a page unload may send none). */
+export const LeaveAttemptSchema = z.preprocess((body) => body ?? {}, UpdateProgressSchema);
+export class LeaveAttemptDto extends createZodDto(LeaveAttemptSchema) {}
+
 export const SecureSubmitSchema = z.object({
     answers: z.array(
         z.object({ token: z.string().min(1), chosen_option: z.string() })

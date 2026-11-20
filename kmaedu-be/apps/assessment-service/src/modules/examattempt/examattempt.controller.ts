@@ -1,4 +1,4 @@
-import { UpdateProgressDto, SecureSubmitDto } from './dto/progress.dto';
+import { UpdateProgressDto, SecureSubmitDto, LeaveAttemptDto } from './dto/progress.dto';
 import { QueryIntPipe } from '../common/query-schema';
 import { ZodValidationPipe } from 'nestjs-zod';
 import {
@@ -108,6 +108,28 @@ export class ExamAttemptController {
         @Param('id') id: string
     ) {
         return this.examAttemptService.submitExamAttempt(id, req.user);
+    }
+
+    @Post(':id/leave')
+    @RequirePermissions('exam:take')
+    @ApiCookieAuth('cookie-auth')
+    @ApiOperation({
+        summary:
+            'The examinee left the quiz page: hands the attempt in when the session does not allow leaving midway',
+    })
+    @ApiParam({ name: 'id', description: 'Exam attempt ID' })
+    @ApiResponse({
+        status: 201,
+        description:
+            '{ handedIn: true, score, correctAnswers, totalQuestions } or { handedIn: false } (leaving allowed, or already handed in)',
+        type: Object,
+    })
+    async leaveExamAttempt(
+        @Req() req: AuthenticatedRequest,
+        @Param('id') id: string,
+        @Body() dto: LeaveAttemptDto
+    ) {
+        return this.examAttemptService.leaveExamAttempt(id, req.user, dto);
     }
 
     @Get(':id/quiz')

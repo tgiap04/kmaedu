@@ -165,6 +165,10 @@ export class ExamSessionService {
                     questionSelectionMode: dto.questionSelectionMode ?? QUESTION_SELECTION_MODE.ALL,
                     labelQuestionConfig: dto.labelQuestionConfig ?? null,
                     shuffleQuestions: dto.shuffleQuestions ?? false,
+                    // Attempt rules
+                    durationMinutes: dto.durationMinutes ?? null,
+                    antiCheatEnabled: dto.antiCheatEnabled ?? true,
+                    allowLeaveMidway: dto.allowLeaveMidway ?? true,
                     ...snapshotColumns(snapshot),
                 },
                 user.id
@@ -509,6 +513,19 @@ export class ExamSessionService {
 
         if (dto.shuffleQuestions !== undefined) {
             updateData.shuffleQuestions = dto.shuffleQuestions;
+        }
+
+        // Attempt rules: read live by in-progress attempts (deadline, logging, leave), no snapshot involved.
+        if (dto.durationMinutes !== undefined) {
+            updateData.durationMinutes = dto.durationMinutes;
+        }
+
+        if (dto.antiCheatEnabled !== undefined) {
+            updateData.antiCheatEnabled = dto.antiCheatEnabled;
+        }
+
+        if (dto.allowLeaveMidway !== undefined) {
+            updateData.allowLeaveMidway = dto.allowLeaveMidway;
         }
 
         // Validate question selection configuration if being updated

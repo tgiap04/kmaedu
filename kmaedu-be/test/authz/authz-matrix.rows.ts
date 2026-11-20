@@ -311,6 +311,17 @@ export const rows: Record<'content' | 'assessment' | 'studyroom' | 'vocabulary' 
             },
         },
         {
+            name: 'POST /examattempts/:id/leave (body optional)',
+            method: 'post',
+            path: '/examattempts/att1/leave',
+            expect: {
+                STUDENT: '2xx',
+                TEACHER: 403,
+                ADMIN_ONLY: '2xx',
+                TEACHER_ADMIN: '2xx',
+            },
+        },
+        {
             name: 'GET /examsessions/study/:id',
             method: 'get',
             path: '/examsessions/study/s1',

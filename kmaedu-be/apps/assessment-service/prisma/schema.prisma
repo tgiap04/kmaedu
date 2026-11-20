@@ -87,6 +87,11 @@ model ExamSession {
     showAnswersAfterSubmit Boolean   @default(true) // Show detailed answers after submission
     passingScore           Float     @default(0) // Minimum score percentage to pass (0 = no minimum)
 
+    // Attempt rules: each attempt must end by min(startedAt + durationMinutes, endTime) (null = until endTime).
+    durationMinutes        Int?
+    antiCheatEnabled       Boolean   @default(true) // false: cheating logs are not recorded
+    allowLeaveMidway       Boolean   @default(true) // false: leaving the quiz page hands the attempt in
+
     // Question selection configuration
     // Immutable copy of the quiz set taken at creation (QuizSnapshotV1, zod-validated on read), and its
     // content hash (the cache key and the drift check). Only `refresh-snapshot` rewrites them, under a row lock.

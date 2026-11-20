@@ -27,7 +27,12 @@ export class CheatingLogService {
         // Verify the attempt exists and belongs to the user
         const attempt = await this.prisma.examAttempt.findUnique({
             where: { id: dto.examAttemptId },
-            select: { id: true, userId: true, status: true },
+            select: {
+                id: true,
+                userId: true,
+                status: true,
+                examSession: { select: { antiCheatEnabled: true } },
+            },
         });
 
         if (!attempt) {
@@ -38,6 +43,11 @@ export class CheatingLogService {
             throw new ForbiddenException(
                 'You can only log violations for your own attempts'
             );
+        }
+
+        // The host turned anti-cheat off for this session: nothing is recorded.
+        if (!attempt.examSession.antiCheatEnabled) {
+            return { logged: false };
         }
 
         // Only log for in-progress attempts

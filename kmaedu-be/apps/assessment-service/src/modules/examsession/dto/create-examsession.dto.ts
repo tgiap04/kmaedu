@@ -39,6 +39,10 @@ export const CreateExamSessionSchema = z.object({
         .default(QUESTION_SELECTION_MODE.ALL),
     labelQuestionConfig: z.array(LabelQuestionConfigSchema).optional().nullable(),
     shuffleQuestions: z.boolean().optional().default(false),
+    // Attempt rules
+    durationMinutes: z.number().int().min(1).max(1440).nullable().optional().default(null),
+    antiCheatEnabled: z.boolean().optional().default(true),
+    allowLeaveMidway: z.boolean().optional().default(true),
 });
 
 export class CreateExamSessionDto extends createZodDto(
@@ -148,4 +152,27 @@ export class CreateExamSessionDto extends createZodDto(
         required: false,
     })
     shuffleQuestions: boolean;
+
+    @ApiProperty({
+        description:
+            'Minutes each attempt may last (1-1440). The deadline is min(startedAt + durationMinutes, endTime); null = until the session ends',
+        example: 45,
+        required: false,
+        nullable: true,
+    })
+    durationMinutes: number | null;
+
+    @ApiProperty({
+        description: 'Record cheating signals (tab switch, copy...) for this session',
+        example: true,
+        required: false,
+    })
+    antiCheatEnabled: boolean;
+
+    @ApiProperty({
+        description: 'false: leaving the quiz page hands the attempt in (POST /examattempts/:id/leave)',
+        example: true,
+        required: false,
+    })
+    allowLeaveMidway: boolean;
 }

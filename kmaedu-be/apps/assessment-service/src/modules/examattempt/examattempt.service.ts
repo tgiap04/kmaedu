@@ -54,6 +54,15 @@ import {
     attemptRelation,
     type AttemptRelation,
 } from './examattempt-access';
+import type { UpdateProgressDto } from './dto/progress.dto';
+import {
+    AttemptDeadlinePassedException,
+    attemptDeadline,
+    isPastDeadline,
+    minutesUntilDeadline,
+    tokenExpirySeconds,
+    type AttemptTimeRules,
+} from './attempt-deadline';
 
 /** `null` = the owning service could not answer. */
 interface HistoryStats {
@@ -155,6 +164,11 @@ export class ExamAttemptService {
         };
     }
 
+    /** When the attempt must be over (`null` = no limit); see `attemptDeadline`. */
+    private deadlineOf(attempt: { startedAt: Date; examSession: AttemptTimeRules }): Date | null {
+        return attemptDeadline(attempt.startedAt, attempt.examSession);
+    }
+
     /** 404 unless the viewer is the examinee or the host (no existence leak). */
     private relationOrNotFound(
         attempt: { userId: string; examSession: { examRoom: { hostId: string } } },
@@ -224,10 +238,9 @@ export class ExamAttemptService {
             },
         });
 
-        // Check retry limits (based on ExamSession, not ExamRoom)
-        // maxAttempts means the number of RETRIES allowed (not including first attempt)
-        // So total allowed attempts = 1 (first) + maxAttempts (retries)
-        const totalAllowedAttempts = 1 + examSession.maxAttempts;
+        // Attempt limit (per ExamSession): maxAttempts is the TOTAL number of attempts, as the session form
+        // ("Số lần làm tối đa"), the session page (x/maxAttempts) and createExamAttempt read it.
+        const totalAllowedAttempts = examSession.maxAttempts;
 
         if (!examSession.allowRetake && completedAttempts > 0) {
             throw new BadRequestException(
@@ -328,6 +341,7 @@ export class ExamAttemptService {
         // Verify ownership and status
         const attempt = await this.prisma.examAttempt.findFirst({
             where: { id: attemptId, userId: user.id },
+            include: { examSession: { select: { durationMinutes: true, endTime: true } } },
         });
 
         if (!attempt) {
@@ -336,6 +350,11 @@ export class ExamAttemptService {
 
         if (attempt.status !== EXAM_ATTEMPT_STATUS.IN_PROGRESS) {
             throw new BadRequestException('Bài làm đã nộp, không thể cập nhật');
+        }
+
+        // Past deadline + grace nothing more is saved: the hand-in grades what was saved in time.
+        if (isPastDeadline(this.deadlineOf(attempt))) {
+            throw new AttemptDeadlinePassedException();
         }
 
         try {
@@ -351,8 +370,9 @@ export class ExamAttemptService {
                 updateData.markedQuestions = dto.markedQuestions;
             }
 
+            // A late auto-save must not overwrite an attempt another hand-in already graded.
             const updatedAttempt = await this.prisma.examAttempt.update({
-                where: { id: attemptId },
+                where: { id: attemptId, status: EXAM_ATTEMPT_STATUS.IN_PROGRESS },
                 data: updateData,
             });
             await this.examAttemptRepository.invalidateItemCache(user.id, attemptId);
@@ -362,6 +382,9 @@ export class ExamAttemptService {
                 examAttempt: updatedAttempt,
             };
         } catch (error) {
+            if ((error as { code?: string })?.code === 'P2025') {
+                throw new BadRequestException('Bài làm đã được nộp trước đó');
+            }
             rethrowKnown(error);
             throw new InternalServerErrorException('Cập nhật bài làm thất bại');
         }
@@ -385,51 +408,110 @@ export class ExamAttemptService {
             throw new BadRequestException('Bài làm đã được nộp trước đó');
         }
 
-        // Graded against the snapshot the attempt was drawn from: later edits of the quiz set never count.
+        const handedIn = await this.handIn(attempt, user, (attempt.answers ?? {}) as Record<string, string>);
+        if (!handedIn) {
+            throw new BadRequestException('Bài làm đã được nộp trước đó');
+        }
+        const { updatedAttempt, questions, score, correctAnswers: correctCount, totalQuestions } = handedIn;
+
+        const showAnswers = attempt.examSession.showAnswersAfterSubmit;
+        const passingScore = attempt.examSession.passingScore || 0;
+        const passed = score >= passingScore;
+
+        const summary = {
+            message: 'Nộp bài thành công',
+            examAttempt: updatedAttempt,
+            score,
+            totalQuestions,
+            correctAnswers: correctCount,
+            percentage: Math.round(score * 10) / 10,
+            passed,
+            passingScore,
+        };
+        // The answer key only after submit, and only when the session allows it.
+        return showAnswers
+            ? { ...summary, showAnswers: true, questions: questions.map(withAnswer) }
+            : { ...summary, showAnswers: false };
+    }
+
+    /**
+     * Grades `savedAnswers` against the snapshot the attempt was drawn from (later edits of the quiz
+     * set never count) and marks the attempt COMPLETED. Keys may be question ids or the quiz page's
+     * `q_<index>`; they are stored by question id, as secure-submit does. Shared by `/submit` and `/leave`.
+     * Resolves null when the attempt was no longer in progress (another hand-in won).
+     */
+    private async handIn(
+        attempt: {
+            id: string;
+            examSessionId: string;
+            selectedQuestionIds: string[];
+            examSession: { quizSnapshotHash: string };
+        },
+        user: AuthUser,
+        savedAnswers: Record<string, string>,
+        progress: { currentIndex?: number; markedQuestions?: string[] } = {}
+    ) {
         const snapshot = await this.snapshotOf(attempt);
         const questions = questionsOf(snapshot, attempt.selectedQuestionIds);
-        // Stored by question id (the quiz page saves `q_<index>` keys), as secure-submit does.
-        const answers = answersByQuestionId(questions, (attempt.answers ?? {}) as Record<string, string>);
-        const { correctAnswers: correctCount, totalQuestions, score } = gradeAnswers(questions, answers);
+        const answers = answersByQuestionId(questions, savedAnswers);
+        const graded = gradeAnswers(questions, answers);
 
         try {
+            // Only while still in progress: of concurrent hand-ins (submit, leave, secure-submit) one wins.
             const updatedAttempt = await this.prisma.examAttempt.update({
-                where: { id: attemptId },
+                where: { id: attempt.id, status: EXAM_ATTEMPT_STATUS.IN_PROGRESS },
                 data: {
+                    ...progress,
                     status: EXAM_ATTEMPT_STATUS.COMPLETED,
                     finishedAt: new Date(),
                     answers,
-                    score,
-                    correctAnswers: correctCount,
-                    totalQuestions,
+                    score: graded.score,
+                    correctAnswers: graded.correctAnswers,
+                    totalQuestions: graded.totalQuestions,
                 },
             });
-
-            const showAnswers = attempt.examSession.showAnswersAfterSubmit;
-            const passingScore = attempt.examSession.passingScore || 0;
-            const passed = score >= passingScore;
-
             await this.examAttemptRepository.invalidateUserListCache(user.id);
-            await this.examAttemptRepository.invalidateItemCache(user.id, attemptId);
-
-            const summary = {
-                message: 'Nộp bài thành công',
-                examAttempt: updatedAttempt,
-                score,
-                totalQuestions,
-                correctAnswers: correctCount,
-                percentage: Math.round(score * 10) / 10,
-                passed,
-                passingScore,
-            };
-            // The answer key only after submit, and only when the session allows it.
-            return showAnswers
-                ? { ...summary, showAnswers: true, questions: questions.map(withAnswer) }
-                : { ...summary, showAnswers: false };
+            await this.examAttemptRepository.invalidateItemCache(user.id, attempt.id);
+            return { updatedAttempt, questions, ...graded };
         } catch (error) {
+            if ((error as { code?: string })?.code === 'P2025') return null;
             rethrowKnown(error);
             throw new InternalServerErrorException('Nộp bài thất bại');
         }
+    }
+
+    /**
+     * The examinee left the quiz page. When the session does not allow leaving midway, an attempt
+     * still in progress is handed in like `/submit`, on the page's last state (`dto`, the `/progress`
+     * body) if it arrives in time, else on what was saved. Otherwise nothing happens.
+     */
+    async leaveExamAttempt(attemptId: string, user: AuthUser, dto: UpdateProgressDto) {
+        const attempt = await this.prisma.examAttempt.findFirst({
+            where: { id: attemptId, userId: user.id },
+            include: { examSession: true },
+        });
+
+        if (!attempt) {
+            throw new NotFoundException('Bài làm không tồn tại');
+        }
+
+        if (attempt.status !== EXAM_ATTEMPT_STATUS.IN_PROGRESS || attempt.examSession.allowLeaveMidway) {
+            return { handedIn: false as const };
+        }
+
+        // Same cut-off as `/progress`: after deadline + grace the body is not saved.
+        const inTime = !isPastDeadline(this.deadlineOf(attempt));
+        const answers =
+            inTime && dto.answers !== undefined
+                ? dto.answers
+                : ((attempt.answers ?? {}) as Record<string, string>);
+        const progress = inTime ? { currentIndex: dto.currentIndex, markedQuestions: dto.markedQuestions } : {};
+
+        const handedIn = await this.handIn(attempt, user, answers, progress);
+        if (!handedIn) return { handedIn: false as const };
+        this.logger.log(`attempt ${attempt.id} handed in on leave (session ${attempt.examSessionId}, in time: ${inTime})`);
+        const { score, correctAnswers, totalQuestions } = handedIn;
+        return { handedIn: true as const, score, correctAnswers, totalQuestions };
     }
 
     /**
@@ -1445,10 +1527,12 @@ export class ExamAttemptService {
             throw new NotFoundException('Bài làm không tồn tại');
         }
 
-        // Calculate expiry time based on session end time
-        const expirySeconds = this.cryptoService.calculateExpirySeconds(
-            attempt.examSession.endTime
-        );
+        // Tokens die at deadline + grace, so an answer sent after it is not counted by secure-submit.
+        // Without a deadline: until the session end (or the default lifetime).
+        const deadline = this.deadlineOf(attempt);
+        const expirySeconds = deadline
+            ? tokenExpirySeconds(deadline)
+            : this.cryptoService.calculateExpirySeconds(attempt.examSession.endTime);
 
         const snapshot = await this.snapshotOf(attempt);
         const questions = questionsOf(snapshot, attempt.selectedQuestionIds);
@@ -1479,14 +1563,8 @@ export class ExamAttemptService {
             };
         });
 
-        // Calculate time limit from session
-        let timeLimitMinutes: number | null = null;
-        if (attempt.examSession.endTime) {
-            const diffMs =
-                attempt.examSession.endTime.getTime() -
-                attempt.examSession.startTime.getTime();
-            timeLimitMinutes = Math.floor(diffMs / 60000);
-        }
+        // Countdown length of THIS attempt: from its start to its deadline (`null` = no limit).
+        const timeLimitMinutes = deadline ? minutesUntilDeadline(attempt.startedAt, deadline) : null;
 
         // Return minimal data - no answers, no full question text exposed
         return {
@@ -1497,6 +1575,9 @@ export class ExamAttemptService {
             markedQuestions: attempt.markedQuestions,
             totalQuestions: attempt.totalQuestions,
             timeLimitMinutes,
+            deadline: deadline ? deadline.toISOString() : null,
+            antiCheatEnabled: attempt.examSession.antiCheatEnabled,
+            allowLeaveMidway: attempt.examSession.allowLeaveMidway,
             startedAt: attempt.startedAt,
             questions: secureQuestions,
         };
@@ -1522,6 +1603,12 @@ export class ExamAttemptService {
 
         if (attempt.status !== EXAM_ATTEMPT_STATUS.IN_PROGRESS) {
             throw new BadRequestException('Bài làm đã được nộp trước đó');
+        }
+
+        // Past deadline + grace the answers sent now are late (a token fetched after the deadline still
+        // lives 1 s): hand in what was saved in time instead.
+        if (isPastDeadline(this.deadlineOf(attempt))) {
+            return this.handInLateSecure(attempt, user);
         }
 
         // The attempt's questions and answer letters, from the snapshot of its session.
@@ -1602,8 +1689,9 @@ export class ExamAttemptService {
             totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
 
         try {
+            // Only while still in progress: of concurrent hand-ins (submit, leave, secure-submit) one wins.
             const updatedAttempt = await this.prisma.examAttempt.update({
-                where: { id: attemptId },
+                where: { id: attemptId, status: EXAM_ATTEMPT_STATUS.IN_PROGRESS },
                 data: {
                     status: EXAM_ATTEMPT_STATUS.COMPLETED,
                     finishedAt: new Date(),
@@ -1648,8 +1736,53 @@ export class ExamAttemptService {
             await this.examAttemptRepository.invalidateItemCache(user.id, attemptId);
             return response;
         } catch (error) {
+            if ((error as { code?: string })?.code === 'P2025') {
+                throw new BadRequestException('Bài làm đã được nộp trước đó');
+            }
             rethrowKnown(error);
             throw new InternalServerErrorException('Nộp bài thất bại');
         }
+    }
+
+    /**
+     * Secure-submit after deadline + grace: the answers sent are late, so the saved ones are graded (like
+     * `/submit`), answered in secure-submit's shape: no raw attempt row (no answer ids), each question's
+     * chosen answer when the session shows answers.
+     */
+    private async handInLateSecure(
+        attempt: {
+            id: string;
+            examSessionId: string;
+            selectedQuestionIds: string[];
+            answers: unknown;
+            examSession: { quizSnapshotHash: string; showAnswersAfterSubmit: boolean; passingScore: number | null };
+        },
+        user: AuthUser
+    ) {
+        const handedIn = await this.handIn(attempt, user, (attempt.answers ?? {}) as Record<string, string>);
+        if (!handedIn) {
+            throw new BadRequestException('Bài làm đã được nộp trước đó');
+        }
+        const { updatedAttempt, questions, score, correctAnswers, totalQuestions } = handedIn;
+        const saved = (updatedAttempt.answers ?? {}) as Record<string, string>;
+        const showAnswers = attempt.examSession.showAnswersAfterSubmit;
+        const passingScore = attempt.examSession.passingScore || 0;
+        return {
+            message: 'Nộp bài thành công',
+            examAttempt: {
+                id: updatedAttempt.id,
+                status: updatedAttempt.status,
+                score: updatedAttempt.score,
+                finishedAt: updatedAttempt.finishedAt,
+            },
+            score,
+            totalQuestions,
+            correctAnswers,
+            percentage: Math.round(score * 10) / 10,
+            showAnswers,
+            passed: score >= passingScore,
+            passingScore,
+            ...(showAnswers ? { questions: questions.map((q) => ({ ...withAnswer(q), userAnswer: saved[q.id] || null })) } : {}),
+        };
     }
 }
