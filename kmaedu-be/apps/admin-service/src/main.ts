@@ -24,6 +24,10 @@ async function bootstrap() {
     });
     app.useLogger(app.get(Logger));
 
+    // Trust the gateway hop so req.ip is the real client (the gateway
+    // overwrites x-forwarded-for); the throttler tracks by it, like auth.
+    app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
     app.setGlobalPrefix('api/v1', {
         exclude: HEALTH_ROUTES_EXCLUDED_FROM_PREFIX,
     });

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import {
     PrismaModule,
@@ -18,6 +19,7 @@ import { AdminWordFamilyModule } from './modules/admin-word-family/admin-word-fa
 import { AdminPageConfigModule } from './modules/admin-page-config/admin-page-config.module';
 import { HealthModule, LoggerModule } from '@kmaedu/observability';
 import { AuthJwtModule } from '@kmaedu/auth-jwt';
+import { AdminHttpThrottlerGuard } from './common/admin-http-throttler.guard';
 
 /** AUTH_TOKEN_URL + SERVICE_CLIENT_SECRET are mandatory in production; locally only when set. */
 function serviceClientEnabled(): boolean {
@@ -54,6 +56,13 @@ function serviceClientEnabled(): boolean {
         AdminPageConfigModule,
     ],
     controllers: [AdminServiceController],
-    providers: [AdminServiceService, PrismaService],
+    providers: [
+        AdminServiceService,
+        PrismaService,
+        // Enforces the controllers' @Throttle({ admin }). Declared on the root
+        // module so it runs before AuthJwtModule's guards (scan order), like
+        // auth-service: a flood is refused by IP before any token work.
+        { provide: APP_GUARD, useClass: AdminHttpThrottlerGuard },
+    ],
 })
 export class AdminServiceModule {}
