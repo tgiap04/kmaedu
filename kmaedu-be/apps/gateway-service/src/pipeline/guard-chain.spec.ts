@@ -50,6 +50,7 @@ function chain(user: AuthUser | undefined, extra: { pages?: boolean | Error; all
         limiter,
         pages,
         verify,
+        state,
         gc: new GuardChain({ table, verify, state, limiter, pages } as never),
     };
 }
@@ -135,6 +136,30 @@ describe('GuardChain', () => {
         const anon = chain(undefined);
         await anon.gc.run(input('POST', '/api/v1/hook/ping'));
         expect(anon.limiter.check).toHaveBeenCalledWith(expect.objectContaining({ id: 'default' }), '9.9.9.9');
+    });
+
+    it('every spelling of a limited path draws from the same bucket and sees the same route', async () => {
+        for (const [method, path] of [
+            ['POST', '/api/v1/ai/tight/'],
+            ['POST', '/API/V1/AI/Tight'],
+            ['POST', '/api/v1//ai/tight'],
+        ]) {
+            const c = chain(teacher);
+            await c.gc.run(input(method, path));
+            expect(c.limiter.check).toHaveBeenCalledWith(expect.objectContaining({ id: 'tight', max: 1 }), 't1');
+        }
+        // HEAD is not the limited POST, but it is still answered by the `library` GET route's rules.
+        const c = chain(undefined);
+        await expect(c.gc.run(input('HEAD', '/API/V1/Library/Catalog/'))).resolves.toMatchObject({
+            ok: true,
+            mode: 'anonymous',
+        });
+    });
+
+    it('hands the revoke/av check the canonical path (admin fail-closed policy keys on it)', async () => {
+        const d = chain(teacher);
+        await d.gc.run(input('GET', '/api/v1//ai//models/'));
+        expect(d.state.check).toHaveBeenCalledWith(expect.anything(), { method: 'GET', pathname: '/api/v1/ai/models' });
     });
 
     it('auth failures never reach the limiter or the page flag', async () => {

@@ -106,6 +106,21 @@ describe('dispatcher middleware', () => {
         expect(r.chain.run).not.toHaveBeenCalled();
     });
 
+    it('routes a case, slash or HEAD variant like the canonical request but forwards the original URL', async () => {
+        r = await rig(() => OK);
+        const res = await r.call('/API/V1/QuizSets//Abc123/?Q=A');
+        expect(res.status).toBe(200);
+        expect(r.chain.run).toHaveBeenCalledTimes(1);
+        expect(r.chain.run.mock.calls[0][0]).toMatchObject({ route: { id: 'quiz' } });
+        expect(r.proxy.mock.calls[0][0].url).toBe('/API/V1/QuizSets//Abc123/?Q=A');
+    });
+
+    it('answers 404 for a percent-encoded dodge instead of picking a route', async () => {
+        r = await rig(() => OK);
+        expect((await r.call('/api/v1/%71uizsets')).status).toBe(404);
+        expect(r.chain.run).not.toHaveBeenCalled();
+    });
+
     it('mints a request id when the header is missing or hostile', async () => {
         r = await rig(() => OK);
         const res = await r.call('/nope', { 'x-request-id': 'bad id with spaces' });

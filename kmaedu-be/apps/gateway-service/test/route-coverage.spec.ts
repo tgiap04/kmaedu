@@ -229,9 +229,9 @@ describe('coarse permission table', () => {
         expect(route(method, path).permissions).toEqual(permissions);
     });
 
-    it('the upload routes carry the 50mb / 120s override', () => {
+    it('the upload routes carry the 6mb (5 MB file + multipart framing) / 120s override', () => {
         const upload = route('POST', '/api/v1/ai/quick-upload');
-        expect(upload.maxBodyBytes).toBe(50 * 1024 * 1024);
+        expect(upload.maxBodyBytes).toBe(6 * 1024 * 1024);
         expect(upload.timeoutMs).toBe(120_000);
     });
 
@@ -337,5 +337,46 @@ describe('coarse permission table', () => {
         expect(route('GET', '/api/v1/studyrooms/mine').pageFlag).toBe('study-room');
         expect(route('GET', '/ws/study').pageFlag).toBe('study-room');
         expect(route('GET', '/ws/study').websocket).toBe(true);
+    });
+});
+
+describe('GW-01: one route entry per request, whatever its spelling', () => {
+    const variants = (path: string) => [
+        path,
+        `${path}/`,
+        path.toUpperCase().replace(/^\/API\/V1/, '/api/v1'),
+        path.replace('/api/v1/', '/Api/V1/'),
+        path.replace('/api/v1/', '/api//v1/'),
+    ];
+
+    it.each([
+        ['POST', '/api/v1/auth/verifyAccount', 'auth-verify-account', 5],
+        ['POST', '/api/v1/auth/login', 'auth-login', 5],
+        ['POST', '/api/v1/ai/generate-from-file', 'ai-generate-from-file', 5],
+        ['POST', '/api/v1/ai-chat/c1/stream', 'ai-chat-stream', 10],
+        ['POST', '/api/v1/studyrooms/join', 'studyroom-join', 5],
+        ['POST', '/api/v1/quiz-practice/sets/q1/unlock', 'quiz-unlock', 5],
+        ['GET', '/api/v1/flashcardsets/users/search', 'flashcard-user-search', 30],
+        ['HEAD', '/api/v1/flashcardsets/users/search', 'flashcard-user-search', 30],
+    ])('%s %s keeps its throttle in every variant', (method, path, id, max) => {
+        for (const v of variants(path)) {
+            // Path params (ids) are case-sensitive data: only fixed segments may change case.
+            expect(table.rateLimitFor(method, v)).toMatchObject({ id, max });
+        }
+    });
+
+    it('the dedicated SSE route (5 min timeout) is chosen for variants of the stream path', () => {
+        for (const v of variants('/api/v1/ai-chat/c1/stream')) {
+            expect(table.match('POST', v)?.id).toBe('ai-chat-stream');
+        }
+    });
+
+    it('anonymous endpoints stay public in every variant and HEAD/GET reach the same route', () => {
+        const login = table.match('POST', '/api/v1/auth/login')!;
+        for (const v of variants('/api/v1/auth/login')) {
+            expect(table.match('POST', v)).toBe(login);
+            expect(table.effectiveAuth(login, 'POST', v)).toBe(table.effectiveAuth(login, 'POST', '/api/v1/auth/login'));
+        }
+        expect(table.match('HEAD', '/api/v1/admin/logs/stream')?.id).toBe(table.match('GET', '/api/v1/admin/logs/stream')?.id);
     });
 });

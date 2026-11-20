@@ -61,6 +61,14 @@ describe('AuthStateService.check', () => {
             await expect(svc.check(user, get('/api/v1/admin'))).resolves.toBe('unavailable');
         });
 
+        it('admin paths fail closed whatever their case, slashes or method alias', async () => {
+            const svc = new AuthStateService(down());
+            for (const p of ['/API/V1/ADMIN/users', '/api/v1/Admin', '/api/v1/admin/', '/api//v1//admin/users']) {
+                await expect(svc.check(user, get(p))).resolves.toBe('unavailable');
+            }
+            await expect(svc.check(user, get('/api/v1/admin/users', 'HEAD'))).resolves.toBe('unavailable');
+        });
+
         it('non-admin POST/PUT/PATCH/DELETE fail closed', async () => {
             const svc = new AuthStateService(down());
             for (const m of ['POST', 'PUT', 'PATCH', 'DELETE']) {

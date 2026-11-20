@@ -89,7 +89,7 @@ routes:
     auth: required
     permissions: [document:upload]
     pageFlag: ai-tool
-    maxBodySize: 50mb
+    maxBodySize: 6mb
     timeout: 120s
   - id: ai
     upstream: content

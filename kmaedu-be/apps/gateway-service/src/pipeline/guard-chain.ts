@@ -1,6 +1,7 @@
 import type { IncomingHttpHeaders } from 'http';
 import { Logger } from '@nestjs/common';
 import { hasPermission, type AuthUser, type TokenVerifier } from '@kmaedu/auth-jwt';
+import { canonicalPath } from '../routing/canonical-request';
 import type { CompiledRoute, RouteTable } from '../routing/route-table';
 import { authenticate } from './auth-check';
 import type { AuthStateService } from './auth-state.service';
@@ -47,7 +48,8 @@ export class GuardChain {
 
     async run(input: CheckInput): Promise<Decision> {
         const { table, verify, state, limiter, pages } = this.deps;
-        const { route, method, pathname } = input;
+        const { route, method } = input;
+        const pathname = canonicalPath(input.pathname);
         const auth = table.effectiveAuth(route, method, pathname);
 
         let user: AuthUser | undefined;

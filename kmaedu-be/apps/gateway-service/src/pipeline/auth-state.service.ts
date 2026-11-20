@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import type { AuthUser } from '@kmaedu/auth-jwt';
+import { canonicalPath } from '../routing/canonical-request';
 
 /** The Redis operations the revoke / `av` state needs. */
 export interface AuthStateRedis {
@@ -18,8 +19,10 @@ const DEFAULT_TIMEOUT_MS = 500;
 const WARN_EVERY_MS = 30_000;
 const READ_ONLY_METHODS = new Set(['GET', 'HEAD', 'UPGRADE']);
 
-const isAdminPath = (pathname: string): boolean =>
-    pathname === '/api/v1/admin' || pathname.startsWith('/api/v1/admin/');
+const isAdminPath = (pathname: string): boolean => {
+    const path = canonicalPath(pathname).toLowerCase();
+    return path === '/api/v1/admin' || path.startsWith('/api/v1/admin/');
+};
 
 /**
  * Revoked-session and stale-`av` checks (one `MGET` per authenticated request)

@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'yaml';
 import type { Permission } from '@kmaedu/auth-jwt';
+import { canonicalMethod, canonicalPath } from './canonical-request';
 import { matchRoute } from './route-matcher';
 import {
     compileDefaultLimit,
@@ -58,7 +59,7 @@ function compileRoute(route: RouteConfig, upstreams: Record<string, string>): Co
         id: route.id,
         upstream: route.upstream,
         target: self ? undefined : upstreams[route.upstream],
-        prefix: 'prefix' in route.match ? route.match.prefix : undefined,
+        prefix: 'prefix' in route.match ? route.match.prefix.toLowerCase() : undefined,
         pathRegex: 'path' in route.match ? fullMatch(route.match.path) : undefined,
         methods: route.methods ? new Set(route.methods) : undefined,
         auth: route.auth,
@@ -94,9 +95,11 @@ export class RouteTable {
 
     /** A `public` exception turns a required route into an optional one for that request. */
     effectiveAuth(route: CompiledRoute, method: string, pathname: string): AuthMode {
+        const m = canonicalMethod(method);
+        const p = canonicalPath(pathname);
         if (
             route.auth === 'required' &&
-            route.publicRules.some((r) => r.method === method && r.regex.test(pathname))
+            route.publicRules.some((r) => r.method === m && r.regex.test(p))
         ) {
             return 'optional';
         }

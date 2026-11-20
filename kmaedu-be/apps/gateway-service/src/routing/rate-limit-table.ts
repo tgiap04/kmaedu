@@ -1,3 +1,4 @@
+import { canonicalMethod, canonicalPath } from './canonical-request';
 import type { RateLimitConfig } from './route-config.schema';
 import { parseDurationMs } from './route-config.schema';
 
@@ -9,9 +10,9 @@ export interface CompiledRateLimit {
     max: number;
 }
 
-/** Patterns are full-match: `^(?:<source>)$`. */
+/** Patterns are full-match, case-insensitive (like the upstream router): `^(?:<source>)$`. */
 export function fullMatch(source: string): RegExp {
-    return new RegExp(`^(?:${source})$`);
+    return new RegExp(`^(?:${source})$`, 'i');
 }
 
 export function compileRateLimits(entries: readonly RateLimitConfig[]): CompiledRateLimit[] {
@@ -44,7 +45,7 @@ export function findRateLimit(
     method: string,
     pathname: string
 ): CompiledRateLimit {
-    return (
-        limits.find((l) => l.method === method && l.regex!.test(pathname)) ?? fallback
-    );
+    const m = canonicalMethod(method);
+    const p = canonicalPath(pathname);
+    return limits.find((l) => l.method === m && l.regex!.test(p)) ?? fallback;
 }
