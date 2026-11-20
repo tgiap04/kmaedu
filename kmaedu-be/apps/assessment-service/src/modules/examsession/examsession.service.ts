@@ -44,7 +44,13 @@ import { UserEnricher } from '../user-profile/user-enricher.service';
 import { toQuizSetBrief } from '../examroom/quiz-set-titles.cache';
 import { QuizSetDeletedException, snapshotColumns } from '../snapshot/quiz-snapshot';
 import { canRefresh, SnapshotDrift } from '../snapshot/snapshot-drift';
-import { gradeAnswers, labelStats, questionsOf, validateSelectionConfig } from '../snapshot/snapshot.reader';
+import {
+    answersByQuestionId,
+    gradeAnswers,
+    labelStats,
+    questionsOf,
+    validateSelectionConfig,
+} from '../snapshot/snapshot.reader';
 import { SnapshotStore } from '../snapshot/snapshot.store';
 import { SnapshotTaker } from '../snapshot/snapshot-taker';
 import { lockSessionRow, SnapshotLockedException } from '../snapshot/session-lock';
@@ -300,13 +306,13 @@ export class ExamSessionService {
                 for (const attempt of open) {
                     const quiz = quizzes.get(attempt.examSessionId);
                     if (!quiz) continue;
-                    const grade = gradeAnswers(
-                        questionsOf(quiz, attempt.selectedQuestionIds),
-                        (attempt.answers ?? {}) as Record<string, string>
-                    );
+                    const questions = questionsOf(quiz, attempt.selectedQuestionIds);
+                    // Stored by question id, as secure-submit does, so result views find each answer.
+                    const answers = answersByQuestionId(questions, (attempt.answers ?? {}) as Record<string, string>);
+                    const grade = gradeAnswers(questions, answers);
                     const { count: done } = await tx.examAttempt.updateMany({
                         where: { id: attempt.id, status: EXAM_ATTEMPT_STATUS.IN_PROGRESS },
-                        data: { status: EXAM_ATTEMPT_STATUS.COMPLETED, finishedAt: now, ...grade },
+                        data: { status: EXAM_ATTEMPT_STATUS.COMPLETED, finishedAt: now, answers, ...grade },
                     });
                     if (done > 0) handedIn.push({ id: attempt.id, userId: attempt.userId });
                 }

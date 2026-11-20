@@ -218,6 +218,17 @@ describe('ExamSessionService.endRoom', () => {
             expect(attempts[3]).not.toHaveProperty('score'); // already handed in: untouched
         });
 
+        it('grade answers the quiz page saved under q_<index> keys and store them by question id', async () => {
+            // the quiz page keys answers by position: q_0 is q1 (answer A), q_1 is q2 (answer B)
+            const attempts = [open('paged', 'running', { q_0: 'A', q_1: 'C' })];
+            const { service } = build(sessions(), HOST, attempts);
+
+            await service.endRoom(ROOM, user);
+
+            expect(attempts[0]).toMatchObject({ status: COMPLETED, score: 50, correctAnswers: 1, totalQuestions: 2 });
+            expect(attempts[0].answers).toEqual({ q1: 'A', q2: 'C' });
+        });
+
         it("drop the closed attempts' caches for their candidates", async () => {
             const attempts = [open('half', 'running', { q1: 'A' })];
             const { service, attemptRepo } = build(sessions(), HOST, attempts);

@@ -39,6 +39,7 @@ import { ContentClient } from '../../clients/content.client';
 import { toQuizSetBrief } from '../examroom/quiz-set-titles.cache';
 import { lockSessionRow } from '../snapshot/session-lock';
 import {
+    answersByQuestionId,
     countCorrect,
     gradeAnswers,
     questionsOf,
@@ -387,10 +388,9 @@ export class ExamAttemptService {
         // Graded against the snapshot the attempt was drawn from: later edits of the quiz set never count.
         const snapshot = await this.snapshotOf(attempt);
         const questions = questionsOf(snapshot, attempt.selectedQuestionIds);
-        const { correctAnswers: correctCount, totalQuestions, score } = gradeAnswers(
-            questions,
-            attempt.answers as Record<string, string>
-        );
+        // Stored by question id (the quiz page saves `q_<index>` keys), as secure-submit does.
+        const answers = answersByQuestionId(questions, (attempt.answers ?? {}) as Record<string, string>);
+        const { correctAnswers: correctCount, totalQuestions, score } = gradeAnswers(questions, answers);
 
         try {
             const updatedAttempt = await this.prisma.examAttempt.update({
@@ -398,6 +398,7 @@ export class ExamAttemptService {
                 data: {
                     status: EXAM_ATTEMPT_STATUS.COMPLETED,
                     finishedAt: new Date(),
+                    answers,
                     score,
                     correctAnswers: correctCount,
                     totalQuestions,
@@ -785,10 +786,12 @@ export class ExamAttemptService {
                 attempt.status,
                 attempt.examSession.showAnswersAfterSubmit
             );
-        const attemptAnswers = (attempt.answers as Record<string, string>) || {};
-        // The questions this attempt was drawn from the session's snapshot, answers keyed by question id.
+        // The questions this attempt was drawn from the session's snapshot, answers keyed by question id
+        // (an attempt still open, or closed before ids were stored, holds the quiz page's `q_<index>` keys).
         const snapshot = await this.snapshotOf(attempt);
-        const questions = questionsOf(snapshot, attempt.selectedQuestionIds).map((q) => ({
+        const drawn = questionsOf(snapshot, attempt.selectedQuestionIds);
+        const attemptAnswers = answersByQuestionId(drawn, (attempt.answers as Record<string, string>) || {});
+        const questions = drawn.map((q) => ({
             id: q.id,
             question: q.question,
             options: q.options,

@@ -75,9 +75,34 @@ export function withAnswer(q: SnapshotQuestion): { id: string; question: string;
     return { id: q.id, question: q.question, options: q.options, answer: q.answer };
 }
 
-/** Number of `answers` (questionId -> chosen letter) that match the snapshot's answer letters. */
+const POSITION_KEY = /^q_(\d+)$/;
+
+/**
+ * Saved answers keyed by question id. The secure quiz page never sees question ids, so it saves
+ * answers as `q_<index>` with the index in the attempt's question order (`questionsOf`); those keys
+ * are mapped back here. A key already holding a question id wins over its `q_<index>` twin, and keys
+ * matching no question of the attempt are dropped.
+ */
+export function answersByQuestionId(
+    questions: readonly SnapshotQuestion[],
+    answers: Record<string, string>,
+): Record<string, string> {
+    const byId: Record<string, string> = {};
+    for (const [key, chosen] of Object.entries(answers)) {
+        const position = POSITION_KEY.exec(key);
+        const question = position ? questions[Number(position[1])] : undefined;
+        if (question && !(question.id in answers)) byId[question.id] = chosen;
+    }
+    for (const q of questions) {
+        if (q.id in answers) byId[q.id] = answers[q.id];
+    }
+    return byId;
+}
+
+/** Number of saved answers (question id or `q_<index>` -> chosen letter) matching the snapshot's letters. */
 export function countCorrect(questions: readonly SnapshotQuestion[], answers: Record<string, string>): number {
-    return questions.reduce((n, q) => (answers[q.id] === q.answer ? n + 1 : n), 0);
+    const byId = answersByQuestionId(questions, answers);
+    return questions.reduce((n, q) => (byId[q.id] === q.answer ? n + 1 : n), 0);
 }
 
 /** Saved answers graded against the attempt's questions: score in percent, 0 for an attempt without questions. */

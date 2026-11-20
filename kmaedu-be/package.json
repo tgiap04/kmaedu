@@ -48,6 +48,7 @@
         "seed:admin": "ts-node --transpile-only apps/admin-service/prisma/seed.ts",
         "seed:ai-chat": "ts-node --transpile-only apps/ai-chat-service/prisma/seed.ts",
         "seed:vocabulary": "ts-node --transpile-only apps/vocabulary-service/prisma/seed.ts",
+        "regrade:exam-attempts": "ts-node --transpile-only apps/assessment-service/prisma/regrade-position-keyed-attempts.ts",
         "seed:dev:auth": "ts-node --transpile-only apps/auth-service/prisma/seed.ts --dev",
         "seed:dev:admin": "ts-node --transpile-only apps/admin-service/prisma/seed.ts --dev",
         "seed:dev:ai-chat": "ts-node --transpile-only apps/ai-chat-service/prisma/seed.ts --dev",

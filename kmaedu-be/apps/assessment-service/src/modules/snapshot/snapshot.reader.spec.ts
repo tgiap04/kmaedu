@@ -1,6 +1,7 @@
 import { QUESTION_SELECTION_MODE } from '../../types';
 import { buildSnapshot } from './snapshot.fixture';
 import {
+    answersByQuestionId,
     countCorrect,
     labelStats,
     questionsOf,
@@ -84,6 +85,33 @@ describe('questionsOf / answer stripping / grading', () => {
         expect(countCorrect(questions, {})).toBe(0);
         // an answer for a question outside the attempt does not count
         expect(countCorrect(questions, { q4: 'D' })).toBe(0);
+    });
+
+    it('grades answers the quiz page saved under q_<index> keys (index in the attempt order)', () => {
+        const questions = questionsOf(snapshot, ['q3', 'q1']);
+        // q_0 is q3 (answer C), q_1 is q1 (answer A)
+        expect(countCorrect(questions, { q_0: 'C', q_1: 'A' })).toBe(2);
+        expect(countCorrect(questions, { q_0: 'A', q_1: 'A' })).toBe(1);
+        // an index outside the attempt does not count
+        expect(countCorrect(questions, { q_2: 'C', q_9: 'A' })).toBe(0);
+    });
+});
+
+describe('answersByQuestionId', () => {
+    const questions = questionsOf(snapshot, ['q3', 'q1']);
+
+    it('rekeys q_<index> answers to the question ids of the attempt', () => {
+        expect(answersByQuestionId(questions, { q_0: 'C', q_1: 'B' })).toEqual({ q3: 'C', q1: 'B' });
+    });
+
+    it('keeps answers already keyed by question id, and the id key wins over its q_<index> twin', () => {
+        expect(answersByQuestionId(questions, { q3: 'D' })).toEqual({ q3: 'D' });
+        expect(answersByQuestionId(questions, { q3: 'D', q_0: 'C', q_1: 'A' })).toEqual({ q3: 'D', q1: 'A' });
+    });
+
+    it('drops keys that match no question of the attempt, and empty input stays empty', () => {
+        expect(answersByQuestionId(questions, { q_5: 'A', q4: 'B', q_x: 'C', 'q_-1': 'D' })).toEqual({});
+        expect(answersByQuestionId(questions, {})).toEqual({});
     });
 });
 
