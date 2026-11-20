@@ -1154,7 +1154,12 @@ export class FlashcardsetService {
     /**
      * Get public info for a flashcard set (without flashcards)
      */
-    async getFlashcardSetPublicInfo(id: string) {
+    /**
+     * Info for the study page (public route). A set the caller can study gets
+     * the full card; a locked code set only what the code prompt shows; any
+     * other set answers 404 like a missing one, so its existence never leaks.
+     */
+    async getFlashcardSetPublicInfo(id: string, userId?: string) {
         const flashcardSet = await this.prisma.flashCardSet.findUnique({
             where: { id },
             select: {
@@ -1166,14 +1171,28 @@ export class FlashcardsetService {
                 accessCode: true,
                 createdAt: true,
                 userId: true,
+                whitelist: true,
+                codeGrantedIds: true,
                 _count: {
                     select: { detailsFlashCard: true },
                 },
             },
         });
 
-        if (!flashcardSet) {
+        const canStudy = flashcardSet && accessKindOf(flashcardSet, userId);
+        if (!flashcardSet || (!canStudy && !flashcardSet.accessCode)) {
             throw new NotFoundException('Bộ thẻ ghi nhớ không tồn tại');
+        }
+
+        const creator = (await this.users.withUser(flashcardSet)).user;
+        if (!canStudy) {
+            return {
+                id: flashcardSet.id,
+                title: flashcardSet.title,
+                creator,
+                isPublic: false,
+                requiresCode: true,
+            };
         }
 
         return {
@@ -1182,7 +1201,7 @@ export class FlashcardsetService {
             description: flashcardSet.description,
             viewCount: flashcardSet.viewCount,
             cardCount: flashcardSet._count.detailsFlashCard,
-            creator: (await this.users.withUser(flashcardSet)).user,
+            creator,
             createdAt: flashcardSet.createdAt.toISOString(),
             isPublic: flashcardSet.isPublic,
             requiresCode: !flashcardSet.isPublic && !!flashcardSet.accessCode,

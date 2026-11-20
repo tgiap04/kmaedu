@@ -47,14 +47,15 @@ export interface FlashcardSet {
   };
 }
 
+/** A locked code set (caller has no access yet) only carries id, title, creator and the flags. */
 export interface FlashcardSetPublicInfo {
   id: string;
   title: string;
   description?: string;
-  viewCount: number;
-  cardCount: number;
+  viewCount?: number;
+  cardCount?: number;
   creator: FlashcardSetCreator | null;
-  createdAt: string;
+  createdAt?: string;
   isPublic: boolean;
   requiresCode: boolean;
 }

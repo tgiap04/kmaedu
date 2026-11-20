@@ -77,14 +77,15 @@ export class FlashcardSetPublicInfoDto {
     @ApiProperty({ example: 'Bộ thẻ tiếng Anh' })
     title: string;
 
-    @ApiProperty({ example: 'Bộ thẻ cơ bản' })
+    /** Left out (with viewCount, cardCount, createdAt) for a locked code set. */
+    @ApiProperty({ example: 'Bộ thẻ cơ bản', required: false })
     description?: string;
 
-    @ApiProperty({ example: 100 })
-    viewCount: number;
+    @ApiProperty({ example: 100, required: false })
+    viewCount?: number;
 
-    @ApiProperty({ example: 50 })
-    cardCount: number;
+    @ApiProperty({ example: 50, required: false })
+    cardCount?: number;
 
     @ApiProperty({
         example: {
@@ -99,6 +100,6 @@ export class FlashcardSetPublicInfoDto {
         name: string | null;
     };
 
-    @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
-    createdAt: string;
+    @ApiProperty({ example: '2024-01-01T00:00:00.000Z', required: false })
+    createdAt?: string;
 }

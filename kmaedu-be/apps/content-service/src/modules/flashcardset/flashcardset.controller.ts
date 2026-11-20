@@ -528,8 +528,14 @@ export class FlashcardsetController {
         description: 'Flashcard set public info',
         type: FlashcardSetPublicInfoDto,
     })
-    async getPublicInfo(@Param('id') id: string) {
-        return this.flashcardsetService.getFlashcardSetPublicInfo(id);
+    async getPublicInfo(
+        @Param('id') id: string,
+        @Req() req: AuthenticatedRequest
+    ) {
+        return this.flashcardsetService.getFlashcardSetPublicInfo(
+            id,
+            req.user?.id
+        );
     }
 
     @Get('study/:id')
