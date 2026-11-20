@@ -16,6 +16,7 @@ dependencies = [
     "grandalf (>=0.8,<0.9)",
     "langchain-openai (>=0.3.11,<0.4.0)",
     "langchain-experimental (>=0.3.4,<0.4.0)",
+    "faiss-cpu (>=1.10.0,<2.0.0)",
     "rank-bm25 (>=0.2.2,<0.3.0)",
     "numpy (>=2.2.4,<3.0.0)",
     "torch (>=2.6.0,<3.0.0)",
